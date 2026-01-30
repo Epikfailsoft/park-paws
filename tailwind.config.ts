@@ -7,12 +7,20 @@ export default {
   theme: {
     container: {
       center: true,
-      padding: "2rem",
+      padding: "1rem",
       screens: {
-        "2xl": "1400px",
+        sm: "100%",
+        md: "448px",
+        lg: "448px",
+        xl: "448px",
+        "2xl": "448px",
       },
     },
     extend: {
+      fontFamily: {
+        sans: ['DM Sans', 'system-ui', 'sans-serif'],
+        display: ['Outfit', 'system-ui', 'sans-serif'],
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -39,6 +47,10 @@ export default {
           DEFAULT: "hsl(var(--accent))",
           foreground: "hsl(var(--accent-foreground))",
         },
+        harmony: {
+          DEFAULT: "hsl(var(--harmony))",
+          foreground: "hsl(var(--harmony-foreground))",
+        },
         popover: {
           DEFAULT: "hsl(var(--popover))",
           foreground: "hsl(var(--popover-foreground))",
@@ -46,6 +58,18 @@ export default {
         card: {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
+        },
+        park: {
+          active: "hsl(var(--park-active))",
+          requested: "hsl(var(--park-requested))",
+          closed: "hsl(var(--park-closed))",
+        },
+        energy: {
+          1: "hsl(var(--energy-1))",
+          2: "hsl(var(--energy-2))",
+          3: "hsl(var(--energy-3))",
+          4: "hsl(var(--energy-4))",
+          5: "hsl(var(--energy-5))",
         },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
@@ -60,30 +84,70 @@ export default {
       },
       borderRadius: {
         lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
+        md: "calc(var(--radius) - 4px)",
+        sm: "calc(var(--radius) - 8px)",
+        "2xl": "calc(var(--radius) + 8px)",
+        "3xl": "calc(var(--radius) + 16px)",
+      },
+      boxShadow: {
+        soft: "var(--shadow-soft)",
+        medium: "var(--shadow-medium)",
+        card: "var(--shadow-card)",
+        elevated: "var(--shadow-elevated)",
       },
       keyframes: {
         "accordion-down": {
-          from: {
-            height: "0",
-          },
-          to: {
-            height: "var(--radix-accordion-content-height)",
-          },
+          from: { height: "0" },
+          to: { height: "var(--radix-accordion-content-height)" },
         },
         "accordion-up": {
-          from: {
-            height: "var(--radix-accordion-content-height)",
-          },
-          to: {
-            height: "0",
-          },
+          from: { height: "var(--radix-accordion-content-height)" },
+          to: { height: "0" },
+        },
+        "fade-in": {
+          from: { opacity: "0" },
+          to: { opacity: "1" },
+        },
+        "slide-up": {
+          from: { opacity: "0", transform: "translateY(10px)" },
+          to: { opacity: "1", transform: "translateY(0)" },
+        },
+        "slide-down": {
+          from: { opacity: "0", transform: "translateY(-10px)" },
+          to: { opacity: "1", transform: "translateY(0)" },
+        },
+        "scale-in": {
+          from: { opacity: "0", transform: "scale(0.95)" },
+          to: { opacity: "1", transform: "scale(1)" },
+        },
+        "wave": {
+          "0%, 100%": { transform: "rotate(0deg)" },
+          "25%": { transform: "rotate(20deg)" },
+          "75%": { transform: "rotate(-20deg)" },
+        },
+        "pulse-soft": {
+          "0%, 100%": { opacity: "1" },
+          "50%": { opacity: "0.7" },
+        },
+        "bounce-subtle": {
+          "0%, 100%": { transform: "translateY(0)" },
+          "50%": { transform: "translateY(-4px)" },
         },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        "fade-in": "fade-in 0.3s ease-out",
+        "slide-up": "slide-up 0.4s ease-out",
+        "slide-down": "slide-down 0.4s ease-out",
+        "scale-in": "scale-in 0.2s ease-out",
+        "wave": "wave 0.5s ease-in-out",
+        "pulse-soft": "pulse-soft 2s ease-in-out infinite",
+        "bounce-subtle": "bounce-subtle 0.6s ease-in-out",
+      },
+      spacing: {
+        "safe-bottom": "env(safe-area-inset-bottom, 0)",
+        "safe-top": "env(safe-area-inset-top, 0)",
       },
     },
   },
