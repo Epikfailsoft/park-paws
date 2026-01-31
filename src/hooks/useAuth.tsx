@@ -26,7 +26,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [dogs, setDogs] = useState<Dog[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchProfile = async (userId: string) => {
+  const fetchProfile = async (userId: string, userMetadata?: Record<string, unknown>) => {
     const { data } = await supabase
       .from('profiles')
       .select('*')
@@ -35,8 +35,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     
     if (data) {
       setProfile(data as Profile);
+      return data;
     }
-    return data;
+
+    // For social login users, create a profile if none exists
+    const fullName = (userMetadata?.full_name as string) || (userMetadata?.name as string) || '';
+    const nameParts = fullName.trim().split(' ');
+    const firstName = nameParts[0] || 'Kullanıcı';
+    const lastInitial = nameParts.length > 1 ? nameParts[nameParts.length - 1][0]?.toUpperCase() : undefined;
+
+    const { data: newProfile, error } = await supabase
+      .from('profiles')
+      .insert({
+        user_id: userId,
+        first_name: firstName,
+        last_name_initial: lastInitial,
+      })
+      .select()
+      .single();
+
+    if (!error && newProfile) {
+      setProfile(newProfile as Profile);
+      return newProfile;
+    }
+    
+    return null;
   };
 
   const fetchDogs = async (profileId: string) => {
@@ -70,9 +93,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          // Defer profile fetch
+          // Defer profile fetch with user metadata for social login users
           setTimeout(() => {
-            fetchProfile(session.user.id).then((profileData) => {
+            fetchProfile(session.user.id, session.user.user_metadata).then((profileData) => {
               if (profileData) {
                 fetchDogs(profileData.id);
               }
@@ -91,7 +114,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(session?.user ?? null);
       
       if (session?.user) {
-        fetchProfile(session.user.id).then(async (profileData) => {
+        fetchProfile(session.user.id, session.user.user_metadata).then(async (profileData) => {
           if (profileData) {
             await fetchDogs(profileData.id);
           }
