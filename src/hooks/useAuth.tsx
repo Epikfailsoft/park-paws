@@ -91,9 +91,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(session?.user ?? null);
       
       if (session?.user) {
-        fetchProfile(session.user.id).then((profileData) => {
+        fetchProfile(session.user.id).then(async (profileData) => {
           if (profileData) {
-            fetchDogs(profileData.id);
+            await fetchDogs(profileData.id);
           }
           setLoading(false);
         });
