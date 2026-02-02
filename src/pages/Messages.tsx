@@ -6,11 +6,11 @@ import { MessageCircle, Loader2, Send } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import type { Harmony, Dog, Profile, Message } from '@/types/dogspace';
-import { TEMPLATES, RATE_LIMITS } from '@/types/dogspace';
+import { TEMPLATES, RATE_LIMITS, formatOwnerName } from '@/types/dogspace';
 
 interface HarmonyWithDogs extends Harmony {
-  dog_1: Dog & { owner: Profile };
-  dog_2: Dog & { owner: Profile };
+  dog_a: Dog & { owner: Profile };
+  dog_b: Dog & { owner: Profile };
   messages: Message[];
 }
 
@@ -18,6 +18,7 @@ export default function Messages() {
   const { profile, dogs } = useAuth();
   const [harmonies, setHarmonies] = useState<HarmonyWithDogs[]>([]);
   const [selectedHarmony, setSelectedHarmony] = useState<HarmonyWithDogs | null>(null);
+  const [sentTemplates, setSentTemplates] = useState<number[]>([]);
   const [templatesRemaining, setTemplatesRemaining] = useState<number>(RATE_LIMITS.DAILY_TEMPLATES);
   const [loading, setLoading] = useState(true);
 
@@ -26,7 +27,8 @@ export default function Messages() {
   useEffect(() => {
     if (myDog) {
       fetchHarmonies();
-      fetchTemplateCount();
+    } else {
+      setLoading(false);
     }
   }, [myDog]);
 
@@ -38,11 +40,11 @@ export default function Messages() {
         .from('harmonies')
         .select(`
           *,
-          dog_1:dogs!harmonies_dog_1_id_fkey(*, owner:profiles!dogs_owner_id_fkey(*)),
-          dog_2:dogs!harmonies_dog_2_id_fkey(*, owner:profiles!dogs_owner_id_fkey(*)),
+          dog_a:dogs!harmonies_dog_a_id_fkey(*, owner:profiles(*), breed:breeds(*)),
+          dog_b:dogs!harmonies_dog_b_id_fkey(*, owner:profiles(*), breed:breeds(*)),
           messages(*)
         `)
-        .or(`dog_1_id.eq.${myDog.id},dog_2_id.eq.${myDog.id}`)
+        .or(`dog_a_id.eq.${myDog.id},dog_b_id.eq.${myDog.id}`)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -54,72 +56,80 @@ export default function Messages() {
     }
   };
 
-  const fetchTemplateCount = async () => {
-    if (!myDog) return;
+  const fetchTemplateSequence = async (harmonyId: string) => {
+    if (!profile) return;
 
-    const today = new Date().toISOString().split('T')[0];
     const { data } = await supabase
-      .from('daily_template_counts')
-      .select('count')
-      .eq('dog_id', myDog.id)
-      .eq('date', today)
-      .single();
+      .from('template_sequence')
+      .select('sent_templates')
+      .eq('harmony_id', harmonyId)
+      .eq('user_id', profile.id)
+      .maybeSingle();
 
     if (data) {
-      setTemplatesRemaining(RATE_LIMITS.DAILY_TEMPLATES - data.count);
+      setSentTemplates(data.sent_templates || []);
+    } else {
+      setSentTemplates([]);
     }
   };
 
   const getOtherDog = (harmony: HarmonyWithDogs): Dog & { owner: Profile } => {
-    return harmony.dog_1.id === myDog?.id ? harmony.dog_2 : harmony.dog_1;
+    return harmony.dog_a.id === myDog?.id ? harmony.dog_b : harmony.dog_a;
   };
 
-  const getNextTemplate = (harmony: HarmonyWithDogs): number | null => {
-    const sentTemplates = harmony.messages
-      .filter(m => m.from_dog_id === myDog?.id)
-      .map(m => m.template_number);
-    
+  const getNextTemplate = (): number | null => {
     for (let i = 1; i <= 3; i++) {
-      if (!sentTemplates.includes(i as 1 | 2 | 3)) return i;
+      if (!sentTemplates.includes(i)) return i;
     }
     return null;
   };
 
-  const handleSendTemplate = async (harmony: HarmonyWithDogs) => {
-    if (!myDog || templatesRemaining <= 0) {
+  const canSendTemplate = (templateId: number): boolean => {
+    // Check if all previous templates have been sent
+    for (let i = 1; i < templateId; i++) {
+      if (!sentTemplates.includes(i)) return false;
+    }
+    return !sentTemplates.includes(templateId);
+  };
+
+  const handleSendTemplate = async (harmony: HarmonyWithDogs, templateId: number) => {
+    if (!profile || templatesRemaining <= 0) {
       toast.error('Bugünlük mesaj hakkın bitti!');
       return;
     }
 
-    const templateNum = getNextTemplate(harmony);
-    if (!templateNum) {
-      toast.info('Tüm mesajları gönderdin!');
+    if (!canSendTemplate(templateId)) {
+      toast.error('Önce önceki mesajları göndermelisin!');
       return;
     }
 
+    const template = TEMPLATES[templateId as 1 | 2 | 3];
+
     try {
+      // Create message
       const { error } = await supabase
         .from('messages')
         .insert({
           harmony_id: harmony.id,
-          from_dog_id: myDog.id,
-          template_number: templateNum,
+          sender_id: profile.id,
+          message_type: 'template',
+          template_id: templateId,
+          content: template.text,
         });
 
       if (error) throw error;
 
-      // Update template count
-      const today = new Date().toISOString().split('T')[0];
+      // Update template sequence
+      const newSentTemplates = [...sentTemplates, templateId];
       await supabase
-        .from('daily_template_counts')
+        .from('template_sequence')
         .upsert({
-          dog_id: myDog.id,
-          date: today,
-          count: RATE_LIMITS.DAILY_TEMPLATES - templatesRemaining + 1,
-        }, {
-          onConflict: 'dog_id,date',
+          harmony_id: harmony.id,
+          user_id: profile.id,
+          sent_templates: newSentTemplates,
         });
 
+      setSentTemplates(newSentTemplates);
       setTemplatesRemaining(prev => prev - 1);
       toast.success('Mesaj gönderildi!');
       fetchHarmonies();
@@ -130,11 +140,18 @@ export default function Messages() {
   };
 
   const handleQuickReply = async (harmony: HarmonyWithDogs, messageId: string, reply: string) => {
+    if (!profile) return;
+
     try {
+      // Create reply message
       const { error } = await supabase
         .from('messages')
-        .update({ template_response: reply })
-        .eq('id', messageId);
+        .insert({
+          harmony_id: harmony.id,
+          sender_id: profile.id,
+          message_type: 'reply',
+          content: reply,
+        });
 
       if (error) throw error;
 
@@ -144,6 +161,11 @@ export default function Messages() {
       console.error('Error sending reply:', error);
       toast.error('Bir hata oluştu');
     }
+  };
+
+  const openHarmonyDetail = async (harmony: HarmonyWithDogs) => {
+    setSelectedHarmony(harmony);
+    await fetchTemplateSequence(harmony.id);
   };
 
   if (loading) {
@@ -160,7 +182,7 @@ export default function Messages() {
     const sortedMessages = [...selectedHarmony.messages].sort(
       (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
     );
-    const nextTemplate = getNextTemplate(selectedHarmony);
+    const nextTemplate = getNextTemplate();
 
     return (
       <div className="flex min-h-screen flex-col bg-background safe-top">
@@ -182,38 +204,67 @@ export default function Messages() {
               <h2 className="font-display font-semibold text-foreground">
                 {otherDog.name}
               </h2>
-              <OwnerChip owner={otherDog.owner} />
+              <p className="text-xs text-muted-foreground">
+                {formatOwnerName(otherDog.owner.display_name, otherDog.owner.last_name)}
+              </p>
             </div>
           </div>
         </header>
+
+        {/* Template Selection */}
+        <div className="p-4 bg-secondary/30 border-b">
+          <h3 className="font-semibold text-sm mb-3">Template Mesajlar (Sırayla)</h3>
+          <div className="space-y-2">
+            {([1, 2, 3] as const).map((templateId) => {
+              const template = TEMPLATES[templateId];
+              const alreadySent = sentTemplates.includes(templateId);
+              const canSend = canSendTemplate(templateId);
+
+              return (
+                <button
+                  key={templateId}
+                  onClick={() => handleSendTemplate(selectedHarmony, templateId)}
+                  disabled={!canSend || alreadySent || templatesRemaining <= 0}
+                  className={cn(
+                    "w-full text-left px-4 py-3 rounded-xl text-sm transition-all",
+                    alreadySent
+                      ? "bg-primary/20 text-primary border border-primary"
+                      : canSend
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-muted text-muted-foreground"
+                  )}
+                >
+                  {alreadySent && '✅ '}
+                  {!canSend && !alreadySent && '🔒 '}
+                  {templateId}. {template.text}
+                </button>
+              );
+            })}
+          </div>
+        </div>
 
         {/* Messages */}
         <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4 safe-bottom">
           {sortedMessages.length === 0 ? (
             <div className="text-center py-8">
               <p className="text-muted-foreground">
-                Henüz mesaj yok. İlk adımı sen at!
+                Henüz mesaj yok. Yukarıdan template seç!
               </p>
             </div>
           ) : (
             sortedMessages.map((message) => {
-              const isMine = message.from_dog_id === myDog?.id;
-              const template = TEMPLATES[message.template_number as 1 | 2 | 3];
-              
+              const isMine = message.sender_id === profile?.id;
+              const template = message.template_id ? TEMPLATES[message.template_id as 1 | 2 | 3] : null;
+
               return (
                 <div key={message.id} className="space-y-2">
-                  {/* Template message */}
+                  {/* Message */}
                   <div className={cn("template-bubble", isMine ? "template-bubble-sent" : "template-bubble-received")}>
-                    {template.text}
+                    {message.content}
                   </div>
-                  
-                  {/* Response */}
-                  {message.template_response ? (
-                    <div className={cn("template-bubble", !isMine ? "template-bubble-sent" : "template-bubble-received")}>
-                      {message.template_response}
-                    </div>
-                  ) : !isMine && (
-                    /* Quick replies for received messages */
+
+                  {/* Quick replies for received template messages */}
+                  {!isMine && message.message_type === 'template' && template && (
                     <div className="flex flex-wrap gap-2 pl-2">
                       {template.replies.map((reply) => (
                         <button
@@ -232,19 +283,12 @@ export default function Messages() {
           )}
         </div>
 
-        {/* Send next template */}
-        {nextTemplate && (
-          <div className="sticky bottom-0 border-t bg-card px-4 py-3">
-            <button
-              onClick={() => handleSendTemplate(selectedHarmony)}
-              disabled={templatesRemaining <= 0}
-              className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3 font-medium text-primary-foreground transition-all hover:opacity-90 disabled:opacity-50"
-            >
-              <Send className="h-4 w-4" />
-              Sonraki mesajı gönder ({templatesRemaining} kaldı)
-            </button>
-          </div>
-        )}
+        {/* Remaining indicator */}
+        <div className="sticky bottom-0 border-t bg-card px-4 py-3 text-center">
+          <p className="text-sm text-muted-foreground">
+            ✉️ {templatesRemaining} mesaj hakkı kaldı
+          </p>
+        </div>
       </div>
     );
   }
@@ -280,7 +324,7 @@ export default function Messages() {
       <div className="px-4 py-4">
         {harmonies.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-center">
-            <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-harmony/20">
+            <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[hsl(var(--harmony))]/20">
               <span className="text-3xl">🐕</span>
             </div>
             <h2 className="mb-2 font-display text-lg font-semibold text-foreground">
@@ -295,15 +339,15 @@ export default function Messages() {
             {harmonies.map((harmony) => {
               const otherDog = getOtherDog(harmony);
               const lastMessage = harmony.messages[harmony.messages.length - 1];
-              const hasUnread = lastMessage && !lastMessage.template_response && lastMessage.from_dog_id !== myDog?.id;
+              const hasUnread = lastMessage && lastMessage.sender_id !== profile?.id;
 
               return (
                 <button
                   key={harmony.id}
-                  onClick={() => setSelectedHarmony(harmony)}
+                  onClick={() => openHarmonyDetail(harmony)}
                   className={cn(
                     "flex w-full items-center gap-3 rounded-2xl bg-card p-3 text-left transition-all",
-                    hasUnread && "ring-2 ring-harmony"
+                    hasUnread && "ring-2 ring-[hsl(var(--harmony))]"
                   )}
                   style={{ boxShadow: 'var(--shadow-card)' }}
                 >
@@ -315,8 +359,8 @@ export default function Messages() {
                     />
                     {hasUnread && (
                       <span className="absolute -right-1 -top-1 flex h-3 w-3">
-                        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-harmony opacity-75" />
-                        <span className="relative inline-flex h-3 w-3 rounded-full bg-harmony" />
+                        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[hsl(var(--harmony))] opacity-75" />
+                        <span className="relative inline-flex h-3 w-3 rounded-full bg-[hsl(var(--harmony))]" />
                       </span>
                     )}
                   </div>
@@ -325,11 +369,11 @@ export default function Messages() {
                       <h3 className="font-display font-semibold text-foreground">
                         {otherDog.name}
                       </h3>
-                      <span className="text-xs text-harmony">✨ Harmony</span>
+                      <span className="text-xs text-[hsl(var(--harmony))]">✨ Harmony</span>
                     </div>
                     <p className="truncate text-sm text-muted-foreground">
-                      {lastMessage 
-                        ? lastMessage.template_response || TEMPLATES[lastMessage.template_number as 1 | 2 | 3].text
+                      {lastMessage
+                        ? lastMessage.content
                         : "Mesajlaşmaya başla..."
                       }
                     </p>

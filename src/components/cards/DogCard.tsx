@@ -2,6 +2,7 @@ import { cn } from '@/lib/utils';
 import { EnergyIndicator } from '@/components/ui/EnergyIndicator';
 import { OwnerChip } from '@/components/ui/OwnerChip';
 import type { Dog, Profile } from '@/types/dogspace';
+import { SOCIAL_STYLE_OPTIONS } from '@/types/dogspace';
 
 interface DogCardProps {
   dog: Dog;
@@ -11,6 +12,7 @@ interface DogCardProps {
   hasWaved?: boolean;
   isHarmony?: boolean;
   compact?: boolean;
+  isLost?: boolean;
 }
 
 export function DogCard({ 
@@ -21,12 +23,14 @@ export function DogCard({
   hasWaved = false,
   isHarmony = false,
   compact = false,
+  isLost = false,
 }: DogCardProps) {
   return (
     <div 
       className={cn(
         "dog-card",
-        isHarmony && "harmony-glow active"
+        isHarmony && "harmony-glow active",
+        isLost && "ring-2 ring-[hsl(var(--energy-5))]"
       )}
     >
       {/* Dog Photo */}
@@ -40,20 +44,24 @@ export function DogCard({
           )}
         />
         
+        {/* Lost overlay */}
+        {isLost && (
+          <div className="absolute inset-0 bg-[hsl(var(--energy-5))]/80 flex items-center justify-center">
+            <span className="text-white font-bold text-xl">KAYIP</span>
+          </div>
+        )}
+        
         {/* Owner chip overlay */}
-        {owner && (
+        {owner && !isLost && (
           <div className="absolute bottom-2 left-2">
             <OwnerChip owner={owner} />
           </div>
         )}
 
-        {/* Active in park indicator */}
-        {dog.is_active_in_park && (
-          <div className="absolute right-2 top-2">
-            <span className="flex h-3 w-3">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-park-active opacity-75" />
-              <span className="relative inline-flex h-3 w-3 rounded-full bg-park-active" />
-            </span>
+        {/* Neutered badge */}
+        {dog.neutered && !compact && (
+          <div className="absolute right-2 top-2 bg-primary/90 text-primary-foreground text-xs px-2 py-0.5 rounded-full">
+            ✓ Kısır
           </div>
         )}
       </div>
@@ -66,22 +74,36 @@ export function DogCard({
               {dog.name}
             </h3>
             <p className="text-sm text-muted-foreground">
-              {dog.approximate_age}
+              {dog.breed?.name || dog.approximate_age}
             </p>
           </div>
           
           <EnergyIndicator level={dog.energy_level} size="sm" />
         </div>
 
-        {/* Behavior tag if set */}
-        {dog.behavior && !compact && (
+        {/* Social style tag if set */}
+        {dog.social_style && !compact && (
           <div className="mt-2">
             <span className="rounded-full bg-secondary px-2 py-0.5 text-xs text-secondary-foreground">
-              {dog.behavior === 'social' && 'Sosyal'}
-              {dog.behavior === 'selective' && 'Seçici'}
-              {dog.behavior === 'shy' && 'Çekingen'}
-              {dog.behavior === 'dominant' && 'Dominant'}
+              {SOCIAL_STYLE_OPTIONS.find(o => o.value === dog.social_style)?.label}
             </span>
+          </div>
+        )}
+
+        {/* Triggers */}
+        {dog.triggers && dog.triggers.length > 0 && !compact && (
+          <div className="mt-2 flex flex-wrap gap-1">
+            {dog.triggers.map(trigger => (
+              <span 
+                key={trigger}
+                className="rounded-full bg-[hsl(var(--energy-5))]/20 px-2 py-0.5 text-xs text-[hsl(var(--energy-5))]"
+              >
+                {trigger === 'food' && '🍖'}
+                {trigger === 'toy' && '🎾'}
+                {trigger === 'leash' && '🦴'}
+                {trigger === 'fast_dogs' && '⚡'}
+              </span>
+            ))}
           </div>
         )}
 

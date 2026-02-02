@@ -9,17 +9,17 @@ interface ParkBadgeProps {
 }
 
 const STATUS_CONFIG = {
-  active: {
+  ACTIVE: {
     label: 'Aktif',
     className: 'park-badge-active',
     icon: Check,
   },
-  requested: {
+  REQUESTED: {
     label: 'Başvuruda',
     className: 'park-badge-requested',
     icon: Clock,
   },
-  closed: {
+  CLOSED: {
     label: 'Kapalı',
     className: 'park-badge-closed',
     icon: MapPin,
@@ -36,8 +36,8 @@ export function ParkBadge({ status, showIcon = true, showBeta = false }: ParkBad
         {showIcon && <Icon className="h-3 w-3" />}
         {config.label}
       </span>
-      {showBeta && status === 'active' && (
-        <span className="rounded-full bg-harmony/20 px-2 py-0.5 text-[10px] font-medium text-harmony-foreground">
+      {showBeta && status === 'ACTIVE' && (
+        <span className="rounded-full bg-[hsl(var(--harmony))]/20 px-2 py-0.5 text-[10px] font-medium text-[hsl(var(--harmony))]">
           Beta
         </span>
       )}
