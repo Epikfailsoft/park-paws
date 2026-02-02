@@ -5,16 +5,16 @@ import { ParkBadge } from '@/components/ui/ParkBadge';
 import { MapPin, Users, Check, Loader2, ToggleLeft, ToggleRight } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
-import type { Park } from '@/types/dogspace';
-import { RATE_LIMITS } from '@/types/dogspace';
+import type { Park, ParkModeSession } from '@/types/dogspace';
+import { RATE_LIMITS, isParkModeActive } from '@/types/dogspace';
 
 export default function Parks() {
-  const { profile, dogs } = useAuth();
+  const { profile, dogs, selectedPark, selectPark, hasPhoto } = useAuth();
   const [parks, setParks] = useState<Park[]>([]);
   const [approvals, setApprovals] = useState<Record<string, boolean>>({});
   const [loading, setLoading] = useState(true);
-  const [parkModeActive, setParkModeActive] = useState(false);
-  const [activeParkId, setActiveParkId] = useState<string | null>(null);
+  const [currentSession, setCurrentSession] = useState<ParkModeSession | null>(null);
+  const [activeDogCounts, setActiveDogCounts] = useState<Record<string, number>>({});
 
   const myDog = dogs[0];
 
@@ -22,6 +22,7 @@ export default function Parks() {
     fetchParks();
     if (myDog) {
       fetchParkModeStatus();
+      fetchActiveCounts();
     }
   }, [myDog]);
 
@@ -34,7 +35,7 @@ export default function Parks() {
         .order('name');
 
       if (error) throw error;
-      setParks((data as Park[]) || []);
+      setParks((data as unknown as Park[]) || []);
 
       // Fetch user's approvals
       if (profile) {
@@ -61,15 +62,43 @@ export default function Parks() {
   const fetchParkModeStatus = async () => {
     if (!myDog) return;
 
+    // Check for active session
+    const fourHoursAgo = new Date();
+    fourHoursAgo.setHours(fourHoursAgo.getHours() - RATE_LIMITS.PARK_MODE_AUTO_OFF_HOURS);
+
     const { data } = await supabase
-      .from('dogs')
-      .select('is_active_in_park, current_park_id')
-      .eq('id', myDog.id)
-      .single();
+      .from('park_mode_sessions')
+      .select('*')
+      .eq('dog_id', myDog.id)
+      .is('ended_at', null)
+      .gte('started_at', fourHoursAgo.toISOString())
+      .order('started_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (data && isParkModeActive(data as ParkModeSession)) {
+      setCurrentSession(data as ParkModeSession);
+    } else {
+      setCurrentSession(null);
+    }
+  };
+
+  const fetchActiveCounts = async () => {
+    const fourHoursAgo = new Date();
+    fourHoursAgo.setHours(fourHoursAgo.getHours() - RATE_LIMITS.PARK_MODE_AUTO_OFF_HOURS);
+
+    const { data } = await supabase
+      .from('park_mode_sessions')
+      .select('park_id')
+      .is('ended_at', null)
+      .gte('started_at', fourHoursAgo.toISOString());
 
     if (data) {
-      setParkModeActive(data.is_active_in_park || false);
-      setActiveParkId(data.current_park_id || null);
+      const counts: Record<string, number> = {};
+      data.forEach(d => {
+        counts[d.park_id] = (counts[d.park_id] || 0) + 1;
+      });
+      setActiveDogCounts(counts);
     }
   };
 
@@ -94,18 +123,18 @@ export default function Parks() {
 
       // Update local state
       setApprovals(prev => ({ ...prev, [parkId]: true }));
-      
+
       // Update park approval count
       const park = parks.find(p => p.id === parkId);
       if (park) {
         const newCount = park.approval_count + 1;
-        
+
         if (newCount >= RATE_LIMITS.PARK_APPROVAL_THRESHOLD) {
           // Park becomes active
           await supabase
             .from('parks')
-            .update({ 
-              status: 'active', 
+            .update({
+              status: 'ACTIVE',
               activated_at: new Date().toISOString(),
               approval_count: newCount,
               is_beta: true,
@@ -131,60 +160,60 @@ export default function Parks() {
   };
 
   const toggleParkMode = async (parkId: string) => {
-    if (!myDog) return;
+    if (!myDog || !profile) return;
 
-    const newState = activeParkId === parkId ? false : true;
+    // Check if user has photo
+    if (!hasPhoto && !myDog.photo_url) {
+      toast.error('Parkta görünür olmak için önce fotoğraf eklemelisin');
+      return;
+    }
+
+    const isCurrentlyActive = currentSession?.park_id === parkId;
 
     try {
-      const { error } = await supabase
-        .from('dogs')
-        .update({
-          is_active_in_park: newState,
-          current_park_id: newState ? parkId : null,
-          park_mode_started_at: newState ? new Date().toISOString() : null,
-          last_active_at: new Date().toISOString(),
-        })
-        .eq('id', myDog.id);
+      if (isCurrentlyActive && currentSession) {
+        // End current session
+        await supabase
+          .from('park_mode_sessions')
+          .update({ ended_at: new Date().toISOString() })
+          .eq('id', currentSession.id);
 
-      if (error) throw error;
-
-      setParkModeActive(newState);
-      setActiveParkId(newState ? parkId : null);
-      
-      if (newState) {
-        toast.success('Parkta aktif oldun! 4 saat sonra otomatik kapanacak.');
-      } else {
+        setCurrentSession(null);
         toast.info('Park modu kapatıldı.');
+      } else {
+        // End any existing session
+        if (currentSession) {
+          await supabase
+            .from('park_mode_sessions')
+            .update({ ended_at: new Date().toISOString() })
+            .eq('id', currentSession.id);
+        }
+
+        // Start new session
+        const { data: newSession, error } = await supabase
+          .from('park_mode_sessions')
+          .insert({
+            dog_id: myDog.id,
+            park_id: parkId,
+          })
+          .select()
+          .single();
+
+        if (error) throw error;
+
+        setCurrentSession(newSession as ParkModeSession);
+        toast.success('Parkta aktif oldun! 4 saat sonra otomatik kapanacak.');
+
+        // Also select this park
+        await selectPark(parkId);
       }
+
+      fetchActiveCounts();
     } catch (error) {
       console.error('Error toggling park mode:', error);
       toast.error('Bir hata oluştu');
     }
   };
-
-  // Count active dogs in each park
-  const [activeDogCounts, setActiveDogCounts] = useState<Record<string, number>>({});
-
-  useEffect(() => {
-    const fetchActiveCounts = async () => {
-      const { data } = await supabase
-        .from('dogs')
-        .select('current_park_id')
-        .eq('is_active_in_park', true);
-
-      if (data) {
-        const counts: Record<string, number> = {};
-        data.forEach(d => {
-          if (d.current_park_id) {
-            counts[d.current_park_id] = (counts[d.current_park_id] || 0) + 1;
-          }
-        });
-        setActiveDogCounts(counts);
-      }
-    };
-
-    fetchActiveCounts();
-  }, []);
 
   if (loading) {
     return (
@@ -213,11 +242,20 @@ export default function Parks() {
         </div>
       </header>
 
+      {/* Validation Warning */}
+      {myDog && !hasPhoto && (
+        <div className="mx-4 mt-4 rounded-xl bg-amber-100 border border-amber-300 p-3">
+          <p className="text-sm text-amber-800">
+            ⚠️ Parkta görünür olmak için önce fotoğraf eklemelisin
+          </p>
+        </div>
+      )}
+
       {/* Parks List */}
       <div className="px-4 py-4 space-y-3">
         {parks.map((park) => {
-          const isActive = park.status === 'active';
-          const isParkModeHere = activeParkId === park.id;
+          const isActive = park.status === 'ACTIVE';
+          const isParkModeHere = currentSession?.park_id === park.id;
           const activeDogsHere = activeDogCounts[park.id] || 0;
 
           return (
@@ -225,7 +263,7 @@ export default function Parks() {
               key={park.id}
               className={cn(
                 "rounded-2xl border-2 bg-card p-4 transition-all",
-                isParkModeHere ? "border-park-active" : "border-transparent"
+                isParkModeHere ? "border-[hsl(var(--park-active))]" : "border-transparent"
               )}
               style={{ boxShadow: 'var(--shadow-card)' }}
             >
@@ -237,11 +275,6 @@ export default function Parks() {
                     </h3>
                     <ParkBadge status={park.status} showBeta={park.is_beta} />
                   </div>
-                  {park.location && (
-                    <p className="text-sm text-muted-foreground mb-2">
-                      {park.location}
-                    </p>
-                  )}
 
                   {/* Active dogs count */}
                   {isActive && (
@@ -252,14 +285,14 @@ export default function Parks() {
                   )}
 
                   {/* Approval progress for requested parks */}
-                  {park.status === 'requested' && (
+                  {park.status === 'REQUESTED' && (
                     <div className="mt-2">
                       <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
                         <span>{park.approval_count}/{RATE_LIMITS.PARK_APPROVAL_THRESHOLD} onay</span>
                       </div>
                       <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
-                        <div 
-                          className="h-full rounded-full bg-park-requested transition-all"
+                        <div
+                          className="h-full rounded-full bg-[hsl(var(--park-requested))] transition-all"
                           style={{ width: `${(park.approval_count / RATE_LIMITS.PARK_APPROVAL_THRESHOLD) * 100}%` }}
                         />
                       </div>
@@ -272,10 +305,11 @@ export default function Parks() {
                   {isActive && myDog && (
                     <button
                       onClick={() => toggleParkMode(park.id)}
+                      disabled={!hasPhoto && !myDog.photo_url}
                       className={cn(
-                        "flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium transition-all",
+                        "flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium transition-all disabled:opacity-50",
                         isParkModeHere
-                          ? "bg-park-active text-white"
+                          ? "bg-[hsl(var(--park-active))] text-white"
                           : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
                       )}
                     >
@@ -293,7 +327,7 @@ export default function Parks() {
                     </button>
                   )}
 
-                  {park.status === 'requested' && !approvals[park.id] && (
+                  {park.status === 'REQUESTED' && !approvals[park.id] && (
                     <button
                       onClick={() => handleApprove(park.id)}
                       className="flex items-center gap-1.5 rounded-xl bg-accent px-3 py-2 text-sm font-medium text-accent-foreground transition-all hover:opacity-90"
@@ -303,7 +337,7 @@ export default function Parks() {
                     </button>
                   )}
 
-                  {park.status === 'requested' && approvals[park.id] && (
+                  {park.status === 'REQUESTED' && approvals[park.id] && (
                     <span className="rounded-xl bg-muted px-3 py-2 text-sm text-muted-foreground">
                       ✓ Onayladın
                     </span>

@@ -1,20 +1,23 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
-import type { Profile, Dog } from '@/types/dogspace';
+import type { Profile, Dog, UserPark, Park } from '@/types/dogspace';
 
 interface AuthContextType {
   user: User | null;
   session: Session | null;
   profile: Profile | null;
   dogs: Dog[];
+  selectedPark: Park | null;
   loading: boolean;
   hasDog: boolean;
-  signUp: (email: string, password: string, firstName: string) => Promise<{ error: Error | null }>;
+  hasPhoto: boolean;
+  signUp: (email: string, password: string, displayName: string) => Promise<{ error: Error | null }>;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
   refreshDogs: () => Promise<void>;
+  selectPark: (parkId: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -24,6 +27,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [dogs, setDogs] = useState<Dog[]>([]);
+  const [selectedPark, setSelectedPark] = useState<Park | null>(null);
   const [loading, setLoading] = useState(true);
 
   const fetchProfile = async (userId: string, userMetadata?: Record<string, unknown>) => {
@@ -31,45 +35,66 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .from('profiles')
       .select('*')
       .eq('user_id', userId)
-      .single();
-    
+      .maybeSingle();
+
     if (data) {
       setProfile(data as Profile);
-      return data;
+      return data as Profile;
     }
 
     // For social login users, create a profile if none exists
     const fullName = (userMetadata?.full_name as string) || (userMetadata?.name as string) || '';
     const nameParts = fullName.trim().split(' ');
-    const firstName = nameParts[0] || 'Kullanıcı';
-    const lastInitial = nameParts.length > 1 ? nameParts[nameParts.length - 1][0]?.toUpperCase() : undefined;
+    const displayName = nameParts[0] || 'Kullanıcı';
+    const lastName = nameParts.length > 1 ? nameParts[nameParts.length - 1] : undefined;
 
     const { data: newProfile, error } = await supabase
       .from('profiles')
       .insert({
         user_id: userId,
-        first_name: firstName,
-        last_name_initial: lastInitial,
+        display_name: displayName,
+        last_name: lastName,
       })
       .select()
       .single();
 
     if (!error && newProfile) {
       setProfile(newProfile as Profile);
-      return newProfile;
+      return newProfile as Profile;
     }
-    
+
     return null;
   };
 
   const fetchDogs = async (profileId: string) => {
     const { data } = await supabase
       .from('dogs')
-      .select('*')
-      .eq('owner_id', profileId);
-    
+      .select('*, breed:breeds(*)')
+      .eq('owner_id', profileId)
+      .is('deleted_at', null);
+
     if (data) {
-      setDogs(data as Dog[]);
+      setDogs(data as unknown as Dog[]);
+    }
+  };
+
+  const fetchSelectedPark = async (profileId: string) => {
+    const { data: userPark } = await supabase
+      .from('user_parks')
+      .select('park_id')
+      .eq('user_id', profileId)
+      .maybeSingle();
+
+    if (userPark) {
+      const { data: park } = await supabase
+        .from('parks')
+        .select('*')
+        .eq('id', userPark.park_id)
+        .single();
+
+      if (park) {
+        setSelectedPark(park as unknown as Park);
+      }
     }
   };
 
@@ -85,25 +110,41 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const selectPark = async (parkId: string) => {
+    if (!profile) return;
+
+    await supabase
+      .from('user_parks')
+      .upsert({
+        user_id: profile.id,
+        park_id: parkId,
+        selected_at: new Date().toISOString(),
+      });
+
+    await fetchSelectedPark(profile.id);
+  };
+
   useEffect(() => {
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
-        
+
         if (session?.user) {
           // Defer profile fetch with user metadata for social login users
           setTimeout(() => {
             fetchProfile(session.user.id, session.user.user_metadata).then((profileData) => {
               if (profileData) {
                 fetchDogs(profileData.id);
+                fetchSelectedPark(profileData.id);
               }
             });
           }, 0);
         } else {
           setProfile(null);
           setDogs([]);
+          setSelectedPark(null);
         }
       }
     );
@@ -112,11 +153,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
-      
+
       if (session?.user) {
         fetchProfile(session.user.id, session.user.user_metadata).then(async (profileData) => {
           if (profileData) {
             await fetchDogs(profileData.id);
+            await fetchSelectedPark(profileData.id);
           }
           setLoading(false);
         });
@@ -128,9 +170,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
-  const signUp = async (email: string, password: string, firstName: string) => {
+  const signUp = async (email: string, password: string, displayName: string) => {
     const redirectUrl = `${window.location.origin}/`;
-    
+
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -143,16 +185,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // Create profile
     if (data.user) {
-      const nameParts = firstName.trim().split(' ');
-      const firstNameOnly = nameParts[0];
-      const lastInitial = nameParts.length > 1 ? nameParts[nameParts.length - 1][0].toUpperCase() : undefined;
+      const nameParts = displayName.trim().split(' ');
+      const firstName = nameParts[0];
+      const lastName = nameParts.length > 1 ? nameParts[nameParts.length - 1] : undefined;
 
       const { error: profileError } = await supabase
         .from('profiles')
         .insert({
           user_id: data.user.id,
-          first_name: firstNameOnly,
-          last_name_initial: lastInitial,
+          display_name: firstName,
+          last_name: lastName,
         });
 
       if (profileError) return { error: profileError };
@@ -174,6 +216,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await supabase.auth.signOut();
     setProfile(null);
     setDogs([]);
+    setSelectedPark(null);
   };
 
   return (
@@ -183,13 +226,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         session,
         profile,
         dogs,
+        selectedPark,
         loading,
         hasDog: dogs.length > 0,
+        hasPhoto: !!profile?.photo_url,
         signUp,
         signIn,
         signOut,
         refreshProfile,
         refreshDogs,
+        selectPark,
       }}
     >
       {children}

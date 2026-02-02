@@ -12,7 +12,7 @@ interface DogWithOwner extends Dog {
 }
 
 export default function Discover() {
-  const { dogs, profile } = useAuth();
+  const { dogs, profile, selectedPark } = useAuth();
   const [discoverDogs, setDiscoverDogs] = useState<DogWithOwner[]>([]);
   const [wavedDogs, setWavedDogs] = useState<Set<string>>(new Set());
   const [wavesRemaining, setWavesRemaining] = useState<number>(RATE_LIMITS.DAILY_WAVES);
@@ -21,32 +21,48 @@ export default function Discover() {
   const myDog = dogs[0]; // User's primary dog
 
   useEffect(() => {
-    if (myDog) {
+    if (myDog && selectedPark) {
       fetchDiscoverDogs();
       fetchWaveStatus();
+    } else {
+      setLoading(false);
     }
-  }, [myDog]);
+  }, [myDog, selectedPark]);
 
   const fetchDiscoverDogs = async () => {
+    if (!selectedPark) return;
+
     try {
-      // Get dogs active in last 48 hours, excluding own dogs
+      // Get dogs from park_mode_sessions in the last 48 hours
       const fortyEightHoursAgo = new Date();
       fortyEightHoursAgo.setHours(fortyEightHoursAgo.getHours() - 48);
 
-      const { data, error } = await supabase
-        .from('dogs')
+      const { data: sessions, error } = await supabase
+        .from('park_mode_sessions')
         .select(`
-          *,
-          owner:profiles!dogs_owner_id_fkey(*)
+          dog_id,
+          dog:dogs(*, owner:profiles(*), breed:breeds(*))
         `)
-        .neq('owner_id', profile?.id)
-        .gte('last_active_at', fortyEightHoursAgo.toISOString())
-        .order('last_active_at', { ascending: false })
-        .limit(15);
+        .eq('park_id', selectedPark.id)
+        .gte('started_at', fortyEightHoursAgo.toISOString())
+        .is('dogs.deleted_at', null);
 
       if (error) throw error;
 
-      setDiscoverDogs((data as unknown as DogWithOwner[]) || []);
+      // Deduplicate by dog_id and exclude own dogs
+      const uniqueDogs = new Map<string, DogWithOwner>();
+      sessions?.forEach((session: any) => {
+        if (session.dog && session.dog.owner_id !== profile?.id) {
+          uniqueDogs.set(session.dog.id, session.dog as DogWithOwner);
+        }
+      });
+
+      // Shuffle and limit to 15
+      const shuffled = Array.from(uniqueDogs.values())
+        .sort(() => Math.random() - 0.5)
+        .slice(0, 15);
+
+      setDiscoverDogs(shuffled);
     } catch (error) {
       console.error('Error fetching dogs:', error);
     } finally {
@@ -55,30 +71,27 @@ export default function Discover() {
   };
 
   const fetchWaveStatus = async () => {
-    if (!myDog) return;
+    if (!profile) return;
 
     try {
-      // Get today's wave count
-      const today = new Date().toISOString().split('T')[0];
-      const { data: countData } = await supabase
-        .from('daily_wave_counts')
-        .select('count')
-        .eq('dog_id', myDog.id)
-        .eq('date', today)
-        .single();
+      // Get today's wave count using RPC
+      const { data: remaining } = await supabase
+        .rpc('get_remaining_waves', { p_user_id: profile.id });
 
-      if (countData) {
-        setWavesRemaining(RATE_LIMITS.DAILY_WAVES - countData.count);
+      if (remaining !== null) {
+        setWavesRemaining(remaining);
       }
 
       // Get dogs we've waved to
-      const { data: wavesData } = await supabase
-        .from('waves')
-        .select('to_dog_id')
-        .eq('from_dog_id', myDog.id);
+      if (myDog) {
+        const { data: wavesData } = await supabase
+          .from('waves')
+          .select('to_dog_id')
+          .eq('from_dog_id', myDog.id);
 
-      if (wavesData) {
-        setWavedDogs(new Set(wavesData.map(w => w.to_dog_id)));
+        if (wavesData) {
+          setWavedDogs(new Set(wavesData.map(w => w.to_dog_id)));
+        }
       }
     } catch (error) {
       console.error('Error fetching wave status:', error);
@@ -86,7 +99,7 @@ export default function Discover() {
   };
 
   const handleWave = async (toDogId: string) => {
-    if (!myDog || wavesRemaining <= 0) {
+    if (!myDog || !profile || wavesRemaining <= 0) {
       toast.error('Bugünlük el sallama hakkın bitti!');
       return;
     }
@@ -108,19 +121,8 @@ export default function Discover() {
         throw waveError;
       }
 
-      // Update daily count
-      const today = new Date().toISOString().split('T')[0];
-      const { error: countError } = await supabase
-        .from('daily_wave_counts')
-        .upsert({
-          dog_id: myDog.id,
-          date: today,
-          count: RATE_LIMITS.DAILY_WAVES - wavesRemaining + 1,
-        }, {
-          onConflict: 'dog_id,date',
-        });
-
-      if (countError) throw countError;
+      // Increment wave count using RPC
+      await supabase.rpc('increment_daily_wave', { p_user_id: profile.id });
 
       setWavedDogs(prev => new Set([...prev, toDogId]));
       setWavesRemaining(prev => prev - 1);
@@ -160,7 +162,7 @@ export default function Discover() {
                 Keşfet
               </h1>
               <p className="text-xs text-muted-foreground">
-                {getTimeContext().charAt(0).toUpperCase() + getTimeContext().slice(1)} aktif köpekler
+                {getTimeContext().charAt(0).toUpperCase() + getTimeContext().slice(1)} · {selectedPark?.name || 'Park seç'}
               </p>
             </div>
           </div>
@@ -174,7 +176,19 @@ export default function Discover() {
 
       {/* Content */}
       <div className="px-4 py-4">
-        {discoverDogs.length === 0 ? (
+        {!selectedPark ? (
+          <div className="flex flex-col items-center justify-center py-16 text-center">
+            <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-secondary">
+              <span className="text-2xl">🏞️</span>
+            </div>
+            <h2 className="mb-2 font-display text-lg font-semibold text-foreground">
+              Park seçilmedi
+            </h2>
+            <p className="max-w-[280px] text-sm text-muted-foreground">
+              Keşfetmeye başlamak için önce bir park seç.
+            </p>
+          </div>
+        ) : discoverDogs.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-center">
             <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-secondary">
               <Compass className="h-8 w-8 text-muted-foreground" />
@@ -183,7 +197,7 @@ export default function Discover() {
               Şu an aktif köpek yok
             </h2>
             <p className="max-w-[280px] text-sm text-muted-foreground">
-              Son 48 saatte aktif olan köpek bulunamadı. Daha sonra tekrar kontrol et!
+              Son 48 saatte {selectedPark.name}'nda aktif olan köpek bulunamadı.
             </p>
           </div>
         ) : (

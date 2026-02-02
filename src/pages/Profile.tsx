@@ -3,10 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { EnergyIndicator } from '@/components/ui/EnergyIndicator';
-import { Dog, Camera, LogOut, Settings, Loader2, ChevronRight } from 'lucide-react';
+import { Dog, Camera, LogOut, Settings, Loader2, ChevronRight, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
-import { BEHAVIOR_OPTIONS, ACTIVE_TIME_OPTIONS, ZODIAC_OPTIONS } from '@/types/dogspace';
+import { SOCIAL_STYLE_OPTIONS, TRIGGER_OPTIONS, formatOwnerName } from '@/types/dogspace';
 
 export default function Profile() {
   const { profile, dogs, signOut, refreshDogs } = useAuth();
@@ -16,16 +16,15 @@ export default function Profile() {
   const myDog = dogs[0];
   const [editing, setEditing] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [showLostModal, setShowLostModal] = useState(false);
 
   // Editable fields
   const [name, setName] = useState(myDog?.name || '');
   const [age, setAge] = useState(myDog?.approximate_age || '');
   const [energyLevel, setEnergyLevel] = useState(myDog?.energy_level || 3);
-  const [behavior, setBehavior] = useState(myDog?.behavior || '');
-  const [activeTimes, setActiveTimes] = useState<string[]>(myDog?.active_times || []);
-  const [zodiacSign, setZodiacSign] = useState(myDog?.zodiac_sign || '');
-  const [favoriteGame, setFavoriteGame] = useState(myDog?.favorite_game || '');
-  const [isNeutered, setIsNeutered] = useState(myDog?.is_neutered);
+  const [socialStyle, setSocialStyle] = useState<'FRIENDLY' | 'NEUTRAL' | 'SELECTIVE' | ''>(myDog?.social_style || '');
+  const [triggers, setTriggers] = useState<string[]>(myDog?.triggers || []);
+  const [neutered, setNeutered] = useState(myDog?.neutered);
 
   const handleLogout = async () => {
     await signOut();
@@ -77,11 +76,9 @@ export default function Profile() {
           name,
           approximate_age: age,
           energy_level: energyLevel,
-          behavior: behavior || null,
-          active_times: activeTimes.length > 0 ? activeTimes : null,
-          zodiac_sign: zodiacSign || null,
-          favorite_game: favoriteGame || null,
-          is_neutered: isNeutered,
+          social_style: socialStyle || null as 'FRIENDLY' | 'NEUTRAL' | 'SELECTIVE' | null,
+          triggers: triggers.length > 0 ? triggers : null,
+          neutered,
         })
         .eq('id', myDog.id);
 
@@ -98,6 +95,55 @@ export default function Profile() {
     }
   };
 
+  const handleLostMode = async () => {
+    if (!myDog) return;
+
+    setLoading(true);
+    try {
+      const newLostState = !myDog.is_lost;
+      
+      await supabase
+        .from('dogs')
+        .update({ is_lost: newLostState })
+        .eq('id', myDog.id);
+
+      if (newLostState) {
+        // Create notification for park users
+        const { data: lostProfile } = await supabase
+          .from('dog_lost_profile')
+          .select('last_seen_park_id')
+          .eq('dog_id', myDog.id)
+          .single();
+
+        if (lostProfile?.last_seen_park_id) {
+          await supabase
+            .from('notifications')
+            .insert({
+              park_id: lostProfile.last_seen_park_id,
+              type: 'lost_dog',
+              payload: {
+                dog_id: myDog.id,
+                dog_name: myDog.name,
+                breed: myDog.breed?.name,
+              },
+            });
+        }
+
+        toast.success('Lost Mode aktif! Parkta aktiflere bildirim gönderildi.');
+      } else {
+        toast.info('Lost Mode kapatıldı.');
+      }
+
+      await refreshDogs();
+      setShowLostModal(false);
+    } catch (error) {
+      console.error('Error toggling lost mode:', error);
+      toast.error('Bir hata oluştu');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (!myDog) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -108,6 +154,14 @@ export default function Profile() {
 
   return (
     <div className="min-h-screen bg-background safe-top safe-bottom">
+      {/* Lost Mode Banner */}
+      {myDog.is_lost && (
+        <div className="bg-[hsl(var(--energy-5))] text-white p-3 text-center">
+          <p className="font-semibold">🆘 LOST MODE AKTİF</p>
+          <p className="text-sm opacity-90">Parkta aktif kullanıcılar telefon numaranı görebilir</p>
+        </div>
+      )}
+
       {/* Header */}
       <header className="sticky top-0 z-40 glass border-b px-4 py-4">
         <div className="flex items-center justify-between">
@@ -120,7 +174,7 @@ export default function Profile() {
                 Köpeğim
               </h1>
               <p className="text-xs text-muted-foreground">
-                {profile?.first_name}'ın profili
+                {profile ? formatOwnerName(profile.display_name, profile.last_name) : ''}'ın profili
               </p>
             </div>
           </div>
@@ -154,7 +208,10 @@ export default function Profile() {
           <img
             src={myDog.photo_url}
             alt={myDog.name}
-            className="h-32 w-32 rounded-3xl object-cover shadow-elevated"
+            className={cn(
+              "h-32 w-32 rounded-3xl object-cover shadow-elevated",
+              myDog.is_lost && "ring-4 ring-[hsl(var(--energy-5))]"
+            )}
           />
           <button
             onClick={() => fileInputRef.current?.click()}
@@ -219,20 +276,20 @@ export default function Profile() {
               </div>
             </div>
 
-            {/* Behavior */}
+            {/* Social Style */}
             <div>
               <label className="mb-2 block text-sm font-medium text-foreground">
-                Davranış
+                Sosyal Tarz
               </label>
               <div className="flex flex-wrap gap-2">
-                {BEHAVIOR_OPTIONS.map((opt) => (
+                {SOCIAL_STYLE_OPTIONS.map((opt) => (
                   <button
                     key={opt.value}
                     type="button"
-                    onClick={() => setBehavior(behavior === opt.value ? '' : opt.value)}
+                    onClick={() => setSocialStyle(socialStyle === opt.value ? '' : opt.value)}
                     className={cn(
                       "rounded-full border-2 px-4 py-2 text-sm font-medium transition-all",
-                      behavior === opt.value
+                      socialStyle === opt.value
                         ? "border-primary bg-primary text-primary-foreground"
                         : "border-border bg-card text-muted-foreground"
                     )}
@@ -243,18 +300,18 @@ export default function Profile() {
               </div>
             </div>
 
-            {/* Active Times */}
+            {/* Triggers */}
             <div>
               <label className="mb-2 block text-sm font-medium text-foreground">
-                Aktif Zamanlar
+                Tetikleyiciler (Hassasiyetler)
               </label>
               <div className="flex flex-wrap gap-2">
-                {ACTIVE_TIME_OPTIONS.map((opt) => (
+                {TRIGGER_OPTIONS.map((opt) => (
                   <button
                     key={opt.value}
                     type="button"
                     onClick={() => {
-                      setActiveTimes(prev => 
+                      setTriggers(prev => 
                         prev.includes(opt.value) 
                           ? prev.filter(t => t !== opt.value)
                           : [...prev, opt.value]
@@ -262,8 +319,8 @@ export default function Profile() {
                     }}
                     className={cn(
                       "rounded-full border-2 px-4 py-2 text-sm font-medium transition-all",
-                      activeTimes.includes(opt.value)
-                        ? "border-primary bg-primary text-primary-foreground"
+                      triggers.includes(opt.value)
+                        ? "border-[hsl(var(--energy-5))] bg-[hsl(var(--energy-5))]/10 text-[hsl(var(--energy-5))]"
                         : "border-border bg-card text-muted-foreground"
                     )}
                   >
@@ -271,39 +328,9 @@ export default function Profile() {
                   </button>
                 ))}
               </div>
-            </div>
-
-            {/* Zodiac */}
-            <div>
-              <label className="mb-1.5 block text-sm font-medium text-foreground">
-                Burç (eğlence için)
-              </label>
-              <select
-                value={zodiacSign}
-                onChange={(e) => setZodiacSign(e.target.value)}
-                className="dogspace-input w-full"
-              >
-                <option value="">Seç...</option>
-                {ZODIAC_OPTIONS.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Favorite Game */}
-            <div>
-              <label className="mb-1.5 block text-sm font-medium text-foreground">
-                Favori Oyun
-              </label>
-              <input
-                type="text"
-                value={favoriteGame}
-                onChange={(e) => setFavoriteGame(e.target.value)}
-                placeholder="Top getirme, çekiştirme..."
-                className="dogspace-input w-full"
-              />
+              <p className="mt-1 text-xs text-muted-foreground">
+                Bu bilgiler güvenli playdate için kullanılır
+              </p>
             </div>
 
             {/* Neutered */}
@@ -311,15 +338,15 @@ export default function Profile() {
               <span className="text-sm font-medium text-foreground">Kısırlaştırıldı mı?</span>
               <button
                 type="button"
-                onClick={() => setIsNeutered(!isNeutered)}
+                onClick={() => setNeutered(!neutered)}
                 className={cn(
                   "rounded-full px-4 py-1.5 text-sm font-medium transition-all",
-                  isNeutered 
+                  neutered 
                     ? "bg-primary text-primary-foreground" 
                     : "bg-muted text-muted-foreground"
                 )}
               >
-                {isNeutered ? "Evet" : "Hayır"}
+                {neutered ? "Evet" : "Hayır"}
               </button>
             </div>
 
@@ -339,56 +366,50 @@ export default function Profile() {
               <h2 className="font-display text-2xl font-bold text-foreground">
                 {myDog.name}
               </h2>
-              <p className="text-muted-foreground">{myDog.approximate_age}</p>
+              <p className="text-muted-foreground">
+                {myDog.breed?.name} · {myDog.approximate_age}
+              </p>
               <div className="mt-2 flex justify-center">
                 <EnergyIndicator level={myDog.energy_level} size="lg" showLabel />
               </div>
             </div>
 
+            {/* Neutered Badge */}
+            <div className="flex justify-center">
+              <span className={cn(
+                "rounded-full px-4 py-2 text-sm",
+                myDog.neutered 
+                  ? "bg-primary/10 text-primary" 
+                  : "bg-muted text-muted-foreground"
+              )}>
+                {myDog.neutered ? '✓ Kısırlaştırıldı' : 'Kısırlaştırılmadı'}
+              </span>
+            </div>
+
             {/* Info Cards */}
             <div className="space-y-3 pt-4">
-              {myDog.behavior && (
+              {myDog.social_style && (
                 <div className="flex items-center justify-between rounded-xl bg-card p-4" style={{ boxShadow: 'var(--shadow-card)' }}>
-                  <span className="text-sm text-muted-foreground">Davranış</span>
+                  <span className="text-sm text-muted-foreground">Sosyal Tarz</span>
                   <span className="font-medium text-foreground">
-                    {BEHAVIOR_OPTIONS.find(o => o.value === myDog.behavior)?.label}
+                    {SOCIAL_STYLE_OPTIONS.find(o => o.value === myDog.social_style)?.label}
                   </span>
                 </div>
               )}
 
-              {myDog.active_times && myDog.active_times.length > 0 && (
-                <div className="flex items-center justify-between rounded-xl bg-card p-4" style={{ boxShadow: 'var(--shadow-card)' }}>
-                  <span className="text-sm text-muted-foreground">Aktif Zamanlar</span>
-                  <span className="font-medium text-foreground">
-                    {myDog.active_times.map(t => 
-                      ACTIVE_TIME_OPTIONS.find(o => o.value === t)?.label
-                    ).join(', ')}
-                  </span>
-                </div>
-              )}
-
-              {myDog.zodiac_sign && (
-                <div className="flex items-center justify-between rounded-xl bg-card p-4" style={{ boxShadow: 'var(--shadow-card)' }}>
-                  <span className="text-sm text-muted-foreground">Burç</span>
-                  <span className="font-medium text-foreground">
-                    {ZODIAC_OPTIONS.find(o => o.value === myDog.zodiac_sign)?.label}
-                  </span>
-                </div>
-              )}
-
-              {myDog.favorite_game && (
-                <div className="flex items-center justify-between rounded-xl bg-card p-4" style={{ boxShadow: 'var(--shadow-card)' }}>
-                  <span className="text-sm text-muted-foreground">Favori Oyun</span>
-                  <span className="font-medium text-foreground">{myDog.favorite_game}</span>
-                </div>
-              )}
-
-              {myDog.is_neutered !== undefined && (
-                <div className="flex items-center justify-between rounded-xl bg-card p-4" style={{ boxShadow: 'var(--shadow-card)' }}>
-                  <span className="text-sm text-muted-foreground">Kısırlaştırıldı</span>
-                  <span className="font-medium text-foreground">
-                    {myDog.is_neutered ? 'Evet' : 'Hayır'}
-                  </span>
+              {myDog.triggers && myDog.triggers.length > 0 && (
+                <div className="rounded-xl bg-card p-4" style={{ boxShadow: 'var(--shadow-card)' }}>
+                  <span className="text-sm text-muted-foreground">Tetikleyiciler</span>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {myDog.triggers.map(t => (
+                      <span 
+                        key={t}
+                        className="rounded-full bg-[hsl(var(--energy-5))]/20 px-3 py-1 text-sm text-[hsl(var(--energy-5))]"
+                      >
+                        {TRIGGER_OPTIONS.find(o => o.value === t)?.label}
+                      </span>
+                    ))}
+                  </div>
                 </div>
               )}
 
@@ -405,7 +426,64 @@ export default function Profile() {
             </div>
           </div>
         )}
+
+        {/* Lost Mode Section */}
+        <div className="mt-8 border-t border-border pt-6">
+          <button
+            onClick={() => setShowLostModal(true)}
+            className={cn(
+              "flex w-full items-center justify-center gap-2 rounded-xl border-2 py-3 font-semibold transition-all",
+              myDog.is_lost
+                ? "border-[hsl(var(--energy-5))] bg-[hsl(var(--energy-5))] text-white"
+                : "border-[hsl(var(--energy-5))] text-[hsl(var(--energy-5))] hover:bg-[hsl(var(--energy-5))]/10"
+            )}
+          >
+            <AlertTriangle className="h-5 w-5" />
+            {myDog.is_lost ? 'LOST MODE KAPAT' : 'LOST MODE AKTİF ET'}
+          </button>
+        </div>
       </div>
+
+      {/* Lost Mode Modal */}
+      {showLostModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/50 p-4">
+          <div className="max-w-sm w-full rounded-2xl bg-card p-6">
+            <h2 className="text-xl font-bold text-foreground mb-4">
+              {myDog.is_lost ? '🆘 Lost Mode Kapat' : '⚠️ Lost Mode'}
+            </h2>
+            
+            {myDog.is_lost ? (
+              <p className="text-muted-foreground mb-6">
+                Lost Mode kapatılsın mı? Telefon numaran artık görünmeyecek.
+              </p>
+            ) : (
+              <p className="text-muted-foreground mb-6">
+                Lost Mode aktif edilsin mi? İletişim numaranız yalnızca şu an parkta aktif olanlara açılacaktır.
+              </p>
+            )}
+            
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowLostModal(false)}
+                className="flex-1 rounded-xl border border-border py-3 font-medium text-foreground"
+              >
+                İptal
+              </button>
+              <button
+                onClick={handleLostMode}
+                disabled={loading}
+                className={cn(
+                  "flex-1 rounded-xl py-3 font-semibold text-white",
+                  myDog.is_lost ? "bg-primary" : "bg-[hsl(var(--energy-5))]"
+                )}
+              >
+                {loading ? <Loader2 className="h-5 w-5 animate-spin mx-auto" /> : 
+                  myDog.is_lost ? 'Kapat' : 'Aktif Et'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
