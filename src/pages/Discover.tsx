@@ -2,23 +2,23 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { DogCard } from '@/components/cards/DogCard';
-import { Compass, Loader2 } from 'lucide-react';
+import { Compass, Loader2, ToggleLeft } from 'lucide-react';
 import { toast } from 'sonner';
 import type { Dog, Profile } from '@/types/dogspace';
-import { RATE_LIMITS } from '@/types/dogspace';
+import { RATE_LIMITS, getTimeContext } from '@/types/dogspace';
 
 interface DogWithOwner extends Dog {
   owner: Profile;
 }
 
 export default function Discover() {
-  const { dogs, profile, selectedPark } = useAuth();
+  const { dogs, profile, selectedPark, refreshDogs } = useAuth();
   const [discoverDogs, setDiscoverDogs] = useState<DogWithOwner[]>([]);
   const [wavedDogs, setWavedDogs] = useState<Set<string>>(new Set());
   const [wavesRemaining, setWavesRemaining] = useState<number>(RATE_LIMITS.DAILY_WAVES);
   const [loading, setLoading] = useState(true);
 
-  const myDog = dogs[0]; // User's primary dog
+  const myDog = dogs[0];
 
   useEffect(() => {
     if (myDog && selectedPark) {
@@ -29,23 +29,30 @@ export default function Discover() {
     }
   }, [myDog, selectedPark]);
 
+  // V1.2: Discover shows dogs with playdate_on=true seen in last 24h
   const fetchDiscoverDogs = async () => {
-    if (!selectedPark) return;
+    if (!selectedPark || !profile) return;
 
     try {
-      // Get dogs from park_mode_sessions in the last 48 hours
-      const fortyEightHoursAgo = new Date();
-      fortyEightHoursAgo.setHours(fortyEightHoursAgo.getHours() - 48);
+      const twentyFourHoursAgo = new Date();
+      twentyFourHoursAgo.setHours(twentyFourHoursAgo.getHours() - RATE_LIMITS.DISCOVER_ACTIVE_HOURS);
 
+      // Get dogs with playdate_on=true that have recent park activity
       const { data: sessions, error } = await supabase
         .from('park_mode_sessions')
         .select(`
           dog_id,
-          dog:dogs(*, owner:profiles(*), breed:breeds(*))
+          started_at,
+          dog:dogs!inner(
+            *,
+            owner:profiles!inner(*),
+            breed:breeds(*)
+          )
         `)
         .eq('park_id', selectedPark.id)
-        .gte('started_at', fortyEightHoursAgo.toISOString())
-        .is('dogs.deleted_at', null);
+        .gte('started_at', twentyFourHoursAgo.toISOString())
+        .is('dogs.deleted_at', null)
+        .eq('dogs.playdate_on', true);
 
       if (error) throw error;
 
@@ -53,14 +60,17 @@ export default function Discover() {
       const uniqueDogs = new Map<string, DogWithOwner>();
       sessions?.forEach((session: any) => {
         if (session.dog && session.dog.owner_id !== profile?.id) {
-          uniqueDogs.set(session.dog.id, session.dog as DogWithOwner);
+          // Use the most recent session
+          if (!uniqueDogs.has(session.dog.id)) {
+            uniqueDogs.set(session.dog.id, session.dog as DogWithOwner);
+          }
         }
       });
 
-      // Shuffle and limit to 15
+      // Max 15 dogs, shuffled
       const shuffled = Array.from(uniqueDogs.values())
         .sort(() => Math.random() - 0.5)
-        .slice(0, 15);
+        .slice(0, RATE_LIMITS.DISCOVER_MAX_DOGS);
 
       setDiscoverDogs(shuffled);
     } catch (error) {
@@ -74,7 +84,6 @@ export default function Discover() {
     if (!profile) return;
 
     try {
-      // Get today's wave count using RPC
       const { data: remaining } = await supabase
         .rpc('get_remaining_waves', { p_user_id: profile.id });
 
@@ -82,7 +91,6 @@ export default function Discover() {
         setWavesRemaining(remaining);
       }
 
-      // Get dogs we've waved to
       if (myDog) {
         const { data: wavesData } = await supabase
           .from('waves')
@@ -98,46 +106,64 @@ export default function Discover() {
     }
   };
 
+  // V1.2: Use send_wave RPC
   const handleWave = async (toDogId: string) => {
-    if (!myDog || !profile || wavesRemaining <= 0) {
-      toast.error('Bugünlük el sallama hakkın bitti!');
+    if (!myDog || !profile) {
+      toast.error('Önce köpek profili oluştur');
+      return;
+    }
+
+    if (wavesRemaining <= 0) {
+      toast.error('Bugünlük wave hakkın bitti!');
       return;
     }
 
     try {
-      // Create wave
-      const { error: waveError } = await supabase
-        .from('waves')
-        .insert({
-          from_dog_id: myDog.id,
-          to_dog_id: toDogId,
+      const { data, error } = await supabase
+        .rpc('send_wave', {
+          p_sender_dog_id: myDog.id,
+          p_target_dog_id: toDogId
         });
 
-      if (waveError) {
-        if (waveError.code === '23505') {
-          toast.info('Bu köpeğe zaten el salladın!');
-          return;
-        }
-        throw waveError;
-      }
+      if (error) throw error;
 
-      // Increment wave count using RPC
-      await supabase.rpc('increment_daily_wave', { p_user_id: profile.id });
+      const result = data as { status: string; message: string; harmony_id?: string };
+
+      if (result.status === 'ERROR') {
+        toast.error(result.message);
+        return;
+      }
 
       setWavedDogs(prev => new Set([...prev, toDogId]));
       setWavesRemaining(prev => prev - 1);
-      toast.success('El salladın! 👋');
+
+      if (result.status === 'HARMONY_CREATED') {
+        toast.success('🎉 Eşleştiniz!', { duration: 5000 });
+      } else {
+        toast.success('Wave gönderildi! 👋');
+      }
     } catch (error) {
       console.error('Error waving:', error);
       toast.error('Bir hata oluştu');
     }
   };
 
-  const getTimeContext = () => {
-    const hour = new Date().getHours();
-    if (hour >= 6 && hour < 12) return 'sabah';
-    if (hour >= 12 && hour < 18) return 'öğle';
-    return 'akşam';
+  const togglePlaydateOn = async () => {
+    if (!myDog) return;
+
+    try {
+      const newValue = !myDog.playdate_on;
+      await supabase
+        .from('dogs')
+        .update({ playdate_on: newValue })
+        .eq('id', myDog.id);
+
+      await refreshDogs();
+      toast.success(newValue ? 'Playdate açık!' : 'Playdate kapatıldı');
+    } catch (error) {
+      console.error('Error toggling playdate:', error);
+      toast.error('Bir hata oluştu');
+    }
   };
 
   if (loading) {
@@ -162,17 +188,41 @@ export default function Discover() {
                 Keşfet
               </h1>
               <p className="text-xs text-muted-foreground">
-                {getTimeContext().charAt(0).toUpperCase() + getTimeContext().slice(1)} · {selectedPark?.name || 'Park seç'}
+                {getTimeContext()} · {selectedPark?.name || 'Park seç'}
               </p>
             </div>
           </div>
           <div className="rounded-full bg-secondary px-3 py-1.5">
             <span className="text-sm font-medium text-secondary-foreground">
-              👋 {wavesRemaining} kaldı
+              👋 {wavesRemaining}/{RATE_LIMITS.DAILY_WAVES}
             </span>
           </div>
         </div>
       </header>
+
+      {/* Playdate Toggle */}
+      {myDog && (
+        <div className="mx-4 mt-4 rounded-xl bg-card p-4" style={{ boxShadow: 'var(--shadow-card)' }}>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="font-medium text-foreground">Playdate'e Açık</p>
+              <p className="text-xs text-muted-foreground">
+                Açık olduğunda diğerleri seni görebilir
+              </p>
+            </div>
+            <button
+              onClick={togglePlaydateOn}
+              className={`rounded-full px-4 py-2 text-sm font-medium transition-all ${
+                myDog.playdate_on
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-muted text-muted-foreground'
+              }`}
+            >
+              {myDog.playdate_on ? 'Açık' : 'Kapalı'}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Content */}
       <div className="px-4 py-4">
@@ -194,26 +244,40 @@ export default function Discover() {
               <Compass className="h-8 w-8 text-muted-foreground" />
             </div>
             <h2 className="mb-2 font-display text-lg font-semibold text-foreground">
-              Şu an aktif köpek yok
+              Bugün sakin
             </h2>
-            <p className="max-w-[280px] text-sm text-muted-foreground">
-              Son 48 saatte {selectedPark.name}'nda aktif olan köpek bulunamadı.
+            <p className="max-w-[280px] text-sm text-muted-foreground mb-4">
+              {myDog?.name}'i parka götürmeye ne dersin?
             </p>
+            {myDog && !myDog.playdate_on && (
+              <button
+                onClick={togglePlaydateOn}
+                className="flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
+              >
+                <ToggleLeft className="h-4 w-4" />
+                Playdate'i Aç
+              </button>
+            )}
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-3">
-            {discoverDogs.map((dog) => (
-              <DogCard
-                key={dog.id}
-                dog={dog}
-                owner={dog.owner}
-                showWaveButton
-                onWave={() => handleWave(dog.id)}
-                hasWaved={wavedDogs.has(dog.id)}
-                compact
-              />
-            ))}
-          </div>
+          <>
+            <p className="mb-3 text-sm text-muted-foreground">
+              Son 24 saatte aktif · Max {RATE_LIMITS.DISCOVER_MAX_DOGS} köpek
+            </p>
+            <div className="grid grid-cols-2 gap-3">
+              {discoverDogs.map((dog) => (
+                <DogCard
+                  key={dog.id}
+                  dog={dog}
+                  owner={dog.owner}
+                  showWaveButton
+                  onWave={() => handleWave(dog.id)}
+                  hasWaved={wavedDogs.has(dog.id)}
+                  compact
+                />
+              ))}
+            </div>
+          </>
         )}
       </div>
     </div>
