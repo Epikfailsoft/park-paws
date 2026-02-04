@@ -1,13 +1,15 @@
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Compass, MapPin, MessageCircle, Dog } from 'lucide-react';
+import { Compass, MapPin, MessageCircle, Dog, Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
 
+// V1.2 Navigation: Keşfet, Park Şimdi, Mesajlar, Köpeğim, Ayarlar
 const navItems = [
   { path: '/discover', icon: Compass, label: 'Keşfet' },
-  { path: '/parks', icon: MapPin, label: 'Parklar' },
+  { path: '/park-now', icon: MapPin, label: 'Park' },
   { path: '/messages', icon: MessageCircle, label: 'Mesajlar' },
   { path: '/profile', icon: Dog, label: 'Köpeğim' },
+  { path: '/settings', icon: Settings, label: 'Ayarlar' },
 ];
 
 export function BottomNav() {
@@ -17,6 +19,11 @@ export function BottomNav() {
 
   // Don't show nav on auth or onboarding pages
   if (location.pathname === '/auth' || location.pathname === '/onboarding') {
+    return null;
+  }
+
+  // Don't show on admin page
+  if (location.pathname === '/admin') {
     return null;
   }
 
@@ -37,13 +44,13 @@ export function BottomNav() {
               key={item.path}
               onClick={() => navigate(item.path)}
               className={cn(
-                "bottom-nav-item min-w-[4rem]",
+                "bottom-nav-item min-w-[3.5rem]",
                 isActive && "active"
               )}
             >
               <Icon 
                 className={cn(
-                  "nav-icon h-6 w-6 transition-transform",
+                  "nav-icon h-5 w-5 transition-transform",
                   isActive && "text-primary"
                 )} 
               />

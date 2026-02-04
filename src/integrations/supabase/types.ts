@@ -103,12 +103,45 @@ export type Database = {
           },
         ]
       }
+      dog_private: {
+        Row: {
+          created_at: string | null
+          dog_id: string
+          emergency_phone: string
+          microchip_id: string | null
+          vaccination_expiry: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          dog_id: string
+          emergency_phone: string
+          microchip_id?: string | null
+          vaccination_expiry?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          dog_id?: string
+          emergency_phone?: string
+          microchip_id?: string | null
+          vaccination_expiry?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dog_private_dog_id_fkey"
+            columns: ["dog_id"]
+            isOneToOne: true
+            referencedRelation: "dogs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       dogs: {
         Row: {
           approximate_age: string
           breed_custom_text: string | null
           breed_id: string
           created_at: string | null
+          daily_energy: number | null
           deleted_at: string | null
           energy_level: number
           id: string
@@ -117,6 +150,7 @@ export type Database = {
           neutered: boolean
           owner_id: string
           photo_url: string
+          playdate_on: boolean | null
           social_style: Database["public"]["Enums"]["social_style_type"] | null
           triggers: string[] | null
           updated_at: string | null
@@ -126,6 +160,7 @@ export type Database = {
           breed_custom_text?: string | null
           breed_id: string
           created_at?: string | null
+          daily_energy?: number | null
           deleted_at?: string | null
           energy_level: number
           id?: string
@@ -134,6 +169,7 @@ export type Database = {
           neutered: boolean
           owner_id: string
           photo_url: string
+          playdate_on?: boolean | null
           social_style?: Database["public"]["Enums"]["social_style_type"] | null
           triggers?: string[] | null
           updated_at?: string | null
@@ -143,6 +179,7 @@ export type Database = {
           breed_custom_text?: string | null
           breed_id?: string
           created_at?: string | null
+          daily_energy?: number | null
           deleted_at?: string | null
           energy_level?: number
           id?: string
@@ -151,6 +188,7 @@ export type Database = {
           neutered?: boolean
           owner_id?: string
           photo_url?: string
+          playdate_on?: boolean | null
           social_style?: Database["public"]["Enums"]["social_style_type"] | null
           triggers?: string[] | null
           updated_at?: string | null
@@ -166,6 +204,38 @@ export type Database = {
           {
             foreignKeyName: "dogs_owner_id_fkey"
             columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      events: {
+        Row: {
+          created_at: string | null
+          event_name: string
+          id: string
+          payload: Json | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          event_name: string
+          id?: string
+          payload?: Json | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          event_name?: string
+          id?: string
+          payload?: Json | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "events_user_id_fkey"
+            columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -360,6 +430,42 @@ export type Database = {
           },
         ]
       }
+      park_requests: {
+        Row: {
+          created_at: string | null
+          id: string
+          park_id: string
+          requester_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          park_id: string
+          requester_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          park_id?: string
+          requester_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "park_requests_park_id_fkey"
+            columns: ["park_id"]
+            isOneToOne: false
+            referencedRelation: "parks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "park_requests_requester_id_fkey"
+            columns: ["requester_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       parks: {
         Row: {
           activated_at: string | null
@@ -406,6 +512,55 @@ export type Database = {
             columns: ["requested_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      presence_pings: {
+        Row: {
+          approx_distance_m: number | null
+          created_at: string | null
+          dog_id: string
+          id: string
+          park_id: string
+          session_id: string | null
+        }
+        Insert: {
+          approx_distance_m?: number | null
+          created_at?: string | null
+          dog_id: string
+          id?: string
+          park_id: string
+          session_id?: string | null
+        }
+        Update: {
+          approx_distance_m?: number | null
+          created_at?: string | null
+          dog_id?: string
+          id?: string
+          park_id?: string
+          session_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "presence_pings_dog_id_fkey"
+            columns: ["dog_id"]
+            isOneToOne: false
+            referencedRelation: "dogs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "presence_pings_park_id_fkey"
+            columns: ["park_id"]
+            isOneToOne: false
+            referencedRelation: "parks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "presence_pings_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "park_mode_sessions"
             referencedColumns: ["id"]
           },
         ]
@@ -506,6 +661,27 @@ export type Database = {
           },
         ]
       }
+      user_roles: {
+        Row: {
+          created_at: string | null
+          id: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          role: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       waves: {
         Row: {
           created_at: string | null
@@ -550,8 +726,22 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_last_active: { Args: { p_dog_id: string }; Returns: string }
       get_remaining_waves: { Args: { p_user_id: string }; Returns: number }
       increment_daily_wave: { Args: { p_user_id: string }; Returns: undefined }
+      is_admin: { Args: never; Returns: boolean }
+      ping_presence: {
+        Args: { p_distance_m?: number; p_dog_id: string; p_park_id: string }
+        Returns: Json
+      }
+      send_template: {
+        Args: { p_harmony_id: string; p_template_id: number }
+        Returns: Json
+      }
+      send_wave: {
+        Args: { p_sender_dog_id: string; p_target_dog_id: string }
+        Returns: Json
+      }
     }
     Enums: {
       message_type: "template" | "reply"

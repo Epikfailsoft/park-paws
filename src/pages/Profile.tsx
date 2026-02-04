@@ -473,8 +473,8 @@ export default function Profile() {
                 onClick={handleLostMode}
                 disabled={loading}
                 className={cn(
-                  "flex-1 rounded-xl py-3 font-semibold text-white",
-                  myDog.is_lost ? "bg-primary" : "bg-[hsl(var(--energy-5))]"
+                  "flex-1 rounded-xl py-3 font-semibold",
+                  myDog.is_lost ? "bg-primary text-primary-foreground" : "bg-destructive text-destructive-foreground"
                 )}
               >
                 {loading ? <Loader2 className="h-5 w-5 animate-spin mx-auto" /> : 
