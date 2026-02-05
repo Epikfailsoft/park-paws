@@ -2,10 +2,10 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { DogCard } from '@/components/cards/DogCard';
-import { Compass, Loader2, ToggleLeft } from 'lucide-react';
+import { Compass, Loader2, ToggleLeft, ToggleRight } from 'lucide-react';
 import { toast } from 'sonner';
 import type { Dog, Profile } from '@/types/dogspace';
-import { RATE_LIMITS, getTimeContext } from '@/types/dogspace';
+import { RATE_LIMITS, getTimeContext, isPlaydateActive } from '@/types/dogspace';
 
 interface DogWithOwner extends Dog {
   owner: Profile;
@@ -29,7 +29,7 @@ export default function Discover() {
     }
   }, [myDog, selectedPark]);
 
-  // V1.2: Discover shows dogs with playdate_on=true seen in last 24h
+  // V1.22: Discover shows dogs with playdate_on=true seen in last 24h
   const fetchDiscoverDogs = async () => {
     if (!selectedPark || !profile) return;
 
@@ -37,42 +37,43 @@ export default function Discover() {
       const twentyFourHoursAgo = new Date();
       twentyFourHoursAgo.setHours(twentyFourHoursAgo.getHours() - RATE_LIMITS.DISCOVER_ACTIVE_HOURS);
 
-      // Get dogs with playdate_on=true that have recent park activity
-      const { data: sessions, error } = await supabase
-        .from('park_mode_sessions')
+      // Get dogs with playdate_on=true
+      const { data: playdateDogs, error } = await supabase
+        .from('dogs')
         .select(`
-          dog_id,
-          started_at,
-          dog:dogs!inner(
-            *,
-            owner:profiles!inner(*),
-            breed:breeds(*)
-          )
+          *,
+          owner:profiles!inner(*),
+          breed:breeds(*)
         `)
-        .eq('park_id', selectedPark.id)
-        .gte('started_at', twentyFourHoursAgo.toISOString())
-        .is('dogs.deleted_at', null)
-        .eq('dogs.playdate_on', true);
+        .eq('playdate_on', true)
+        .is('deleted_at', null)
+        .neq('owner_id', profile.id);
 
       if (error) throw error;
 
-      // Deduplicate by dog_id and exclude own dogs
-      const uniqueDogs = new Map<string, DogWithOwner>();
-      sessions?.forEach((session: any) => {
-        if (session.dog && session.dog.owner_id !== profile?.id) {
-          // Use the most recent session
-          if (!uniqueDogs.has(session.dog.id)) {
-            uniqueDogs.set(session.dog.id, session.dog as DogWithOwner);
-          }
-        }
-      });
+      // Also get dogs with recent park activity for boosting
+      const { data: sessions } = await supabase
+        .from('park_mode_sessions')
+        .select('dog_id, started_at')
+        .eq('park_id', selectedPark.id)
+        .gte('started_at', twentyFourHoursAgo.toISOString());
 
-      // Max 15 dogs, shuffled
-      const shuffled = Array.from(uniqueDogs.values())
-        .sort(() => Math.random() - 0.5)
+      const recentlyActiveDogIds = new Set(sessions?.map(s => s.dog_id) || []);
+
+      // Filter and sort: park-active first, then by activity
+      const sortedDogs = (playdateDogs || [])
+        .filter((d: any) => d.owner && d.owner_id !== profile?.id)
+        .sort((a: any, b: any) => {
+          // Park checked-in dogs first
+          const aActive = recentlyActiveDogIds.has(a.id);
+          const bActive = recentlyActiveDogIds.has(b.id);
+          if (aActive && !bActive) return -1;
+          if (!aActive && bActive) return 1;
+          return 0;
+        })
         .slice(0, RATE_LIMITS.DISCOVER_MAX_DOGS);
 
-      setDiscoverDogs(shuffled);
+      setDiscoverDogs(sortedDogs as DogWithOwner[]);
     } catch (error) {
       console.error('Error fetching dogs:', error);
     } finally {
@@ -106,7 +107,7 @@ export default function Discover() {
     }
   };
 
-  // V1.2: Use send_wave RPC
+  // V1.22: Use send_wave RPC
   const handleWave = async (toDogId: string) => {
     if (!myDog || !profile) {
       toast.error('Önce köpek profili oluştur');
@@ -152,14 +153,25 @@ export default function Discover() {
     if (!myDog) return;
 
     try {
-      const newValue = !myDog.playdate_on;
-      await supabase
-        .from('dogs')
-        .update({ playdate_on: newValue })
-        .eq('id', myDog.id);
+      const newValue = !isPlaydateActive(myDog);
+      
+      const { data, error } = await supabase
+        .rpc('toggle_playdate', {
+          p_dog_id: myDog.id,
+          p_activate: newValue
+        });
+
+      if (error) throw error;
+
+      const result = data as { status: string; message: string };
+      
+      if (result.status === 'ERROR') {
+        toast.error(result.message);
+        return;
+      }
 
       await refreshDogs();
-      toast.success(newValue ? 'Playdate açık!' : 'Playdate kapatıldı');
+      toast.success(newValue ? 'Playdate açık! 24 saat boyunca görünür olacaksın.' : 'Playdate kapatıldı');
     } catch (error) {
       console.error('Error toggling playdate:', error);
       toast.error('Bir hata oluştu');
@@ -173,6 +185,8 @@ export default function Discover() {
       </div>
     );
   }
+
+  const playdateActive = myDog && isPlaydateActive(myDog);
 
   return (
     <div className="min-h-screen bg-background safe-top safe-bottom">
@@ -204,21 +218,28 @@ export default function Discover() {
       {myDog && (
         <div className="mx-4 mt-4 rounded-xl bg-card p-4" style={{ boxShadow: 'var(--shadow-card)' }}>
           <div className="flex items-center justify-between">
-            <div>
-              <p className="font-medium text-foreground">Playdate'e Açık</p>
-              <p className="text-xs text-muted-foreground">
-                Açık olduğunda diğerleri seni görebilir
-              </p>
+            <div className="flex items-center gap-3">
+              {playdateActive ? (
+                <ToggleRight className="h-6 w-6 text-primary" />
+              ) : (
+                <ToggleLeft className="h-6 w-6 text-muted-foreground" />
+              )}
+              <div>
+                <p className="font-medium text-foreground">Playdate'e Açık</p>
+                <p className="text-xs text-muted-foreground">
+                  {playdateActive ? '24 saat boyunca görünür' : 'Keşfet\'te görünmüyorsun'}
+                </p>
+              </div>
             </div>
             <button
               onClick={togglePlaydateOn}
               className={`rounded-full px-4 py-2 text-sm font-medium transition-all ${
-                myDog.playdate_on
+                playdateActive
                   ? 'bg-primary text-primary-foreground'
                   : 'bg-muted text-muted-foreground'
               }`}
             >
-              {myDog.playdate_on ? 'Açık' : 'Kapalı'}
+              {playdateActive ? 'Açık' : 'Kapalı'}
             </button>
           </div>
         </div>
@@ -249,12 +270,12 @@ export default function Discover() {
             <p className="max-w-[280px] text-sm text-muted-foreground mb-4">
               {myDog?.name}'i parka götürmeye ne dersin?
             </p>
-            {myDog && !myDog.playdate_on && (
+            {myDog && !playdateActive && (
               <button
                 onClick={togglePlaydateOn}
                 className="flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
               >
-                <ToggleLeft className="h-4 w-4" />
+                <ToggleRight className="h-4 w-4" />
                 Playdate'i Aç
               </button>
             )}
@@ -262,7 +283,7 @@ export default function Discover() {
         ) : (
           <>
             <p className="mb-3 text-sm text-muted-foreground">
-              Son 24 saatte aktif · Max {RATE_LIMITS.DISCOVER_MAX_DOGS} köpek
+              🔍 Playdate'e açık köpekler · Max {RATE_LIMITS.DISCOVER_MAX_DOGS}
             </p>
             <div className="grid grid-cols-2 gap-3">
               {discoverDogs.map((dog) => (

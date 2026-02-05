@@ -35,6 +35,41 @@ export type Database = {
         }
         Relationships: []
       }
+      care_documents: {
+        Row: {
+          document_type: string
+          dog_id: string
+          file_name: string
+          file_url: string
+          id: string
+          uploaded_at: string | null
+        }
+        Insert: {
+          document_type: string
+          dog_id: string
+          file_name: string
+          file_url: string
+          id?: string
+          uploaded_at?: string | null
+        }
+        Update: {
+          document_type?: string
+          dog_id?: string
+          file_name?: string
+          file_url?: string
+          id?: string
+          uploaded_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "care_documents_dog_id_fkey"
+            columns: ["dog_id"]
+            isOneToOne: false
+            referencedRelation: "dogs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       daily_wave_limits: {
         Row: {
           date: string
@@ -141,6 +176,7 @@ export type Database = {
           breed_custom_text: string | null
           breed_id: string
           created_at: string | null
+          current_park_id: string | null
           daily_energy: number | null
           deleted_at: string | null
           energy_level: number
@@ -149,8 +185,13 @@ export type Database = {
           name: string
           neutered: boolean
           owner_id: string
+          park_checkin_active: boolean | null
+          park_checkin_expires_at: string | null
+          park_checkin_started_at: string | null
           photo_url: string
+          playdate_expires_at: string | null
           playdate_on: boolean | null
+          playdate_started_at: string | null
           social_style: Database["public"]["Enums"]["social_style_type"] | null
           triggers: string[] | null
           updated_at: string | null
@@ -160,6 +201,7 @@ export type Database = {
           breed_custom_text?: string | null
           breed_id: string
           created_at?: string | null
+          current_park_id?: string | null
           daily_energy?: number | null
           deleted_at?: string | null
           energy_level: number
@@ -168,8 +210,13 @@ export type Database = {
           name: string
           neutered: boolean
           owner_id: string
+          park_checkin_active?: boolean | null
+          park_checkin_expires_at?: string | null
+          park_checkin_started_at?: string | null
           photo_url: string
+          playdate_expires_at?: string | null
           playdate_on?: boolean | null
+          playdate_started_at?: string | null
           social_style?: Database["public"]["Enums"]["social_style_type"] | null
           triggers?: string[] | null
           updated_at?: string | null
@@ -179,6 +226,7 @@ export type Database = {
           breed_custom_text?: string | null
           breed_id?: string
           created_at?: string | null
+          current_park_id?: string | null
           daily_energy?: number | null
           deleted_at?: string | null
           energy_level?: number
@@ -187,8 +235,13 @@ export type Database = {
           name?: string
           neutered?: boolean
           owner_id?: string
+          park_checkin_active?: boolean | null
+          park_checkin_expires_at?: string | null
+          park_checkin_started_at?: string | null
           photo_url?: string
+          playdate_expires_at?: string | null
           playdate_on?: boolean | null
+          playdate_started_at?: string | null
           social_style?: Database["public"]["Enums"]["social_style_type"] | null
           triggers?: string[] | null
           updated_at?: string | null
@@ -199,6 +252,13 @@ export type Database = {
             columns: ["breed_id"]
             isOneToOne: false
             referencedRelation: "breeds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dogs_current_park_id_fkey"
+            columns: ["current_park_id"]
+            isOneToOne: false
+            referencedRelation: "parks"
             referencedColumns: ["id"]
           },
           {
@@ -293,7 +353,7 @@ export type Database = {
           created_at?: string | null
           harmony_id: string
           id?: string
-          message_type: Database["public"]["Enums"]["message_type"]
+          message_type?: Database["public"]["Enums"]["message_type"]
           sender_id: string
           template_id?: number | null
         }
@@ -516,6 +576,58 @@ export type Database = {
           },
         ]
       }
+      playdate_history: {
+        Row: {
+          created_at: string | null
+          dog_id: string
+          id: string
+          notes: string | null
+          park_id: string | null
+          partner_dog_id: string
+          playdate_date: string
+        }
+        Insert: {
+          created_at?: string | null
+          dog_id: string
+          id?: string
+          notes?: string | null
+          park_id?: string | null
+          partner_dog_id: string
+          playdate_date?: string
+        }
+        Update: {
+          created_at?: string | null
+          dog_id?: string
+          id?: string
+          notes?: string | null
+          park_id?: string | null
+          partner_dog_id?: string
+          playdate_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "playdate_history_dog_id_fkey"
+            columns: ["dog_id"]
+            isOneToOne: false
+            referencedRelation: "dogs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "playdate_history_park_id_fkey"
+            columns: ["park_id"]
+            isOneToOne: false
+            referencedRelation: "parks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "playdate_history_partner_dog_id_fkey"
+            columns: ["partner_dog_id"]
+            isOneToOne: false
+            referencedRelation: "dogs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       presence_pings: {
         Row: {
           approx_distance_m: number | null
@@ -734,12 +846,24 @@ export type Database = {
         Args: { p_distance_m?: number; p_dog_id: string; p_park_id: string }
         Returns: Json
       }
+      send_message: {
+        Args: { p_content: string; p_harmony_id: string }
+        Returns: Json
+      }
       send_template: {
         Args: { p_harmony_id: string; p_template_id: number }
         Returns: Json
       }
       send_wave: {
         Args: { p_sender_dog_id: string; p_target_dog_id: string }
+        Returns: Json
+      }
+      toggle_park_checkin: {
+        Args: { p_activate: boolean; p_dog_id: string; p_park_id: string }
+        Returns: Json
+      }
+      toggle_playdate: {
+        Args: { p_activate: boolean; p_dog_id: string }
         Returns: Json
       }
     }

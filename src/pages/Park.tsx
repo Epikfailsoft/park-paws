@@ -3,10 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { DogCard } from '@/components/cards/DogCard';
-import { MapPin, Loader2, Timer, AlertTriangle } from 'lucide-react';
+import { MapPin, Loader2, Timer, AlertTriangle, ChevronDown } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
-import type { Dog, Profile, ParkModeSession, DogPrivate } from '@/types/dogspace';
+import type { Dog, Profile, Park as ParkType, DogPrivate, ParkModeSession } from '@/types/dogspace';
 import { RATE_LIMITS, isParkModeActive, getParkModeRemainingMinutes, formatTimeRemaining } from '@/types/dogspace';
 
 interface DogWithOwner extends Dog {
@@ -14,11 +14,13 @@ interface DogWithOwner extends Dog {
   dog_private?: DogPrivate[];
 }
 
-export default function ParkNow() {
+export default function Park() {
   const navigate = useNavigate();
-  const { profile, dogs, selectedPark, hasPhoto } = useAuth();
+  const { profile, dogs, selectedPark, hasPhoto, selectPark, refreshDogs } = useAuth();
   const [parkDogs, setParkDogs] = useState<DogWithOwner[]>([]);
+  const [parks, setParks] = useState<ParkType[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showParkSelect, setShowParkSelect] = useState(false);
   const [currentSession, setCurrentSession] = useState<ParkModeSession | null>(null);
   const [remainingMinutes, setRemainingMinutes] = useState(0);
   const [showExpiryWarning, setShowExpiryWarning] = useState(false);
@@ -28,6 +30,7 @@ export default function ParkNow() {
   const myDog = dogs[0];
 
   useEffect(() => {
+    fetchParks();
     if (selectedPark) {
       fetchParkDogs();
     } else {
@@ -58,12 +61,22 @@ export default function ParkNow() {
     return () => clearInterval(interval);
   }, [currentSession]);
 
+  const fetchParks = async () => {
+    const { data } = await supabase
+      .from('parks')
+      .select('*')
+      .eq('status', 'ACTIVE')
+      .order('name');
+    
+    if (data) setParks(data as unknown as ParkType[]);
+  };
+
   const fetchParkDogs = async () => {
     if (!selectedPark) return;
 
     try {
       const fourHoursAgo = new Date();
-      fourHoursAgo.setHours(fourHoursAgo.getHours() - RATE_LIMITS.PARK_MODE_AUTO_OFF_HOURS);
+      fourHoursAgo.setHours(fourHoursAgo.getHours() - RATE_LIMITS.PARK_CHECKIN_HOURS);
 
       // Get active park mode sessions
       const { data: sessions, error } = await supabase
@@ -106,7 +119,7 @@ export default function ParkNow() {
     if (!myDog) return;
 
     const fourHoursAgo = new Date();
-    fourHoursAgo.setHours(fourHoursAgo.getHours() - RATE_LIMITS.PARK_MODE_AUTO_OFF_HOURS);
+    fourHoursAgo.setHours(fourHoursAgo.getHours() - RATE_LIMITS.PARK_CHECKIN_HOURS);
 
     const { data } = await supabase
       .from('park_mode_sessions')
@@ -150,7 +163,7 @@ export default function ParkNow() {
     }
   };
 
-  const toggleParkMode = async () => {
+  const toggleParkCheckin = async () => {
     if (!myDog || !profile || !selectedPark) return;
 
     if (!hasPhoto || !myDog.photo_url) {
@@ -168,7 +181,7 @@ export default function ParkNow() {
 
         setCurrentSession(null);
         setShowExpiryWarning(false);
-        toast.info('Park modu kapatıldı.');
+        toast.info('Parktan çıkış yapıldı.');
       } else {
         // Start new session
         const { data: newSession, error } = await supabase
@@ -183,12 +196,12 @@ export default function ParkNow() {
         if (error) throw error;
 
         setCurrentSession(newSession as ParkModeSession);
-        toast.success('Parkta aktif oldun! 4 saat sonra otomatik kapanacak.');
+        toast.success('Parka giriş yapıldı! 4 saat sonra otomatik kapanacak.');
       }
 
       fetchParkDogs();
     } catch (error) {
-      console.error('Error toggling park mode:', error);
+      console.error('Error toggling park check-in:', error);
       toast.error('Bir hata oluştu');
     }
   };
@@ -250,6 +263,11 @@ export default function ParkNow() {
     }
   };
 
+  const handleSelectPark = async (parkId: string) => {
+    await selectPark(parkId);
+    setShowParkSelect(false);
+  };
+
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -268,14 +286,14 @@ export default function ParkNow() {
               <Timer className="h-5 w-5 text-amber-600" />
               <div>
                 <p className="text-sm font-medium text-amber-800">
-                  Park Mode {remainingMinutes} dk sonra kapanacak
+                  Park Check-in {remainingMinutes} dk sonra kapanacak
                 </p>
                 <p className="text-xs text-amber-600">Hâlâ parkta mısın?</p>
               </div>
             </div>
             <div className="flex gap-2">
               <button
-                onClick={toggleParkMode}
+                onClick={toggleParkCheckin}
                 className="rounded-lg bg-amber-200 px-3 py-1.5 text-sm font-medium text-amber-800"
               >
                 Kapat
@@ -302,19 +320,22 @@ export default function ParkNow() {
               <MapPin className="h-5 w-5 text-primary-foreground" />
             </div>
             <div>
-              <h1 className="font-display text-lg font-bold text-foreground">
-                Park Şimdi
-              </h1>
-              <p className="text-xs text-muted-foreground">
-                {selectedPark?.name || 'Park seç'} · {parkDogs.length} köpek aktif
-              </p>
+              <h1 className="font-display text-lg font-bold text-foreground">Park</h1>
+              {/* Park Selector */}
+              <button
+                onClick={() => setShowParkSelect(!showParkSelect)}
+                className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+              >
+                {selectedPark?.name || 'Park seç'}
+                <ChevronDown className="h-3 w-3" />
+              </button>
             </div>
           </div>
 
-          {/* Park Mode Status */}
+          {/* Park Check-in Toggle */}
           {myDog && selectedPark && (
             <button
-              onClick={toggleParkMode}
+              onClick={toggleParkCheckin}
               disabled={!hasPhoto && !myDog.photo_url}
               className={cn(
                 "flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-all",
@@ -333,11 +354,34 @@ export default function ParkNow() {
                   {formatTimeRemaining(remainingMinutes)}
                 </>
               ) : (
-                'Park Mode'
+                'Giriş Yap'
               )}
             </button>
           )}
         </div>
+
+        {/* Park Dropdown */}
+        {showParkSelect && (
+          <div className="absolute left-4 right-4 top-full mt-2 rounded-xl border bg-card shadow-lg z-50">
+            {parks.map(park => (
+              <button
+                key={park.id}
+                onClick={() => handleSelectPark(park.id)}
+                className={cn(
+                  "w-full px-4 py-3 text-left text-sm hover:bg-secondary first:rounded-t-xl last:rounded-b-xl",
+                  selectedPark?.id === park.id && "bg-primary/10 text-primary font-medium"
+                )}
+              >
+                {park.name}
+              </button>
+            ))}
+            {parks.length === 0 && (
+              <div className="px-4 py-3 text-sm text-muted-foreground">
+                Henüz aktif park yok
+              </div>
+            )}
+          </div>
+        )}
       </header>
 
       {/* Wave Counter */}
@@ -350,8 +394,12 @@ export default function ParkNow() {
         </div>
       )}
 
-      {/* Content */}
+      {/* Who is here now? */}
       <div className="px-4 py-4">
+        <h2 className="mb-3 text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+          🏞️ Şu an parkta kim var?
+        </h2>
+
         {!selectedPark ? (
           <div className="flex flex-col items-center justify-center py-16 text-center">
             <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-secondary">
@@ -377,11 +425,11 @@ export default function ParkNow() {
             </p>
             {myDog && !currentSession && (
               <button
-                onClick={toggleParkMode}
+                onClick={toggleParkCheckin}
                 disabled={!hasPhoto && !myDog.photo_url}
                 className="rounded-xl bg-primary px-6 py-3 font-medium text-primary-foreground disabled:opacity-50"
               >
-                Park Mode'u Aç
+                Giriş Yap
               </button>
             )}
           </div>
@@ -397,7 +445,7 @@ export default function ParkNow() {
                   className={cn(
                     "rounded-2xl border-2 bg-card p-4",
                     isOwnDog && "border-primary",
-                    isLost && "border-[hsl(var(--energy-5))] bg-[hsl(var(--energy-5))]/5"
+                    isLost && "border-destructive bg-destructive/5"
                   )}
                   style={{ boxShadow: 'var(--shadow-card)' }}
                 >
@@ -425,7 +473,7 @@ export default function ParkNow() {
                     <div className="mt-3 pt-3 border-t border-border">
                       <div className="flex items-center justify-between">
                         <span className="text-sm text-primary font-medium">
-                          Parkta Aktifsin
+                          🟢 Parkta Aktifsin
                         </span>
                         <button
                           onClick={() => navigate('/profile')}
@@ -451,7 +499,7 @@ export default function ParkNow() {
                   {isLost && !currentSession && (
                     <div className="mt-3 rounded-xl bg-secondary/50 p-3 text-center">
                       <p className="text-sm text-muted-foreground">
-                        Telefon numarasını görmek için Park Mode'u aç
+                        Telefon numarasını görmek için parka giriş yap
                       </p>
                     </div>
                   )}
