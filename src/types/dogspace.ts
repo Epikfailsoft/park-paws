@@ -1,4 +1,11 @@
-// DOGSPACE V1.2 FINAL Core Types
+// DOGSPACE V1.22 Types - Dual State System
+
+export interface Breed {
+  id: string;
+  name: string;
+  code: string;
+  created_at: string;
+}
 
 export interface Profile {
   id: string;
@@ -10,34 +17,34 @@ export interface Profile {
   updated_at: string;
 }
 
-export interface Breed {
-  id: string;
-  name: string;
-  code: string;
-  created_at: string;
-}
-
 export interface Dog {
   id: string;
   owner_id: string;
   name: string;
   photo_url: string;
-  breed_id: string;
-  breed_custom_text?: string;
   approximate_age: string;
   energy_level: 1 | 2 | 3 | 4 | 5;
-  daily_energy?: 1 | 2 | 3 | 4 | 5 | null;
+  daily_energy?: 1 | 2 | 3 | 4 | 5;
+  breed_id: string;
+  breed_custom_text?: string;
+  breed?: Breed;
   neutered: boolean;
   social_style?: 'FRIENDLY' | 'NEUTRAL' | 'SELECTIVE';
   triggers?: string[];
+  // STATE B - Playdate ON/OFF (Discover visibility)
   playdate_on: boolean;
+  playdate_started_at?: string;
+  playdate_expires_at?: string;
+  // STATE A - Park Check-in (Physical presence)
+  park_checkin_active: boolean;
+  park_checkin_started_at?: string;
+  park_checkin_expires_at?: string;
+  current_park_id?: string;
+  // Emergency
   is_lost: boolean;
   deleted_at?: string;
   created_at: string;
-  updated_at: string;
-  // Joined data
-  owner?: Profile;
-  breed?: Breed;
+  updated_at?: string;
 }
 
 export interface DogPrivate {
@@ -48,6 +55,15 @@ export interface DogPrivate {
   created_at: string;
 }
 
+export interface DogLostProfile {
+  dog_id: string;
+  emergency_phone: string;
+  last_seen_park_id?: string;
+  lost_started_at?: string;
+  lost_ends_at?: string;
+  created_at: string;
+}
+
 export interface Park {
   id: string;
   name: string;
@@ -55,10 +71,10 @@ export interface Park {
   location?: { lat: number; lng: number };
   required_approvals: number;
   approval_count: number;
-  requested_by?: string;
-  requested_at?: string;
+  is_beta?: boolean;
   activated_at?: string;
-  is_beta: boolean;
+  requested_at?: string;
+  requested_by?: string;
   created_at: string;
 }
 
@@ -76,38 +92,6 @@ export interface ParkModeSession {
   ended_at?: string;
 }
 
-export interface PresencePing {
-  id: string;
-  dog_id: string;
-  park_id: string;
-  session_id: string;
-  approx_distance_m?: number;
-  created_at: string;
-}
-
-export interface DogLostProfile {
-  dog_id: string;
-  emergency_phone: string;
-  last_seen_park_id?: string;
-  lost_started_at?: string;
-  lost_ends_at?: string;
-  created_at: string;
-}
-
-export interface ParkApproval {
-  id: string;
-  park_id: string;
-  user_id: string;
-  created_at: string;
-}
-
-export interface ParkRequest {
-  id: string;
-  park_id: string;
-  requester_id: string;
-  created_at: string;
-}
-
 export interface Wave {
   id: string;
   from_dog_id: string;
@@ -116,20 +100,11 @@ export interface Wave {
   created_at: string;
 }
 
-export interface DailyWaveLimit {
-  user_id: string;
-  date: string;
-  wave_count: number;
-}
-
 export interface Harmony {
   id: string;
   dog_a_id: string;
   dog_b_id: string;
   created_at: string;
-  // Joined data
-  dog_a?: Dog;
-  dog_b?: Dog;
 }
 
 export interface Message {
@@ -142,124 +117,128 @@ export interface Message {
   created_at: string;
 }
 
-export interface TemplateSequence {
-  harmony_id: string;
-  user_id: string;
-  sent_templates: number[];
+export interface CareDocument {
+  id: string;
+  dog_id: string;
+  document_type: 'vaccine' | 'vet' | 'other';
+  file_url: string;
+  file_name: string;
+  uploaded_at: string;
 }
 
-export interface Notification {
+export interface PlaydateHistory {
   id: string;
+  dog_id: string;
+  partner_dog_id: string;
   park_id?: string;
-  type: string;
-  payload: Record<string, unknown>;
+  playdate_date: string;
+  notes?: string;
   created_at: string;
 }
 
-export interface AppEvent {
-  id: string;
-  user_id?: string;
-  event_name: string;
-  payload: Record<string, unknown>;
-  created_at: string;
-}
-
-// Template messages (Turkish) - V1.2 Ordered Lock
-export const TEMPLATES = {
-  1: {
-    text: "Köpekler için kısa bir playdate yapalım mı?",
-    replies: ["Evet", "Başka zaman", "Bugün olmaz"]
-  },
-  2: {
-    text: "Hangi park size daha uygun?",
-    replies: ["Arnavutköy", "Maçka (başvuruda)", "Başka park"]
-  },
-  3: {
-    text: "Hangi zaman aralığı daha iyi olur?",
-    replies: ["Sabah", "Öğle", "Akşam", "Hafta sonu"]
-  }
-} as const;
-
-// Social style options (Turkish) - V1.2
-export const SOCIAL_STYLE_OPTIONS = [
-  { value: 'FRIENDLY', label: '😊 Çok Sosyal', description: 'Herkesle iyi geçinir' },
-  { value: 'NEUTRAL', label: '🐕 Seçici', description: 'Bazı köpeklerle iyi geçinir' },
-  { value: 'SELECTIVE', label: '🐾 Mesafeli', description: 'Mesafe sever' },
-] as const;
-
-// Trigger options (Turkish) - V1.2
-export const TRIGGER_OPTIONS = [
-  { value: 'food', label: '🍖 Yemek', description: 'Yemek yanında hassas' },
-  { value: 'toy', label: '🎾 Oyuncak', description: 'Oyuncak paylaşmaz' },
-  { value: 'leash', label: '🦴 Tasma', description: 'Tasmalıyken farklı davranır' },
-  { value: 'fast_dogs', label: '⚡ Hızlı köpekler', description: 'Hızlı köpeklerden rahatsız' },
-  { value: 'large_dogs', label: '🐕‍🦺 Büyük köpekler', description: 'Büyük köpeklerden çekiniyor' },
-] as const;
-
-// Rate limits - V1.2
+// V1.22 Rate Limits
 export const RATE_LIMITS = {
   DAILY_WAVES: 10,
-  DAILY_TEMPLATES: 5,
-  PARK_MODE_AUTO_OFF_HOURS: 4,
-  PARK_MODE_MIN_DURATION_MINUTES: 10,
-  PARK_MODE_WARNING_MINUTES: 15,
-  PARK_APPROVAL_THRESHOLD: 5,
-  ACCOUNT_AGE_HOURS_FOR_PARK_REQUEST: 24,
-  DISCOVER_MAX_DOGS: 15,
+  PARK_CHECKIN_HOURS: 4,
+  PLAYDATE_ON_HOURS: 24,
   DISCOVER_ACTIVE_HOURS: 24,
+  DISCOVER_MAX_DOGS: 15,
+  PARK_MODE_WARNING_MINUTES: 15,
+  CARE_VAULT_MAX_DOCS: 3,
 } as const;
 
-// Helper to format owner name - Client-side derived
-// If last_name exists → "Buğra A."
-// Else → "Buğra"
+// Social style options
+export const SOCIAL_STYLE_OPTIONS = [
+  { value: 'FRIENDLY', label: 'Çok Sosyal', icon: '😊' },
+  { value: 'NEUTRAL', label: 'Seçici', icon: '🤔' },
+  { value: 'SELECTIVE', label: 'Mesafeli', icon: '😐' },
+] as const;
+
+// Trigger options
+export const TRIGGER_OPTIONS = [
+  { value: 'food', label: 'Yemek', icon: '🍖' },
+  { value: 'toy', label: 'Oyuncak', icon: '🎾' },
+  { value: 'leash', label: 'Tasma', icon: '🦴' },
+  { value: 'high_motion', label: 'Hızlı hareketler', icon: '⚡' },
+  { value: 'large_dogs', label: 'Büyük köpekler', icon: '🐕‍🦺' },
+] as const;
+
+// Quick actions for messaging
+export const QUICK_ACTIONS = [
+  { id: 'suggest_park', label: 'Park Öner', icon: '🏞️' },
+  { id: 'suggest_time', label: 'Zaman Öner', icon: '⏰' },
+] as const;
+
+// Helper: Format owner display name (FirstName + LastInitial.)
 export function formatOwnerName(displayName: string, lastName?: string): string {
-  if (lastName) {
+  if (lastName && lastName.trim()) {
     return `${displayName} ${lastName.charAt(0).toUpperCase()}.`;
   }
   return displayName;
 }
 
-// Check if park mode session is active
-export function isParkModeActive(session?: ParkModeSession): boolean {
-  if (!session || session.ended_at) return false;
-  const startedAt = new Date(session.started_at);
-  const expiresAt = new Date(startedAt.getTime() + RATE_LIMITS.PARK_MODE_AUTO_OFF_HOURS * 60 * 60 * 1000);
-  return expiresAt > new Date();
-}
-
-// Get remaining time for park mode in minutes
-export function getParkModeRemainingMinutes(session?: ParkModeSession): number {
-  if (!session || session.ended_at) return 0;
-  const startedAt = new Date(session.started_at);
-  const expiresAt = new Date(startedAt.getTime() + RATE_LIMITS.PARK_MODE_AUTO_OFF_HOURS * 60 * 60 * 1000);
-  const remaining = (expiresAt.getTime() - Date.now()) / (1000 * 60);
-  return Math.max(0, Math.floor(remaining));
-}
-
-// Format time remaining
-export function formatTimeRemaining(minutes: number): string {
-  if (minutes <= 0) return '0 dk';
-  const hours = Math.floor(minutes / 60);
-  const mins = minutes % 60;
-  if (hours > 0) {
-    return `${hours} sa ${mins} dk`;
-  }
-  return `${mins} dk`;
-}
-
-// Get time context for Discover
+// Helper: Get time context for Turkish UI
 export function getTimeContext(): string {
   const hour = new Date().getHours();
   if (hour >= 6 && hour < 12) return 'Bu sabah';
   if (hour >= 12 && hour < 18) return 'Bugün';
-  if (hour >= 18 && hour < 22) return 'Bu akşam';
-  return 'Gece';
+  return 'Bu akşam';
 }
 
-// Check if a dog was active within the last N hours
-export function wasActiveWithinHours(lastActive: string | Date | null, hours: number): boolean {
-  if (!lastActive) return false;
-  const lastActiveDate = typeof lastActive === 'string' ? new Date(lastActive) : lastActive;
-  const cutoff = new Date(Date.now() - hours * 60 * 60 * 1000);
-  return lastActiveDate >= cutoff;
+// Helper: Check if park check-in is active
+export function isParkCheckinActive(dog: Dog): boolean {
+  if (!dog.park_checkin_active) return false;
+  if (!dog.park_checkin_expires_at) return false;
+  return new Date(dog.park_checkin_expires_at) > new Date();
+}
+
+// Helper: Get remaining minutes for park check-in
+export function getParkCheckinRemainingMinutes(dog: Dog): number {
+  if (!dog.park_checkin_expires_at) return 0;
+  const expiresAt = new Date(dog.park_checkin_expires_at);
+  const now = new Date();
+  const diffMs = expiresAt.getTime() - now.getTime();
+  return Math.max(0, Math.floor(diffMs / (1000 * 60)));
+}
+
+// Helper: Check if playdate is active
+export function isPlaydateActive(dog: Dog): boolean {
+  if (!dog.playdate_on) return false;
+  if (!dog.playdate_expires_at) return dog.playdate_on; // Legacy support
+  return new Date(dog.playdate_expires_at) > new Date();
+}
+
+// Helper: Get remaining hours for playdate
+export function getPlaydateRemainingHours(dog: Dog): number {
+  if (!dog.playdate_expires_at) return 0;
+  const expiresAt = new Date(dog.playdate_expires_at);
+  const now = new Date();
+  const diffMs = expiresAt.getTime() - now.getTime();
+  return Math.max(0, Math.floor(diffMs / (1000 * 60 * 60)));
+}
+
+// Helper: Format time remaining (for display)
+export function formatTimeRemaining(minutes: number): string {
+  if (minutes >= 60) {
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    return mins > 0 ? `${hours}s ${mins}dk` : `${hours}s`;
+  }
+  return `${minutes}dk`;
+}
+
+// Legacy helpers for park_mode_sessions (backward compatibility)
+export function isParkModeActive(session: ParkModeSession): boolean {
+  if (session.ended_at) return false;
+  const startedAt = new Date(session.started_at);
+  const expiresAt = new Date(startedAt.getTime() + RATE_LIMITS.PARK_CHECKIN_HOURS * 60 * 60 * 1000);
+  return expiresAt > new Date();
+}
+
+export function getParkModeRemainingMinutes(session: ParkModeSession): number {
+  const startedAt = new Date(session.started_at);
+  const expiresAt = new Date(startedAt.getTime() + RATE_LIMITS.PARK_CHECKIN_HOURS * 60 * 60 * 1000);
+  const now = new Date();
+  const diffMs = expiresAt.getTime() - now.getTime();
+  return Math.max(0, Math.floor(diffMs / (1000 * 60)));
 }

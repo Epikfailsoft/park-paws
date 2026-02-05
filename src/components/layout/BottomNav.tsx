@@ -1,15 +1,14 @@
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Compass, MapPin, MessageCircle, Dog, Settings } from 'lucide-react';
+import { MapPin, Compass, MessageCircle, Dog } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
 
-// V1.2 Navigation: Keşfet, Park Şimdi, Mesajlar, Köpeğim, Ayarlar
+// V1.22 Navigation: 4 tabs - Park, Discover, Messages, My Dog
 const navItems = [
+  { path: '/park', icon: MapPin, label: 'Park' },
   { path: '/discover', icon: Compass, label: 'Keşfet' },
-  { path: '/park-now', icon: MapPin, label: 'Park' },
   { path: '/messages', icon: MessageCircle, label: 'Mesajlar' },
   { path: '/profile', icon: Dog, label: 'Köpeğim' },
-  { path: '/settings', icon: Settings, label: 'Ayarlar' },
 ];
 
 export function BottomNav() {
@@ -44,7 +43,7 @@ export function BottomNav() {
               key={item.path}
               onClick={() => navigate(item.path)}
               className={cn(
-                "bottom-nav-item min-w-[3.5rem]",
+                "bottom-nav-item min-w-[4rem]",
                 isActive && "active"
               )}
             >

@@ -8,11 +8,9 @@ import { BottomNav } from "@/components/layout/BottomNav";
 import Auth from "./pages/Auth";
 import Onboarding from "./pages/Onboarding";
 import Discover from "./pages/Discover";
-import ParkNow from "./pages/ParkNow";
-import Parks from "./pages/Parks";
+import Park from "./pages/Park";
 import Messages from "./pages/Messages";
 import Profile from "./pages/Profile";
-import Settings from "./pages/Settings";
 import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 import { Loader2 } from "lucide-react";
@@ -60,19 +58,19 @@ function AppRoutes() {
           element={
             user 
               ? hasDog 
-                ? <Navigate to="/discover" replace /> 
+                ? <Navigate to="/park" replace /> 
                 : <Navigate to="/onboarding" replace />
               : <Navigate to="/auth" replace />
           } 
         />
         <Route path="/auth" element={user ? <Navigate to="/" replace /> : <Auth />} />
         <Route path="/onboarding" element={user ? <Onboarding /> : <Navigate to="/auth" replace />} />
+        {/* V1.22: 4 main tabs */}
+        <Route path="/park" element={<ProtectedRoute><Park /></ProtectedRoute>} />
         <Route path="/discover" element={<ProtectedRoute><Discover /></ProtectedRoute>} />
-        <Route path="/park-now" element={<ProtectedRoute><ParkNow /></ProtectedRoute>} />
-        <Route path="/parks" element={<ProtectedRoute><Parks /></ProtectedRoute>} />
         <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
         <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-        <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+        {/* Admin */}
         <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
         <Route path="*" element={<NotFound />} />
       </Routes>
