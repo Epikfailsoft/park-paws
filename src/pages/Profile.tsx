@@ -195,30 +195,54 @@ export default function Profile() {
         </div>
       </header>
 
-      {/* Dog Photo */}
+      {/* Owner & Dog Photo Section */}
       <div className="px-4 pt-6">
-        <div className="relative mx-auto w-fit">
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            onChange={handlePhotoChange}
-            className="hidden"
-          />
-          <img
-            src={myDog.photo_url}
-            alt={myDog.name}
-            className={cn(
-              "h-32 w-32 rounded-3xl object-cover shadow-elevated",
-              myDog.is_lost && "ring-4 ring-[hsl(var(--energy-5))]"
-            )}
-          />
-          <button
-            onClick={() => fileInputRef.current?.click()}
-            className="absolute -bottom-2 -right-2 flex h-10 w-10 items-center justify-center rounded-full bg-accent text-accent-foreground shadow-md"
-          >
-            <Camera className="h-5 w-5" />
-          </button>
+        <div className="flex items-start justify-center gap-6">
+          {/* Owner Photo */}
+          <div className="flex flex-col items-center">
+            <div className="relative">
+              {profile?.photo_url ? (
+                <img
+                  src={profile.photo_url}
+                  alt={profile.display_name}
+                  className="h-16 w-16 rounded-2xl object-cover ring-2 ring-border"
+                />
+              ) : (
+                <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-muted text-xl font-medium text-muted-foreground ring-2 ring-border">
+                  {profile?.display_name?.[0] || '?'}
+                </div>
+              )}
+            </div>
+            <span className="mt-1.5 text-xs text-muted-foreground">Sahip</span>
+          </div>
+
+          {/* Dog Photo */}
+          <div className="flex flex-col items-center">
+            <div className="relative">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handlePhotoChange}
+                className="hidden"
+              />
+              <img
+                src={myDog.photo_url}
+                alt={myDog.name}
+                className={cn(
+                  "h-28 w-28 rounded-3xl object-cover shadow-elevated",
+                  myDog.is_lost && "ring-4 ring-[hsl(var(--energy-5))]"
+                )}
+              />
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="absolute -bottom-2 -right-2 flex h-8 w-8 items-center justify-center rounded-full bg-accent text-accent-foreground shadow-md"
+              >
+                <Camera className="h-4 w-4" />
+              </button>
+            </div>
+            <span className="mt-1.5 text-xs text-muted-foreground">Köpek</span>
+          </div>
         </div>
       </div>
 

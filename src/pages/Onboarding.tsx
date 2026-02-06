@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { z } from 'zod';
 import type { Breed } from '@/types/dogspace';
+import { formatOwnerName } from '@/types/dogspace';
 
 const dogSchema = z.object({
   name: z.string().min(1, 'Köpeğinin adını gir'),
@@ -210,7 +211,58 @@ export default function Onboarding() {
     }
   };
 
-  // Step 1: Owner Photo (Skip for now if already has photo)
+  // Owner photo state
+  const ownerFileInputRef = useRef<HTMLInputElement>(null);
+  const [ownerPhoto, setOwnerPhoto] = useState<File | null>(null);
+  const [ownerPhotoPreview, setOwnerPhotoPreview] = useState<string | null>(profile?.photo_url || null);
+  const [ownerPhotoLoading, setOwnerPhotoLoading] = useState(false);
+
+  const handleOwnerPhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setOwnerPhoto(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setOwnerPhotoPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleOwnerPhotoUpload = async () => {
+    if (!ownerPhoto || !profile) return;
+
+    setOwnerPhotoLoading(true);
+    try {
+      const fileExt = ownerPhoto.name.split('.').pop();
+      const fileName = `owners/${profile.id}/${Date.now()}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('dog-photos')
+        .upload(fileName, ownerPhoto);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('dog-photos')
+        .getPublicUrl(fileName);
+
+      await supabase
+        .from('profiles')
+        .update({ photo_url: publicUrl })
+        .eq('id', profile.id);
+
+      toast.success('Fotoğrafın eklendi!');
+      setStep(2);
+    } catch (error) {
+      console.error('Error uploading owner photo:', error);
+      toast.error('Bir hata oluştu');
+    } finally {
+      setOwnerPhotoLoading(false);
+    }
+  };
+
+  // Step 1: Owner Profile Setup
   if (step === 1) {
     return (
       <div className="flex min-h-screen flex-col bg-background safe-top">
@@ -224,24 +276,92 @@ export default function Onboarding() {
                 Hoş Geldin!
               </h1>
               <p className="text-sm text-muted-foreground">
-                Önce seni tanıyalım
+                Profilini oluşturalım
               </p>
             </div>
           </div>
         </div>
 
         <div className="flex-1 px-6">
-          <p className="mb-6 text-muted-foreground">
-            Parkta görünür olmak için fotoğrafın gerekli. İstersen şimdilik atlayabilirsin.
-          </p>
+          {/* Owner Photo Upload */}
+          <div className="mb-6">
+            <input
+              ref={ownerFileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleOwnerPhotoSelect}
+              className="hidden"
+            />
+            <button
+              type="button"
+              onClick={() => ownerFileInputRef.current?.click()}
+              className={cn(
+                "relative mx-auto flex h-32 w-32 items-center justify-center overflow-hidden rounded-3xl border-2 border-dashed transition-all",
+                ownerPhotoPreview
+                  ? "border-primary"
+                  : "border-border hover:border-primary/50"
+              )}
+            >
+              {ownerPhotoPreview ? (
+                <>
+                  <img
+                    src={ownerPhotoPreview}
+                    alt="Preview"
+                    className="h-full w-full object-cover"
+                  />
+                  <div className="absolute inset-0 flex items-center justify-center bg-foreground/20 opacity-0 transition-opacity hover:opacity-100">
+                    <Camera className="h-8 w-8 text-white" />
+                  </div>
+                </>
+              ) : (
+                <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-secondary">
+                    <Plus className="h-6 w-6" />
+                  </div>
+                  <span className="text-sm font-medium">Fotoğraf Ekle</span>
+                </div>
+              )}
+            </button>
+            <p className="mt-3 text-center text-sm text-muted-foreground">
+              Diğer sahipler seni tanısın
+            </p>
+          </div>
 
+          {/* Owner Name Display */}
+          <div className="mb-6 rounded-xl bg-card p-4 text-center" style={{ boxShadow: 'var(--shadow-card)' }}>
+            <p className="text-sm text-muted-foreground">İsmin</p>
+            <p className="font-display text-lg font-semibold text-foreground">
+              {profile ? formatOwnerName(profile.display_name, profile.last_name) : 'Kullanıcı'}
+            </p>
+          </div>
+
+          {/* Continue Button */}
           <button
-            onClick={() => setStep(2)}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3.5 font-medium text-primary-foreground transition-all hover:opacity-90"
+            onClick={() => {
+              if (ownerPhoto) {
+                handleOwnerPhotoUpload();
+              } else {
+                setStep(2);
+              }
+            }}
+            disabled={ownerPhotoLoading}
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3.5 font-medium text-primary-foreground transition-all hover:opacity-90 disabled:opacity-50"
           >
-            Köpeğimi Ekle
-            <ArrowRight className="h-5 w-5" />
+            {ownerPhotoLoading ? (
+              <Loader2 className="h-5 w-5 animate-spin" />
+            ) : (
+              <>
+                Devam Et
+                <ArrowRight className="h-5 w-5" />
+              </>
+            )}
           </button>
+
+          {!ownerPhotoPreview && (
+            <p className="mt-3 text-center text-xs text-muted-foreground">
+              Fotoğraf eklersen parkta seni bulmak kolaylaşır
+            </p>
+          )}
         </div>
       </div>
     );
