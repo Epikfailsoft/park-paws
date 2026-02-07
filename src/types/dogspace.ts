@@ -13,6 +13,7 @@ export interface Profile {
   display_name: string;
   last_name?: string;
   photo_url?: string;
+  bio?: string; // max 50 chars
   created_at: string;
   updated_at: string;
 }
@@ -31,6 +32,9 @@ export interface Dog {
   neutered: boolean;
   social_style?: 'FRIENDLY' | 'NEUTRAL' | 'SELECTIVE';
   triggers?: string[];
+  bio?: string; // max 150 chars
+  gender?: 'male' | 'female';
+  weight_kg?: number;
   // STATE B - Playdate ON/OFF (Discover visibility)
   playdate_on: boolean;
   playdate_started_at?: string;

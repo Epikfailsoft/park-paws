@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { OwnerChip } from '@/components/ui/OwnerChip';
-import { MessageCircle, Loader2, Send, Image } from 'lucide-react';
+import { MessageCircle, Loader2, Send, Image, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import type { Harmony, Dog, Profile, Message } from '@/types/dogspace';
@@ -18,10 +18,13 @@ export default function Messages() {
   const { profile, dogs } = useAuth();
   const [harmonies, setHarmonies] = useState<HarmonyWithDogs[]>([]);
   const [selectedHarmony, setSelectedHarmony] = useState<HarmonyWithDogs | null>(null);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [messageText, setMessageText] = useState('');
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const myDog = dogs[0];
 
@@ -33,10 +36,52 @@ export default function Messages() {
     }
   }, [myDog]);
 
+  // Realtime subscription for messages
   useEffect(() => {
-    // Scroll to bottom when messages change
+    if (!selectedHarmony) return;
+
+    // Subscribe to new messages
+    const channel = supabase
+      .channel(`harmony:${selectedHarmony.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages',
+          filter: `harmony_id=eq.${selectedHarmony.id}`
+        },
+        (payload) => {
+          const newMessage = payload.new as Message;
+          setMessages(prev => {
+            // Avoid duplicates
+            if (prev.some(m => m.id === newMessage.id)) return prev;
+            return [...prev, newMessage];
+          });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [selectedHarmony?.id]);
+
+  // Scroll to bottom when messages change
+  useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [selectedHarmony?.messages]);
+  }, [messages]);
+
+  // Load messages when harmony is selected
+  useEffect(() => {
+    if (selectedHarmony) {
+      setMessages(
+        [...selectedHarmony.messages].sort(
+          (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+        )
+      );
+    }
+  }, [selectedHarmony?.id]);
 
   const fetchHarmonies = async () => {
     if (!myDog) return;
@@ -79,7 +124,7 @@ export default function Messages() {
 
       if (error) throw error;
 
-      const result = data as { status: string; message: string };
+      const result = data as { status: string; message: string; message_id?: string };
       
       if (result.status === 'ERROR') {
         toast.error(result.message);
@@ -88,20 +133,17 @@ export default function Messages() {
 
       setMessageText('');
       
-      // Refresh messages
-      const { data: updatedHarmony } = await supabase
-        .from('harmonies')
-        .select(`
-          *,
-          dog_a:dogs!harmonies_dog_a_id_fkey(*, owner:profiles(*), breed:breeds(*)),
-          dog_b:dogs!harmonies_dog_b_id_fkey(*, owner:profiles(*), breed:breeds(*)),
-          messages(*)
-        `)
-        .eq('id', selectedHarmony.id)
-        .single();
-
-      if (updatedHarmony) {
-        setSelectedHarmony(updatedHarmony as unknown as HarmonyWithDogs);
+      // Optimistic update
+      if (result.message_id) {
+        const newMsg: Message = {
+          id: result.message_id,
+          harmony_id: selectedHarmony.id,
+          sender_id: profile.id,
+          message_type: 'reply',
+          content: content.trim(),
+          created_at: new Date().toISOString()
+        };
+        setMessages(prev => [...prev, newMsg]);
       }
       
       fetchHarmonies();
@@ -113,12 +155,67 @@ export default function Messages() {
     }
   };
 
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !selectedHarmony || !profile) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Fotoğraf boyutu 5MB\'dan küçük olmalı');
+      return;
+    }
+
+    setUploadingPhoto(true);
+    try {
+      // Upload photo
+      const fileExt = file.name.split('.').pop();
+      const fileName = `messages/${selectedHarmony.id}/${Date.now()}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('dog-photos')
+        .upload(fileName, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('dog-photos')
+        .getPublicUrl(fileName);
+
+      // Send message with photo URL
+      await handleSendMessage(`📷 ${publicUrl}`);
+      toast.success('Fotoğraf gönderildi!');
+    } catch (error) {
+      console.error('Error uploading photo:', error);
+      toast.error('Fotoğraf gönderilemedi');
+    } finally {
+      setUploadingPhoto(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
   const handleQuickAction = (actionId: string) => {
     if (actionId === 'suggest_park') {
       setMessageText('Hangi park size daha uygun?');
     } else if (actionId === 'suggest_time') {
       setMessageText('Hangi zaman aralığı daha iyi olur?');
     }
+  };
+
+  const renderMessageContent = (content: string) => {
+    // Check if it's a photo message
+    if (content.startsWith('📷 ')) {
+      const url = content.replace('📷 ', '');
+      return (
+        <img 
+          src={url} 
+          alt="Shared photo" 
+          className="max-w-[200px] rounded-lg cursor-pointer"
+          onClick={() => window.open(url, '_blank')}
+        />
+      );
+    }
+    return content;
   };
 
   if (loading) {
@@ -132,9 +229,6 @@ export default function Messages() {
   // Chat view
   if (selectedHarmony) {
     const otherDog = getOtherDog(selectedHarmony);
-    const sortedMessages = [...selectedHarmony.messages].sort(
-      (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
-    );
 
     return (
       <div className="flex min-h-screen flex-col bg-background safe-top">
@@ -179,14 +273,14 @@ export default function Messages() {
 
         {/* Messages */}
         <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
-          {sortedMessages.length === 0 ? (
+          {messages.length === 0 ? (
             <div className="text-center py-8">
               <p className="text-muted-foreground">
                 Henüz mesaj yok. Sohbete başla!
               </p>
             </div>
           ) : (
-            sortedMessages.map((message) => {
+            messages.map((message) => {
               const isMine = message.sender_id === profile?.id;
 
               return (
@@ -197,7 +291,7 @@ export default function Messages() {
                     isMine ? "template-bubble-sent" : "template-bubble-received"
                   )}
                 >
-                  {message.content}
+                  {renderMessageContent(message.content)}
                 </div>
               );
             })
@@ -208,6 +302,26 @@ export default function Messages() {
         {/* Message Input */}
         <div className="sticky bottom-0 border-t bg-card px-4 py-3 safe-bottom">
           <div className="flex gap-2">
+            {/* Photo Upload */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handlePhotoUpload}
+              className="hidden"
+            />
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploadingPhoto}
+              className="flex h-11 w-11 items-center justify-center rounded-xl bg-secondary text-secondary-foreground"
+            >
+              {uploadingPhoto ? (
+                <Loader2 className="h-5 w-5 animate-spin" />
+              ) : (
+                <Image className="h-5 w-5" />
+              )}
+            </button>
+
             <input
               type="text"
               placeholder="Mesaj yaz..."
@@ -311,7 +425,9 @@ export default function Messages() {
                     </div>
                     <p className="truncate text-sm text-muted-foreground">
                       {lastMessage
-                        ? lastMessage.content
+                        ? lastMessage.content.startsWith('📷 ') 
+                          ? '📷 Fotoğraf' 
+                          : lastMessage.content
                         : "Mesajlaşmaya başla..."
                       }
                     </p>
