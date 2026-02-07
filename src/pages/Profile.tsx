@@ -3,13 +3,17 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { EnergyIndicator } from '@/components/ui/EnergyIndicator';
-import { Dog, Camera, LogOut, Settings, Loader2, ChevronRight, AlertTriangle } from 'lucide-react';
+import { StatusPulse } from '@/components/profile/StatusPulse';
+import { ActivityStrip } from '@/components/profile/ActivityStrip';
+import { CareVault } from '@/components/profile/CareVault';
+import { PlaydateHistory } from '@/components/profile/PlaydateHistory';
+import { Dog, Camera, LogOut, Settings, Loader2, ChevronRight, AlertTriangle, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { SOCIAL_STYLE_OPTIONS, TRIGGER_OPTIONS, formatOwnerName } from '@/types/dogspace';
 
 export default function Profile() {
-  const { profile, dogs, signOut, refreshDogs } = useAuth();
+  const { profile, dogs, selectedPark, signOut, refreshDogs } = useAuth();
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
   
@@ -17,6 +21,7 @@ export default function Profile() {
   const [editing, setEditing] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showLostModal, setShowLostModal] = useState(false);
+  const [expandedSection, setExpandedSection] = useState<string | null>(null);
 
   // Editable fields
   const [name, setName] = useState(myDog?.name || '');
@@ -25,6 +30,7 @@ export default function Profile() {
   const [socialStyle, setSocialStyle] = useState<'FRIENDLY' | 'NEUTRAL' | 'SELECTIVE' | ''>(myDog?.social_style || '');
   const [triggers, setTriggers] = useState<string[]>(myDog?.triggers || []);
   const [neutered, setNeutered] = useState(myDog?.neutered);
+  const [bio, setBio] = useState((myDog as any)?.bio || '');
 
   const handleLogout = async () => {
     await signOut();
@@ -79,6 +85,7 @@ export default function Profile() {
           social_style: socialStyle || null as 'FRIENDLY' | 'NEUTRAL' | 'SELECTIVE' | null,
           triggers: triggers.length > 0 ? triggers : null,
           neutered,
+          bio: bio.trim() || null,
         })
         .eq('id', myDog.id);
 
@@ -247,9 +254,9 @@ export default function Profile() {
       </div>
 
       {/* Dog Info */}
-      <div className="px-4 pt-6 pb-4">
+      <div className="px-4 pt-6 pb-4 space-y-4">
         {editing ? (
-          <div className="space-y-4">
+          <div className="space-y-4 rounded-2xl bg-card p-4" style={{ boxShadow: 'var(--shadow-card)' }}>
             {/* Name */}
             <div>
               <label className="mb-1.5 block text-sm font-medium text-foreground">
@@ -261,6 +268,21 @@ export default function Profile() {
                 onChange={(e) => setName(e.target.value)}
                 className="dogspace-input w-full"
               />
+            </div>
+
+            {/* Bio */}
+            <div>
+              <label className="mb-1.5 block text-sm font-medium text-foreground">
+                Bio <span className="text-muted-foreground font-normal">(max 150 karakter)</span>
+              </label>
+              <textarea
+                value={bio}
+                onChange={(e) => setBio(e.target.value.slice(0, 150))}
+                placeholder="Köpeğini kısaca tanıt..."
+                rows={2}
+                className="dogspace-input w-full resize-none"
+              />
+              <p className="mt-1 text-xs text-muted-foreground text-right">{bio.length}/150</p>
             </div>
 
             {/* Age */}
@@ -384,7 +406,7 @@ export default function Profile() {
             </button>
           </div>
         ) : (
-          <div className="space-y-4">
+          <>
             {/* Basic Info */}
             <div className="text-center">
               <h2 className="font-display text-2xl font-bold text-foreground">
@@ -393,6 +415,11 @@ export default function Profile() {
               <p className="text-muted-foreground">
                 {myDog.breed?.name} · {myDog.approximate_age}
               </p>
+              {(myDog as any)?.bio && (
+                <p className="mt-2 text-sm text-muted-foreground italic">
+                  "{(myDog as any).bio}"
+                </p>
+              )}
               <div className="mt-2 flex justify-center">
                 <EnergyIndicator level={myDog.energy_level} size="lg" showLabel />
               </div>
@@ -410,8 +437,53 @@ export default function Profile() {
               </span>
             </div>
 
+            {/* Status Pulse */}
+            <StatusPulse 
+              dog={myDog} 
+              selectedPark={selectedPark} 
+              onRefresh={refreshDogs} 
+            />
+
+            {/* Activity Strip */}
+            <ActivityStrip dogId={myDog.id} />
+
+            {/* Collapsible Sections */}
+            <div className="space-y-2">
+              {/* Playdate History */}
+              <button
+                onClick={() => setExpandedSection(expandedSection === 'history' ? null : 'history')}
+                className="w-full flex items-center justify-between rounded-xl bg-card p-4"
+                style={{ boxShadow: 'var(--shadow-card)' }}
+              >
+                <span className="text-sm font-medium text-foreground">🐕 Playdate Geçmişi</span>
+                <ChevronDown className={cn(
+                  "h-5 w-5 text-muted-foreground transition-transform",
+                  expandedSection === 'history' && "rotate-180"
+                )} />
+              </button>
+              {expandedSection === 'history' && (
+                <PlaydateHistory dogId={myDog.id} />
+              )}
+
+              {/* Care Vault */}
+              <button
+                onClick={() => setExpandedSection(expandedSection === 'vault' ? null : 'vault')}
+                className="w-full flex items-center justify-between rounded-xl bg-card p-4"
+                style={{ boxShadow: 'var(--shadow-card)' }}
+              >
+                <span className="text-sm font-medium text-foreground">🔐 Care Vault</span>
+                <ChevronDown className={cn(
+                  "h-5 w-5 text-muted-foreground transition-transform",
+                  expandedSection === 'vault' && "rotate-180"
+                )} />
+              </button>
+              {expandedSection === 'vault' && profile && (
+                <CareVault dogId={myDog.id} profileId={profile.id} />
+              )}
+            </div>
+
             {/* Info Cards */}
-            <div className="space-y-3 pt-4">
+            <div className="space-y-3 pt-2">
               {myDog.social_style && (
                 <div className="flex items-center justify-between rounded-xl bg-card p-4" style={{ boxShadow: 'var(--shadow-card)' }}>
                   <span className="text-sm text-muted-foreground">Sosyal Tarz</span>
@@ -448,11 +520,11 @@ export default function Profile() {
                 <ChevronRight className="h-5 w-5 text-muted-foreground" />
               </button>
             </div>
-          </div>
+          </>
         )}
 
         {/* Lost Mode Section */}
-        <div className="mt-8 border-t border-border pt-6">
+        <div className="mt-4 border-t border-border pt-6">
           <button
             onClick={() => setShowLostModal(true)}
             className={cn(

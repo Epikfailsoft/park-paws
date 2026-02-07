@@ -173,6 +173,7 @@ export type Database = {
       dogs: {
         Row: {
           approximate_age: string
+          bio: string | null
           breed_custom_text: string | null
           breed_id: string
           created_at: string | null
@@ -180,6 +181,7 @@ export type Database = {
           daily_energy: number | null
           deleted_at: string | null
           energy_level: number
+          gender: string | null
           id: string
           is_lost: boolean | null
           name: string
@@ -195,9 +197,11 @@ export type Database = {
           social_style: Database["public"]["Enums"]["social_style_type"] | null
           triggers: string[] | null
           updated_at: string | null
+          weight_kg: number | null
         }
         Insert: {
           approximate_age: string
+          bio?: string | null
           breed_custom_text?: string | null
           breed_id: string
           created_at?: string | null
@@ -205,6 +209,7 @@ export type Database = {
           daily_energy?: number | null
           deleted_at?: string | null
           energy_level: number
+          gender?: string | null
           id?: string
           is_lost?: boolean | null
           name: string
@@ -220,9 +225,11 @@ export type Database = {
           social_style?: Database["public"]["Enums"]["social_style_type"] | null
           triggers?: string[] | null
           updated_at?: string | null
+          weight_kg?: number | null
         }
         Update: {
           approximate_age?: string
+          bio?: string | null
           breed_custom_text?: string | null
           breed_id?: string
           created_at?: string | null
@@ -230,6 +237,7 @@ export type Database = {
           daily_energy?: number | null
           deleted_at?: string | null
           energy_level?: number
+          gender?: string | null
           id?: string
           is_lost?: boolean | null
           name?: string
@@ -245,6 +253,7 @@ export type Database = {
           social_style?: Database["public"]["Enums"]["social_style_type"] | null
           triggers?: string[] | null
           updated_at?: string | null
+          weight_kg?: number | null
         }
         Relationships: [
           {
@@ -679,6 +688,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          bio: string | null
           created_at: string | null
           display_name: string
           id: string
@@ -688,6 +698,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          bio?: string | null
           created_at?: string | null
           display_name: string
           id?: string
@@ -697,6 +708,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          bio?: string | null
           created_at?: string | null
           display_name?: string
           id?: string
