@@ -97,6 +97,23 @@ export function DogCard({
           <EnergyIndicator level={dog.daily_energy || dog.energy_level} size="sm" />
         </div>
 
+        {/* Distance & Park info */}
+        {(distanceKm != null || parkName) && (
+          <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
+            {distanceKm != null && <span>📍 {distanceKm.toFixed(1)} km</span>}
+            {parkName && (
+              <span className="text-[hsl(var(--park-active))] font-medium">🟢 {parkName}</span>
+            )}
+          </div>
+        )}
+
+        {/* Park checkin badge */}
+        {dog.park_checkin_active && !parkName && (
+          <div className="mt-1">
+            <span className="text-xs text-[hsl(var(--park-active))] font-medium">🟢 Parkta</span>
+          </div>
+        )}
+
         {/* Owner chip for lost dogs */}
         {isLost && owner && (
           <div className="mt-2">
