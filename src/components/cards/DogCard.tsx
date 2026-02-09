@@ -30,6 +30,8 @@ export function DogCard({
   isLost = false,
   isOwnDog = false,
   showFullInfo = false,
+  distanceKm,
+  parkName,
 }: DogCardProps) {
   return (
     <div 
