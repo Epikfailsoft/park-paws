@@ -165,6 +165,8 @@ export default function Onboarding() {
           breed_id: selectedBreed.id,
           breed_custom_text: selectedBreed.code === 'OTHER' ? customBreedText : null,
           photo_url: publicUrl,
+          owner_name_stub: profile.display_name,
+          owner_photo_stub: profile.photo_url || null,
         })
         .select()
         .single();

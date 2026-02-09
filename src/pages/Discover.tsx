@@ -1,113 +1,180 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import { useLocation } from '@/hooks/useLocation';
 import { supabase } from '@/integrations/supabase/client';
 import { DogCard } from '@/components/cards/DogCard';
-import { Compass, Loader2, ToggleLeft, ToggleRight } from 'lucide-react';
+import { DiscoverFilters } from '@/components/discover/DiscoverFilters';
+import { MapTeaser } from '@/components/discover/MapTeaser';
+import { WaveLimitModal } from '@/components/discover/WaveLimitModal';
+import { Compass, Loader2, ToggleLeft, ToggleRight, Filter, ChevronDown, ChevronUp } from 'lucide-react';
 import { toast } from 'sonner';
-import type { Dog, Profile } from '@/types/dogspace';
 import { RATE_LIMITS, getTimeContext, isPlaydateActive } from '@/types/dogspace';
+import type { DiscoverDog } from '@/types/dogspace';
 
-interface DogWithOwner extends Dog {
-  owner: Profile;
-}
+const PAGE_SIZE = 30;
 
 export default function Discover() {
   const { dogs, profile, selectedPark, refreshDogs } = useAuth();
-  const [discoverDogs, setDiscoverDogs] = useState<DogWithOwner[]>([]);
+  const { lat, lng } = useLocation();
+
+  const [discoverDogs, setDiscoverDogs] = useState<DiscoverDog[]>([]);
   const [wavedDogs, setWavedDogs] = useState<Set<string>>(new Set());
   const [wavesRemaining, setWavesRemaining] = useState<number>(RATE_LIMITS.DAILY_WAVES);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [offset, setOffset] = useState(0);
+
+  // Filters
+  const [showFilters, setShowFilters] = useState(false);
+  const [distance, setDistance] = useState(10);
+  const [energyFilter, setEnergyFilter] = useState<number | null>(null);
+  const [neuteredFilter, setNeuteredFilter] = useState<boolean | null>(null);
+
+  // Wave limit modal
+  const [showWaveLimitModal, setShowWaveLimitModal] = useState(false);
+
+  // Map teaser stats
+  const [activeDogCount, setActiveDogCount] = useState(0);
+  const [activeParkCount, setActiveParkCount] = useState(0);
+
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  const loadMoreRef = useRef<HTMLDivElement>(null);
 
   const myDog = dogs[0];
 
-  useEffect(() => {
-    if (myDog && selectedPark) {
-      fetchDiscoverDogs();
-      fetchWaveStatus();
-    } else {
-      setLoading(false);
-    }
-  }, [myDog, selectedPark]);
+  // Fetch discover dogs using RPC
+  const fetchDiscoverDogs = useCallback(async (reset = false) => {
+    if (!profile) return;
 
-  // V1.22: Discover shows dogs with playdate_on=true seen in last 24h
-  const fetchDiscoverDogs = async () => {
-    if (!selectedPark || !profile) return;
+    const currentOffset = reset ? 0 : offset;
+    if (reset) {
+      setLoading(true);
+    } else {
+      setLoadingMore(true);
+    }
 
     try {
-      const twentyFourHoursAgo = new Date();
-      twentyFourHoursAgo.setHours(twentyFourHoursAgo.getHours() - RATE_LIMITS.DISCOVER_ACTIVE_HOURS);
-
-      // Get dogs with playdate_on=true
-      const { data: playdateDogs, error } = await supabase
-        .from('dogs')
-        .select(`
-          *,
-          owner:profiles!inner(*),
-          breed:breeds(*)
-        `)
-        .eq('playdate_on', true)
-        .is('deleted_at', null)
-        .neq('owner_id', profile.id);
+      const { data, error } = await supabase.rpc('get_discover_dogs', {
+        p_user_lat: lat,
+        p_user_lng: lng,
+        p_max_distance_km: distance,
+        p_limit: PAGE_SIZE,
+        p_offset: currentOffset,
+      });
 
       if (error) throw error;
 
-      // Also get dogs with recent park activity for boosting
-      const { data: sessions } = await supabase
-        .from('park_mode_sessions')
-        .select('dog_id, started_at')
-        .eq('park_id', selectedPark.id)
-        .gte('started_at', twentyFourHoursAgo.toISOString());
+      let results = (data || []) as DiscoverDog[];
 
-      const recentlyActiveDogIds = new Set(sessions?.map(s => s.dog_id) || []);
+      // Client-side filters
+      if (energyFilter !== null) {
+        results = results.filter(d => d.energy_level === energyFilter);
+      }
+      if (neuteredFilter !== null) {
+        results = results.filter(d => d.is_neutered === neuteredFilter);
+      }
 
-      // Filter and sort: park-active first, then by activity
-      const sortedDogs = (playdateDogs || [])
-        .filter((d: any) => d.owner && d.owner_id !== profile?.id)
-        .sort((a: any, b: any) => {
-          // Park checked-in dogs first
-          const aActive = recentlyActiveDogIds.has(a.id);
-          const bActive = recentlyActiveDogIds.has(b.id);
-          if (aActive && !bActive) return -1;
-          if (!aActive && bActive) return 1;
-          return 0;
-        })
-        .slice(0, RATE_LIMITS.DISCOVER_MAX_DOGS);
+      if (reset) {
+        setDiscoverDogs(results);
+        setOffset(PAGE_SIZE);
+      } else {
+        setDiscoverDogs(prev => [...prev, ...results]);
+        setOffset(prev => prev + PAGE_SIZE);
+      }
 
-      setDiscoverDogs(sortedDogs as DogWithOwner[]);
+      setHasMore(results.length === PAGE_SIZE);
     } catch (error) {
       console.error('Error fetching dogs:', error);
     } finally {
       setLoading(false);
+      setLoadingMore(false);
     }
-  };
+  }, [profile, lat, lng, distance, energyFilter, neuteredFilter, offset]);
 
-  const fetchWaveStatus = async () => {
-    if (!profile) return;
-
+  // Fetch wave status
+  const fetchWaveStatus = useCallback(async () => {
+    if (!profile || !myDog) return;
     try {
       const { data: remaining } = await supabase
         .rpc('get_remaining_waves', { p_user_id: profile.id });
+      if (remaining !== null) setWavesRemaining(remaining);
 
-      if (remaining !== null) {
-        setWavesRemaining(remaining);
-      }
-
-      if (myDog) {
-        const { data: wavesData } = await supabase
-          .from('waves')
-          .select('to_dog_id')
-          .eq('from_dog_id', myDog.id);
-
-        if (wavesData) {
-          setWavedDogs(new Set(wavesData.map(w => w.to_dog_id)));
-        }
+      const { data: wavesData } = await supabase
+        .from('waves')
+        .select('to_dog_id')
+        .eq('from_dog_id', myDog.id);
+      if (wavesData) {
+        setWavedDogs(new Set(wavesData.map(w => w.to_dog_id)));
       }
     } catch (error) {
       console.error('Error fetching wave status:', error);
     }
-  };
+  }, [profile, myDog]);
 
-  // V1.22: Use send_wave RPC
+  // Fetch map teaser stats
+  const fetchTeaserStats = useCallback(async () => {
+    try {
+      const { count: dogCount } = await supabase
+        .from('dogs')
+        .select('*', { count: 'exact', head: true })
+        .eq('playdate_on', true)
+        .is('deleted_at', null);
+
+      const { count: parkCount } = await supabase
+        .from('parks')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'ACTIVE');
+
+      setActiveDogCount(dogCount || 0);
+      setActiveParkCount(parkCount || 0);
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
+  // Initial load
+  useEffect(() => {
+    if (profile) {
+      fetchDiscoverDogs(true);
+      fetchWaveStatus();
+      fetchTeaserStats();
+    } else {
+      setLoading(false);
+    }
+  }, [profile, distance, energyFilter, neuteredFilter, lat, lng]);
+
+  // Infinite scroll observer
+  useEffect(() => {
+    if (observerRef.current) observerRef.current.disconnect();
+
+    observerRef.current = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !loadingMore && !loading) {
+          fetchDiscoverDogs(false);
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (loadMoreRef.current) {
+      observerRef.current.observe(loadMoreRef.current);
+    }
+
+    return () => observerRef.current?.disconnect();
+  }, [hasMore, loadingMore, loading, fetchDiscoverDogs]);
+
+  // Update dog location in DB
+  useEffect(() => {
+    if (lat && lng && myDog) {
+      supabase.rpc('update_dog_location', {
+        p_dog_id: myDog.id,
+        p_lat: lat,
+        p_lng: lng,
+      }).then(() => { /* silent */ });
+    }
+  }, [lat, lng, myDog?.id]);
+
   const handleWave = async (toDogId: string) => {
     if (!myDog || !profile) {
       toast.error('Önce köpek profili oluştur');
@@ -115,7 +182,7 @@ export default function Discover() {
     }
 
     if (wavesRemaining <= 0) {
-      toast.error('Bugünlük wave hakkın bitti!');
+      setShowWaveLimitModal(true);
       return;
     }
 
@@ -123,7 +190,7 @@ export default function Discover() {
       const { data, error } = await supabase
         .rpc('send_wave', {
           p_sender_dog_id: myDog.id,
-          p_target_dog_id: toDogId
+          p_target_dog_id: toDogId,
         });
 
       if (error) throw error;
@@ -131,7 +198,11 @@ export default function Discover() {
       const result = data as { status: string; message: string; harmony_id?: string };
 
       if (result.status === 'ERROR') {
-        toast.error(result.message);
+        if (result.message.includes('limit')) {
+          setShowWaveLimitModal(true);
+        } else {
+          toast.error(result.message);
+        }
         return;
       }
 
@@ -151,20 +222,16 @@ export default function Discover() {
 
   const togglePlaydateOn = async () => {
     if (!myDog) return;
-
     try {
       const newValue = !isPlaydateActive(myDog);
-      
       const { data, error } = await supabase
         .rpc('toggle_playdate', {
           p_dog_id: myDog.id,
-          p_activate: newValue
+          p_activate: newValue,
         });
 
       if (error) throw error;
-
       const result = data as { status: string; message: string };
-      
       if (result.status === 'ERROR') {
         toast.error(result.message);
         return;
@@ -178,6 +245,8 @@ export default function Discover() {
     }
   };
 
+  const playdateActive = myDog && isPlaydateActive(myDog);
+
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -185,8 +254,6 @@ export default function Discover() {
       </div>
     );
   }
-
-  const playdateActive = myDog && isPlaydateActive(myDog);
 
   return (
     <div className="min-h-screen bg-background safe-top safe-bottom">
@@ -198,21 +265,41 @@ export default function Discover() {
               <Compass className="h-5 w-5 text-primary-foreground" />
             </div>
             <div>
-              <h1 className="font-display text-lg font-bold text-foreground">
-                Keşfet
-              </h1>
+              <h1 className="font-display text-lg font-bold text-foreground">Keşfet</h1>
               <p className="text-xs text-muted-foreground">
                 {getTimeContext()} · {selectedPark?.name || 'Park seç'}
               </p>
             </div>
           </div>
-          <div className="rounded-full bg-secondary px-3 py-1.5">
-            <span className="text-sm font-medium text-secondary-foreground">
-              👋 {wavesRemaining}/{RATE_LIMITS.DAILY_WAVES}
-            </span>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className="flex h-9 w-9 items-center justify-center rounded-xl bg-secondary text-secondary-foreground"
+            >
+              <Filter className="h-4 w-4" />
+            </button>
+            <div className="rounded-full bg-secondary px-3 py-1.5">
+              <span className="text-sm font-medium text-secondary-foreground">
+                👋 {wavesRemaining}/{RATE_LIMITS.DAILY_WAVES}
+              </span>
+            </div>
           </div>
         </div>
       </header>
+
+      {/* Filters */}
+      {showFilters && (
+        <div className="border-b bg-card px-4 py-3">
+          <DiscoverFilters
+            distance={distance}
+            onDistanceChange={(km) => { setDistance(km); setOffset(0); }}
+            energyFilter={energyFilter}
+            onEnergyChange={(val) => { setEnergyFilter(val); setOffset(0); }}
+            neuteredFilter={neuteredFilter}
+            onNeuteredChange={(val) => { setNeuteredFilter(val); setOffset(0); }}
+          />
+        </div>
+      )}
 
       {/* Playdate Toggle */}
       {myDog && (
@@ -245,21 +332,16 @@ export default function Discover() {
         </div>
       )}
 
+      {/* Map Teaser */}
+      {(activeDogCount > 0 || activeParkCount > 0) && (
+        <div className="mx-4 mt-3">
+          <MapTeaser activeDogCount={activeDogCount} activeParkCount={activeParkCount} />
+        </div>
+      )}
+
       {/* Content */}
       <div className="px-4 py-4">
-        {!selectedPark ? (
-          <div className="flex flex-col items-center justify-center py-16 text-center">
-            <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-secondary">
-              <span className="text-2xl">🏞️</span>
-            </div>
-            <h2 className="mb-2 font-display text-lg font-semibold text-foreground">
-              Park seçilmedi
-            </h2>
-            <p className="max-w-[280px] text-sm text-muted-foreground">
-              Keşfetmeye başlamak için önce bir park seç.
-            </p>
-          </div>
-        ) : discoverDogs.length === 0 ? (
+        {discoverDogs.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-center">
             <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-secondary">
               <Compass className="h-8 w-8 text-muted-foreground" />
@@ -283,24 +365,67 @@ export default function Discover() {
         ) : (
           <>
             <p className="mb-3 text-sm text-muted-foreground">
-              🔍 Playdate'e açık köpekler · Max {RATE_LIMITS.DISCOVER_MAX_DOGS}
+              🔍 Playdate'e açık köpekler
             </p>
             <div className="grid grid-cols-2 gap-3">
               {discoverDogs.map((dog) => (
                 <DogCard
-                  key={dog.id}
-                  dog={dog}
-                  owner={dog.owner}
+                  key={dog.dog_id}
+                  dog={{
+                    id: dog.dog_id,
+                    name: dog.dog_name,
+                    photo_url: dog.photo_url,
+                    approximate_age: dog.approximate_age,
+                    energy_level: dog.energy_level as 1|2|3|4|5,
+                    daily_energy: dog.daily_energy as 1|2|3|4|5 | undefined,
+                    neutered: dog.is_neutered,
+                    social_style: dog.social_style as any,
+                    triggers: dog.triggers,
+                    bio: dog.bio,
+                    gender: dog.gender as any,
+                    breed: dog.breed_name ? { id: '', name: dog.breed_name, code: '', created_at: '' } : undefined,
+                    park_checkin_active: dog.park_checkin_active,
+                    playdate_on: dog.playdate_on,
+                    is_lost: dog.is_lost,
+                    owner_id: '',
+                    breed_id: '',
+                    owner_name_stub: dog.owner_name_stub || undefined,
+                    owner_photo_stub: dog.owner_photo_stub || undefined,
+                  } as any}
+                  owner={dog.owner_name_stub ? {
+                    id: '',
+                    user_id: '',
+                    display_name: dog.owner_name_stub,
+                    photo_url: dog.owner_photo_stub || undefined,
+                    created_at: '',
+                    updated_at: '',
+                  } : undefined}
                   showWaveButton
-                  onWave={() => handleWave(dog.id)}
-                  hasWaved={wavedDogs.has(dog.id)}
+                  onWave={() => handleWave(dog.dog_id)}
+                  hasWaved={wavedDogs.has(dog.dog_id)}
                   compact
+                  distanceKm={dog.distance_km}
+                  parkName={dog.current_park_name}
                 />
               ))}
+            </div>
+
+            {/* Infinite scroll trigger */}
+            <div ref={loadMoreRef} className="h-10 flex items-center justify-center mt-4">
+              {loadingMore && <Loader2 className="h-5 w-5 animate-spin text-primary" />}
+              {!hasMore && discoverDogs.length > 0 && (
+                <p className="text-xs text-muted-foreground">Tüm köpekler gösterildi</p>
+              )}
             </div>
           </>
         )}
       </div>
+
+      {/* Wave Limit Modal */}
+      <WaveLimitModal
+        open={showWaveLimitModal}
+        onClose={() => setShowWaveLimitModal(false)}
+      />
     </div>
   );
 }

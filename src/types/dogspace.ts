@@ -1,5 +1,53 @@
 // DOGSPACE V1.22 Types - Dual State System
 
+// RPC return types
+export interface DiscoverDog {
+  dog_id: string;
+  dog_name: string;
+  breed_name: string | null;
+  approximate_age: string;
+  energy_level: number;
+  daily_energy: number | null;
+  is_neutered: boolean;
+  photo_url: string;
+  bio: string | null;
+  gender: string | null;
+  weight_kg: number | null;
+  social_style: string | null;
+  triggers: string[] | null;
+  distance_km: number | null;
+  park_checkin_active: boolean;
+  current_park_id: string | null;
+  current_park_name: string | null;
+  playdate_on: boolean;
+  playdate_expires_at: string | null;
+  owner_name_stub: string | null;
+  owner_photo_stub: string | null;
+  already_waved: boolean;
+  is_lost: boolean;
+}
+
+export interface ParkDog {
+  dog_id: string;
+  dog_name: string;
+  breed_name: string | null;
+  approximate_age: string;
+  energy_level: number;
+  daily_energy: number | null;
+  is_neutered: boolean;
+  photo_url: string;
+  bio: string | null;
+  gender: string | null;
+  social_style: string | null;
+  triggers: string[] | null;
+  owner_name_stub: string | null;
+  owner_photo_stub: string | null;
+  owner_id: string;
+  park_checkin_expires_at: string | null;
+  is_lost: boolean;
+  emergency_phone: string | null;
+}
+
 export interface Breed {
   id: string;
   name: string;

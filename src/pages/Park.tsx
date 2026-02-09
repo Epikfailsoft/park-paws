@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -6,51 +6,32 @@ import { DogCard } from '@/components/cards/DogCard';
 import { MapPin, Loader2, Timer, AlertTriangle, ChevronDown } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
-import type { Dog, Profile, Park as ParkType, DogPrivate, ParkModeSession } from '@/types/dogspace';
-import { RATE_LIMITS, isParkModeActive, getParkModeRemainingMinutes, formatTimeRemaining } from '@/types/dogspace';
-
-interface DogWithOwner extends Dog {
-  owner: Profile;
-  dog_private?: DogPrivate[];
-}
+import type { Park as ParkType } from '@/types/dogspace';
+import type { ParkDog } from '@/types/dogspace';
+import { RATE_LIMITS, isParkCheckinActive, getParkCheckinRemainingMinutes, formatTimeRemaining } from '@/types/dogspace';
 
 export default function Park() {
   const navigate = useNavigate();
   const { profile, dogs, selectedPark, hasPhoto, selectPark, refreshDogs } = useAuth();
-  const [parkDogs, setParkDogs] = useState<DogWithOwner[]>([]);
+  const [parkDogs, setParkDogs] = useState<ParkDog[]>([]);
   const [parks, setParks] = useState<ParkType[]>([]);
   const [loading, setLoading] = useState(true);
   const [showParkSelect, setShowParkSelect] = useState(false);
-  const [currentSession, setCurrentSession] = useState<ParkModeSession | null>(null);
   const [remainingMinutes, setRemainingMinutes] = useState(0);
   const [showExpiryWarning, setShowExpiryWarning] = useState(false);
   const [wavedDogs, setWavedDogs] = useState<Set<string>>(new Set());
   const [wavesRemaining, setWavesRemaining] = useState<number>(RATE_LIMITS.DAILY_WAVES);
 
   const myDog = dogs[0];
+  const isCheckedIn = myDog && isParkCheckinActive(myDog);
 
+  // Timer for expiry countdown
   useEffect(() => {
-    fetchParks();
-    if (selectedPark) {
-      fetchParkDogs();
-    } else {
-      setLoading(false);
-    }
-    if (myDog) {
-      fetchParkModeStatus();
-      fetchWaveStatus();
-    }
-  }, [selectedPark, myDog]);
-
-  // Update remaining time every minute
-  useEffect(() => {
-    if (!currentSession) return;
+    if (!myDog || !isCheckedIn) return;
 
     const updateRemaining = () => {
-      const mins = getParkModeRemainingMinutes(currentSession);
+      const mins = getParkCheckinRemainingMinutes(myDog);
       setRemainingMinutes(mins);
-
-      // Show warning when 15 minutes remaining
       if (mins <= RATE_LIMITS.PARK_MODE_WARNING_MINUTES && mins > 0) {
         setShowExpiryWarning(true);
       }
@@ -59,144 +40,94 @@ export default function Park() {
     updateRemaining();
     const interval = setInterval(updateRemaining, 60000);
     return () => clearInterval(interval);
-  }, [currentSession]);
+  }, [myDog, isCheckedIn]);
 
-  const fetchParks = async () => {
+  const fetchParks = useCallback(async () => {
     const { data } = await supabase
       .from('parks')
       .select('*')
       .eq('status', 'ACTIVE')
       .order('name');
-    
     if (data) setParks(data as unknown as ParkType[]);
-  };
+  }, []);
 
-  const fetchParkDogs = async () => {
+  // Fetch park dogs using RPC
+  const fetchParkDogs = useCallback(async () => {
     if (!selectedPark) return;
 
     try {
-      const fourHoursAgo = new Date();
-      fourHoursAgo.setHours(fourHoursAgo.getHours() - RATE_LIMITS.PARK_CHECKIN_HOURS);
-
-      // Get active park mode sessions
-      const { data: sessions, error } = await supabase
-        .from('park_mode_sessions')
-        .select(`
-          dog_id,
-          started_at,
-          dog:dogs!inner(
-            *,
-            owner:profiles!inner(*),
-            breed:breeds(*),
-            dog_private(*)
-          )
-        `)
-        .eq('park_id', selectedPark.id)
-        .is('ended_at', null)
-        .gte('started_at', fourHoursAgo.toISOString());
+      const { data, error } = await supabase.rpc('get_park_dogs', {
+        p_park_id: selectedPark.id,
+        p_limit: 50,
+      });
 
       if (error) throw error;
-
-      // Filter and sort: lost dogs first, then regular
-      const activeDogs = (sessions || [])
-        .map((s: any) => s.dog as DogWithOwner)
-        .filter((d: any) => d && !d.deleted_at)
-        .sort((a: Dog, b: Dog) => {
-          if (a.is_lost && !b.is_lost) return -1;
-          if (!a.is_lost && b.is_lost) return 1;
-          return 0;
-        });
-
-      setParkDogs(activeDogs);
+      setParkDogs((data || []) as ParkDog[]);
     } catch (error) {
       console.error('Error fetching park dogs:', error);
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedPark]);
 
-  const fetchParkModeStatus = async () => {
-    if (!myDog) return;
-
-    const fourHoursAgo = new Date();
-    fourHoursAgo.setHours(fourHoursAgo.getHours() - RATE_LIMITS.PARK_CHECKIN_HOURS);
-
-    const { data } = await supabase
-      .from('park_mode_sessions')
-      .select('*')
-      .eq('dog_id', myDog.id)
-      .is('ended_at', null)
-      .gte('started_at', fourHoursAgo.toISOString())
-      .order('started_at', { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
-    if (data && isParkModeActive(data as ParkModeSession)) {
-      setCurrentSession(data as ParkModeSession);
-      setRemainingMinutes(getParkModeRemainingMinutes(data as ParkModeSession));
-    } else {
-      setCurrentSession(null);
-    }
-  };
-
-  const fetchWaveStatus = async () => {
+  const fetchWaveStatus = useCallback(async () => {
     if (!profile || !myDog) return;
-
     try {
       const { data: remaining } = await supabase
         .rpc('get_remaining_waves', { p_user_id: profile.id });
-
-      if (remaining !== null) {
-        setWavesRemaining(remaining);
-      }
+      if (remaining !== null) setWavesRemaining(remaining);
 
       const { data: wavesData } = await supabase
         .from('waves')
         .select('to_dog_id')
         .eq('from_dog_id', myDog.id);
-
-      if (wavesData) {
-        setWavedDogs(new Set(wavesData.map(w => w.to_dog_id)));
-      }
+      if (wavesData) setWavedDogs(new Set(wavesData.map(w => w.to_dog_id)));
     } catch (error) {
       console.error('Error fetching wave status:', error);
     }
-  };
+  }, [profile, myDog]);
+
+  useEffect(() => {
+    fetchParks();
+    if (selectedPark) {
+      fetchParkDogs();
+    } else {
+      setLoading(false);
+    }
+    if (myDog) fetchWaveStatus();
+  }, [selectedPark, myDog]);
 
   const toggleParkCheckin = async () => {
     if (!myDog || !profile || !selectedPark) return;
 
-    if (!hasPhoto || !myDog.photo_url) {
+    if (!hasPhoto && !myDog.photo_url) {
       toast.error('Parkta görünür olmak için önce fotoğraf eklemelisin');
       return;
     }
 
     try {
-      if (currentSession) {
-        // End current session
-        await supabase
-          .from('park_mode_sessions')
-          .update({ ended_at: new Date().toISOString() })
-          .eq('id', currentSession.id);
+      const activate = !isCheckedIn;
 
-        setCurrentSession(null);
-        setShowExpiryWarning(false);
-        toast.info('Parktan çıkış yapıldı.');
-      } else {
-        // Start new session
-        const { data: newSession, error } = await supabase
-          .from('park_mode_sessions')
-          .insert({
-            dog_id: myDog.id,
-            park_id: selectedPark.id,
-          })
-          .select()
-          .single();
+      const { data, error } = await supabase.rpc('toggle_park_checkin', {
+        p_dog_id: myDog.id,
+        p_park_id: selectedPark.id,
+        p_activate: activate,
+      });
 
-        if (error) throw error;
+      if (error) throw error;
+      const result = data as { status: string; message: string };
+      if (result.status === 'ERROR') {
+        toast.error(result.message);
+        return;
+      }
 
-        setCurrentSession(newSession as ParkModeSession);
+      await refreshDogs();
+      setShowExpiryWarning(false);
+
+      if (activate) {
         toast.success('Parka giriş yapıldı! 4 saat sonra otomatik kapanacak.');
+      } else {
+        toast.info('Parktan çıkış yapıldı.');
       }
 
       fetchParkDogs();
@@ -206,42 +137,16 @@ export default function Park() {
     }
   };
 
-  const handlePingPresence = async () => {
-    if (!myDog || !selectedPark) return;
-
-    try {
-      const { data, error } = await supabase
-        .rpc('ping_presence', {
-          p_dog_id: myDog.id,
-          p_park_id: selectedPark.id,
-          p_distance_m: null
-        });
-
-      if (error) throw error;
-
-      const result = data as { status: string };
-      if (result.status === 'PINGED') {
-        toast.success('Varlığın onaylandı!');
-        setShowExpiryWarning(false);
-      }
-    } catch (error) {
-      console.error('Error pinging presence:', error);
-      toast.error('Bir hata oluştu');
-    }
-  };
-
   const handleWave = async (toDogId: string) => {
     if (!myDog || !profile) return;
 
     try {
-      const { data, error } = await supabase
-        .rpc('send_wave', {
-          p_sender_dog_id: myDog.id,
-          p_target_dog_id: toDogId
-        });
+      const { data, error } = await supabase.rpc('send_wave', {
+        p_sender_dog_id: myDog.id,
+        p_target_dog_id: toDogId,
+      });
 
       if (error) throw error;
-
       const result = data as { status: string; message: string };
 
       if (result.status === 'ERROR') {
@@ -278,8 +183,8 @@ export default function Park() {
 
   return (
     <div className="min-h-screen bg-background safe-top safe-bottom">
-      {/* Expiry Warning Banner */}
-      {showExpiryWarning && currentSession && (
+      {/* Expiry Warning */}
+      {showExpiryWarning && isCheckedIn && (
         <div className="bg-amber-100 border-b border-amber-300 p-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -299,7 +204,7 @@ export default function Park() {
                 Kapat
               </button>
               <button
-                onClick={handlePingPresence}
+                onClick={() => setShowExpiryWarning(false)}
                 className="rounded-lg bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground"
               >
                 Evet, Devam
@@ -315,13 +220,12 @@ export default function Park() {
           <div className="flex items-center gap-3">
             <div className={cn(
               "flex h-10 w-10 items-center justify-center rounded-xl",
-              currentSession ? "bg-[hsl(var(--park-active))]" : "bg-primary"
+              isCheckedIn ? "bg-[hsl(var(--park-active))]" : "bg-primary"
             )}>
               <MapPin className="h-5 w-5 text-primary-foreground" />
             </div>
             <div>
               <h1 className="font-display text-lg font-bold text-foreground">Park</h1>
-              {/* Park Selector */}
               <button
                 onClick={() => setShowParkSelect(!showParkSelect)}
                 className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
@@ -332,20 +236,19 @@ export default function Park() {
             </div>
           </div>
 
-          {/* Park Check-in Toggle */}
           {myDog && selectedPark && (
             <button
               onClick={toggleParkCheckin}
               disabled={!hasPhoto && !myDog.photo_url}
               className={cn(
                 "flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-all",
-                currentSession
+                isCheckedIn
                   ? "bg-[hsl(var(--park-active))] text-white"
                   : "bg-secondary text-secondary-foreground",
                 (!hasPhoto && !myDog.photo_url) && "opacity-50"
               )}
             >
-              {currentSession ? (
+              {isCheckedIn ? (
                 <>
                   <span className="relative flex h-2 w-2">
                     <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white opacity-75"></span>
@@ -423,7 +326,7 @@ export default function Park() {
             <p className="max-w-[280px] text-sm text-muted-foreground mb-4">
               {myDog?.name}'in varlığını göstermek ister misin?
             </p>
-            {myDog && !currentSession && (
+            {myDog && !isCheckedIn && (
               <button
                 onClick={toggleParkCheckin}
                 disabled={!hasPhoto && !myDog.photo_url}
@@ -437,20 +340,19 @@ export default function Park() {
           <div className="space-y-3">
             {parkDogs.map((dog) => {
               const isOwnDog = dog.owner_id === profile?.id;
-              const isLost = dog.is_lost;
 
               return (
                 <div
-                  key={dog.id}
+                  key={dog.dog_id}
                   className={cn(
                     "rounded-2xl border-2 bg-card p-4",
                     isOwnDog && "border-primary",
-                    isLost && "border-destructive bg-destructive/5"
+                    dog.is_lost && "border-destructive bg-destructive/5"
                   )}
                   style={{ boxShadow: 'var(--shadow-card)' }}
                 >
-                  {/* Lost Dog Overlay */}
-                  {isLost && (
+                  {/* Lost overlay */}
+                  {dog.is_lost && (
                     <div className="mb-3 flex items-center gap-2 rounded-lg bg-destructive/20 p-2">
                       <AlertTriangle className="h-5 w-5 text-destructive" />
                       <span className="font-semibold text-destructive">KAYIP</span>
@@ -458,17 +360,41 @@ export default function Park() {
                   )}
 
                   <DogCard
-                    dog={dog}
-                    owner={dog.owner}
-                    showWaveButton={!isOwnDog && !isLost}
-                    onWave={() => handleWave(dog.id)}
-                    hasWaved={wavedDogs.has(dog.id)}
+                    dog={{
+                      id: dog.dog_id,
+                      name: dog.dog_name,
+                      photo_url: dog.photo_url,
+                      approximate_age: dog.approximate_age,
+                      energy_level: dog.energy_level as 1|2|3|4|5,
+                      daily_energy: dog.daily_energy as 1|2|3|4|5 | undefined,
+                      neutered: dog.is_neutered,
+                      social_style: dog.social_style as any,
+                      triggers: dog.triggers,
+                      bio: dog.bio,
+                      gender: dog.gender as any,
+                      breed: dog.breed_name ? { id: '', name: dog.breed_name, code: '', created_at: '' } : undefined,
+                      park_checkin_active: true,
+                      is_lost: dog.is_lost,
+                      owner_id: dog.owner_id,
+                      breed_id: '',
+                      playdate_on: false,
+                    } as any}
+                    owner={dog.owner_name_stub ? {
+                      id: '',
+                      user_id: '',
+                      display_name: dog.owner_name_stub,
+                      photo_url: dog.owner_photo_stub || undefined,
+                      created_at: '',
+                      updated_at: '',
+                    } : undefined}
+                    showWaveButton={!isOwnDog && !dog.is_lost}
+                    onWave={() => handleWave(dog.dog_id)}
+                    hasWaved={wavedDogs.has(dog.dog_id)}
                     isOwnDog={isOwnDog}
-                    showFullInfo={true}
-                    isLost={isLost}
+                    showFullInfo
+                    isLost={dog.is_lost}
                   />
 
-                  {/* Own Dog Actions */}
                   {isOwnDog && (
                     <div className="mt-3 pt-3 border-t border-border">
                       <div className="flex items-center justify-between">
@@ -485,18 +411,16 @@ export default function Park() {
                     </div>
                   )}
 
-                  {/* Lost Dog Call Button */}
-                  {isLost && dog.dog_private?.[0]?.emergency_phone && currentSession && (
+                  {dog.is_lost && dog.emergency_phone && isCheckedIn && (
                     <a
-                      href={`tel:${dog.dog_private[0].emergency_phone}`}
+                      href={`tel:${dog.emergency_phone}`}
                       className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-destructive py-3 font-semibold text-destructive-foreground"
                     >
                       📞 SAHİBİNİ ARA
                     </a>
                   )}
 
-                  {/* Lost Dog - No Active Session */}
-                  {isLost && !currentSession && (
+                  {dog.is_lost && !isCheckedIn && (
                     <div className="mt-3 rounded-xl bg-secondary/50 p-3 text-center">
                       <p className="text-sm text-muted-foreground">
                         Telefon numarasını görmek için parka giriş yap
