@@ -15,6 +15,8 @@ interface DogCardProps {
   isLost?: boolean;
   isOwnDog?: boolean;
   showFullInfo?: boolean;
+  distanceKm?: number | null;
+  parkName?: string | null;
 }
 
 export function DogCard({ 
