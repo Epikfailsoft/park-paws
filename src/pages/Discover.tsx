@@ -171,7 +171,7 @@ export default function Discover() {
         p_dog_id: myDog.id,
         p_lat: lat,
         p_lng: lng,
-      }).catch(() => { /* silent */ });
+      }).then(() => { /* silent */ });
     }
   }, [lat, lng, myDog?.id]);
 
