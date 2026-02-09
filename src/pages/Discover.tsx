@@ -128,7 +128,9 @@ export default function Discover() {
 
       setActiveDogCount(dogCount || 0);
       setActiveParkCount(parkCount || 0);
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
   }, []);
 
   // Initial load
