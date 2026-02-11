@@ -939,6 +939,15 @@ export type Database = {
         Args: { p_sender_dog_id: string; p_target_dog_id: string }
         Returns: Json
       }
+      toggle_lost_mode: {
+        Args: {
+          p_dog_id: string
+          p_emergency_phone?: string
+          p_enable: boolean
+          p_last_seen_park_id?: string
+        }
+        Returns: Json
+      }
       toggle_park_checkin: {
         Args: { p_activate: boolean; p_dog_id: string; p_park_id: string }
         Returns: Json

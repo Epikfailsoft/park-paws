@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { OwnerChip } from '@/components/ui/OwnerChip';
 import { MessageCircle, Loader2, Send, Image, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { validatePhotoFile, compressImage } from '@/lib/upload-validation';
 import { toast } from 'sonner';
 import type { Harmony, Dog, Profile, Message } from '@/types/dogspace';
 import { formatOwnerName, QUICK_ACTIONS } from '@/types/dogspace';
@@ -156,11 +157,20 @@ export default function Messages() {
   };
 
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !selectedHarmony || !profile) return;
+    const rawFile = e.target.files?.[0];
+    if (!rawFile || !selectedHarmony || !profile) return;
 
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error('Fotoğraf boyutu 5MB\'dan küçük olmalı');
+    const validation = validatePhotoFile(rawFile);
+    if (!validation.valid) {
+      toast.error(validation.error!);
+      return;
+    }
+
+    let file: File;
+    try {
+      file = await compressImage(rawFile);
+    } catch {
+      toast.error('Fotoğraf işlenemedi');
       return;
     }
 
