@@ -4,6 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Camera, Dog, ArrowRight, Loader2, Plus, Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { validatePhotoFile, compressImage } from '@/lib/upload-validation';
 import { toast } from 'sonner';
 import { z } from 'zod';
 import type { Breed } from '@/types/dogspace';
@@ -14,7 +15,7 @@ const dogSchema = z.object({
   approximate_age: z.string().min(1, 'Yaklaşık yaşını gir'),
   energy_level: z.number().min(1).max(5),
   neutered: z.boolean(),
-  emergency_phone: z.string().min(10, 'Geçerli bir telefon numarası gir'),
+  emergency_phone: z.string().regex(/^(\+90[0-9]{10}|0[0-9]{10})$/, 'Geçerli format: +90XXXXXXXXXX veya 0XXXXXXXXXX'),
 });
 
 export default function Onboarding() {
@@ -77,15 +78,25 @@ export default function Onboarding() {
     breed.name.toLowerCase().includes(breedSearch.toLowerCase())
   );
 
-  const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePhotoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setPhoto(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPhotoPreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+      const validation = validatePhotoFile(file);
+      if (!validation.valid) {
+        toast.error(validation.error!);
+        return;
+      }
+      try {
+        const compressed = await compressImage(file);
+        setPhoto(compressed);
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setPhotoPreview(reader.result as string);
+        };
+        reader.readAsDataURL(compressed);
+      } catch {
+        toast.error('Fotoğraf işlenemedi');
+      }
     }
   };
 
@@ -219,15 +230,25 @@ export default function Onboarding() {
   const [ownerPhotoPreview, setOwnerPhotoPreview] = useState<string | null>(profile?.photo_url || null);
   const [ownerPhotoLoading, setOwnerPhotoLoading] = useState(false);
 
-  const handleOwnerPhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleOwnerPhotoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setOwnerPhoto(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setOwnerPhotoPreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+      const validation = validatePhotoFile(file);
+      if (!validation.valid) {
+        toast.error(validation.error!);
+        return;
+      }
+      try {
+        const compressed = await compressImage(file);
+        setOwnerPhoto(compressed);
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setOwnerPhotoPreview(reader.result as string);
+        };
+        reader.readAsDataURL(compressed);
+      } catch {
+        toast.error('Fotoğraf işlenemedi');
+      }
     }
   };
 
