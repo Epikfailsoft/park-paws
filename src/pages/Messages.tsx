@@ -19,6 +19,16 @@ export default function Messages() {
   const { profile, dogs } = useAuth();
   const [harmonies, setHarmonies] = useState<HarmonyWithDogs[]>([]);
   const [selectedHarmony, setSelectedHarmony] = useState<HarmonyWithDogs | null>(null);
+
+  // Expose chat state for BottomNav visibility
+  useEffect(() => {
+    if (selectedHarmony) {
+      document.body.setAttribute('data-chat-open', 'true');
+    } else {
+      document.body.removeAttribute('data-chat-open');
+    }
+    return () => document.body.removeAttribute('data-chat-open');
+  }, [selectedHarmony]);
   const [messages, setMessages] = useState<Message[]>([]);
   const [messageText, setMessageText] = useState('');
   const [loading, setLoading] = useState(true);
