@@ -6,7 +6,7 @@ import { DogCard } from '@/components/cards/DogCard';
 import { DiscoverFilters } from '@/components/discover/DiscoverFilters';
 import { MapTeaser } from '@/components/discover/MapTeaser';
 import { WaveLimitModal } from '@/components/discover/WaveLimitModal';
-import { Compass, Loader2, ToggleLeft, ToggleRight, Filter, ChevronDown, ChevronUp } from 'lucide-react';
+import { Compass, Loader2, ToggleLeft, ToggleRight, Filter, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
 import { RATE_LIMITS, getTimeContext, isPlaydateActive } from '@/types/dogspace';
 import type { DiscoverDog } from '@/types/dogspace';
@@ -42,6 +42,11 @@ export default function Discover() {
   const loadMoreRef = useRef<HTMLDivElement>(null);
 
   const myDog = dogs[0];
+  const playdateActive = myDog && isPlaydateActive(myDog);
+
+  // Separate lost dogs from regular discover dogs
+  const lostDogs = discoverDogs.filter(d => d.is_lost);
+  const regularDogs = discoverDogs.filter(d => !d.is_lost);
 
   // Fetch discover dogs using RPC
   const fetchDiscoverDogs = useCallback(async (reset = false) => {
@@ -210,9 +215,9 @@ export default function Discover() {
       setWavesRemaining(prev => prev - 1);
 
       if (result.status === 'HARMONY_CREATED') {
-        toast.success('🎉 Eşleştiniz!', { duration: 5000 });
+        toast.success('🎉 Eşleştiniz! Artık mesajlaşabilirsiniz', { duration: 5000 });
       } else {
-        toast.success('Wave gönderildi! 👋');
+        toast.success('Wave gönderildi! Eğer karşılık verirse Harmony olur 👋');
       }
     } catch (error) {
       console.error('Error waving:', error);
@@ -245,12 +250,59 @@ export default function Discover() {
     }
   };
 
-  const playdateActive = myDog && isPlaydateActive(myDog);
-
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  // IF Playdate OFF → Show activation CTA
+  if (myDog && !playdateActive) {
+    return (
+      <div className="min-h-screen bg-background safe-top safe-bottom">
+        {/* Header */}
+        <header className="sticky top-0 z-40 glass border-b px-4 py-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary">
+              <Compass className="h-5 w-5 text-primary-foreground" />
+            </div>
+            <div>
+              <h1 className="font-display text-lg font-bold text-foreground">Keşfet</h1>
+              <p className="text-xs text-muted-foreground">
+                {getTimeContext()} · {selectedPark?.name || 'Park seç'}
+              </p>
+            </div>
+          </div>
+        </header>
+
+        {/* Lost Dogs Banner (always visible) */}
+        {lostDogs.length > 0 && (
+          <div className="mx-4 mt-4">
+            <LostDogsBanner dogs={lostDogs} onWave={handleWave} wavedDogs={wavedDogs} />
+          </div>
+        )}
+
+        {/* Playdate OFF empty state */}
+        <div className="flex flex-col items-center justify-center py-20 px-4 text-center">
+          <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-secondary">
+            <Compass className="h-10 w-10 text-muted-foreground" />
+          </div>
+          <h2 className="mb-2 font-display text-xl font-bold text-foreground">
+            Playdate modunu aç!
+          </h2>
+          <p className="max-w-[300px] text-sm text-muted-foreground mb-6">
+            Yeni köpeklerle tanışmak için Playdate modunu aktif et. 24 saat boyunca Keşfet'te görünür olacaksın.
+          </p>
+          <button
+            onClick={togglePlaydateOn}
+            className="flex items-center gap-2 rounded-xl bg-primary px-6 py-3 text-base font-semibold text-primary-foreground shadow-lg transition-all hover:opacity-90 active:scale-[0.98]"
+          >
+            <ToggleRight className="h-5 w-5" />
+            Playdate'i Aç
+          </button>
+        </div>
       </div>
     );
   }
@@ -306,27 +358,17 @@ export default function Discover() {
         <div className="mx-4 mt-4 rounded-xl bg-card p-4" style={{ boxShadow: 'var(--shadow-card)' }}>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              {playdateActive ? (
-                <ToggleRight className="h-6 w-6 text-primary" />
-              ) : (
-                <ToggleLeft className="h-6 w-6 text-muted-foreground" />
-              )}
+              <ToggleRight className="h-6 w-6 text-primary" />
               <div>
-                <p className="font-medium text-foreground">Playdate'e Açık</p>
-                <p className="text-xs text-muted-foreground">
-                  {playdateActive ? '24 saat boyunca görünür' : 'Keşfet\'te görünmüyorsun'}
-                </p>
+                <p className="font-medium text-foreground">Playdate Modu Aktif 🟢</p>
+                <p className="text-xs text-muted-foreground">24 saat boyunca görünür</p>
               </div>
             </div>
             <button
               onClick={togglePlaydateOn}
-              className={`rounded-full px-4 py-2 text-sm font-medium transition-all ${
-                playdateActive
-                  ? 'bg-primary text-primary-foreground'
-                  : 'bg-muted text-muted-foreground'
-              }`}
+              className="rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
             >
-              {playdateActive ? 'Açık' : 'Kapalı'}
+              Kapat
             </button>
           </div>
         </div>
@@ -339,9 +381,16 @@ export default function Discover() {
         </div>
       )}
 
+      {/* Lost Dogs Banner */}
+      {lostDogs.length > 0 && (
+        <div className="mx-4 mt-3">
+          <LostDogsBanner dogs={lostDogs} onWave={handleWave} wavedDogs={wavedDogs} />
+        </div>
+      )}
+
       {/* Content */}
       <div className="px-4 py-4">
-        {discoverDogs.length === 0 ? (
+        {regularDogs.length === 0 && lostDogs.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-center">
             <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-secondary">
               <Compass className="h-8 w-8 text-muted-foreground" />
@@ -349,66 +398,61 @@ export default function Discover() {
             <h2 className="mb-2 font-display text-lg font-semibold text-foreground">
               Bugün sakin
             </h2>
-            <p className="max-w-[280px] text-sm text-muted-foreground mb-4">
+            <p className="max-w-[280px] text-sm text-muted-foreground">
               {myDog?.name}'i parka götürmeye ne dersin?
             </p>
-            {myDog && !playdateActive && (
-              <button
-                onClick={togglePlaydateOn}
-                className="flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
-              >
-                <ToggleRight className="h-4 w-4" />
-                Playdate'i Aç
-              </button>
-            )}
           </div>
         ) : (
           <>
-            <p className="mb-3 text-sm text-muted-foreground">
-              🔍 Playdate'e açık köpekler
-            </p>
-            <div className="grid grid-cols-2 gap-3">
-              {discoverDogs.map((dog) => (
-                <DogCard
-                  key={dog.dog_id}
-                  dog={{
-                    id: dog.dog_id,
-                    name: dog.dog_name,
-                    photo_url: dog.photo_url,
-                    approximate_age: dog.approximate_age,
-                    energy_level: dog.energy_level as 1|2|3|4|5,
-                    daily_energy: dog.daily_energy as 1|2|3|4|5 | undefined,
-                    neutered: dog.is_neutered,
-                    social_style: dog.social_style as any,
-                    triggers: dog.triggers,
-                    bio: dog.bio,
-                    gender: dog.gender as any,
-                    breed: dog.breed_name ? { id: '', name: dog.breed_name, code: '', created_at: '' } : undefined,
-                    park_checkin_active: dog.park_checkin_active,
-                    playdate_on: dog.playdate_on,
-                    is_lost: dog.is_lost,
-                    owner_id: '',
-                    breed_id: '',
-                    owner_name_stub: dog.owner_name_stub || undefined,
-                    owner_photo_stub: dog.owner_photo_stub || undefined,
-                  } as any}
-                  owner={dog.owner_name_stub ? {
-                    id: '',
-                    user_id: '',
-                    display_name: dog.owner_name_stub,
-                    photo_url: dog.owner_photo_stub || undefined,
-                    created_at: '',
-                    updated_at: '',
-                  } : undefined}
-                  showWaveButton
-                  onWave={() => handleWave(dog.dog_id)}
-                  hasWaved={wavedDogs.has(dog.dog_id)}
-                  compact
-                  distanceKm={dog.distance_km}
-                  parkName={dog.current_park_name}
-                />
-              ))}
-            </div>
+            {regularDogs.length > 0 && (
+              <>
+                <p className="mb-3 text-sm text-muted-foreground">
+                  🔍 Playdate'e açık köpekler
+                </p>
+                <div className="grid grid-cols-2 gap-3">
+                  {regularDogs.map((dog) => (
+                    <DogCard
+                      key={dog.dog_id}
+                      dog={{
+                        id: dog.dog_id,
+                        name: dog.dog_name,
+                        photo_url: dog.photo_url,
+                        approximate_age: dog.approximate_age,
+                        energy_level: dog.energy_level as 1|2|3|4|5,
+                        daily_energy: dog.daily_energy as 1|2|3|4|5 | undefined,
+                        neutered: dog.is_neutered,
+                        social_style: dog.social_style as any,
+                        triggers: dog.triggers,
+                        bio: dog.bio,
+                        gender: dog.gender as any,
+                        breed: dog.breed_name ? { id: '', name: dog.breed_name, code: '', created_at: '' } : undefined,
+                        park_checkin_active: dog.park_checkin_active,
+                        playdate_on: dog.playdate_on,
+                        is_lost: false,
+                        owner_id: '',
+                        breed_id: '',
+                        owner_name_stub: dog.owner_name_stub || undefined,
+                        owner_photo_stub: dog.owner_photo_stub || undefined,
+                      } as any}
+                      owner={dog.owner_name_stub ? {
+                        id: '',
+                        user_id: '',
+                        display_name: dog.owner_name_stub,
+                        photo_url: dog.owner_photo_stub || undefined,
+                        created_at: '',
+                        updated_at: '',
+                      } : undefined}
+                      showWaveButton
+                      onWave={() => handleWave(dog.dog_id)}
+                      hasWaved={wavedDogs.has(dog.dog_id)}
+                      compact
+                      distanceKm={dog.distance_km}
+                      parkName={dog.current_park_name}
+                    />
+                  ))}
+                </div>
+              </>
+            )}
 
             {/* Infinite scroll trigger */}
             <div ref={loadMoreRef} className="h-10 flex items-center justify-center mt-4">
@@ -426,6 +470,50 @@ export default function Discover() {
         open={showWaveLimitModal}
         onClose={() => setShowWaveLimitModal(false)}
       />
+    </div>
+  );
+}
+
+// Lost Dogs Banner Component
+function LostDogsBanner({ 
+  dogs, 
+  onWave, 
+  wavedDogs 
+}: { 
+  dogs: DiscoverDog[]; 
+  onWave: (dogId: string) => void; 
+  wavedDogs: Set<string>;
+}) {
+  return (
+    <div className="rounded-2xl border-2 border-destructive bg-destructive/5 p-4">
+      <div className="flex items-center gap-2 mb-3">
+        <AlertTriangle className="h-5 w-5 text-destructive" />
+        <h3 className="font-display font-bold text-destructive">
+          Kayıp Köpekler ({dogs.length})
+        </h3>
+      </div>
+      <div className="space-y-3">
+        {dogs.map((dog) => (
+          <div key={dog.dog_id} className="flex items-center gap-3 rounded-xl bg-card p-3">
+            <img
+              src={dog.photo_url}
+              alt={dog.dog_name}
+              className="h-14 w-14 rounded-xl object-cover ring-2 ring-destructive"
+            />
+            <div className="flex-1 min-w-0">
+              <h4 className="font-semibold text-foreground truncate">{dog.dog_name}</h4>
+              <p className="text-xs text-muted-foreground">
+                {dog.breed_name || 'Karışık'} · {dog.approximate_age}
+              </p>
+              {dog.current_park_name && (
+                <p className="text-xs text-destructive mt-0.5">
+                  📍 Son görülen: {dog.current_park_name}
+                </p>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

@@ -4,13 +4,11 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { EnergyIndicator } from '@/components/ui/EnergyIndicator';
 import { StatusPulse } from '@/components/profile/StatusPulse';
-import { ActivityStrip } from '@/components/profile/ActivityStrip';
-import { CareVault } from '@/components/profile/CareVault';
-import { PlaydateHistory } from '@/components/profile/PlaydateHistory';
-import { Dog, Camera, LogOut, Settings, Loader2, ChevronRight, AlertTriangle, ChevronDown } from 'lucide-react';
+import { Dog, Camera, LogOut, Settings, Loader2, ChevronRight, AlertTriangle, Phone } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { SOCIAL_STYLE_OPTIONS, TRIGGER_OPTIONS, formatOwnerName } from '@/types/dogspace';
+import { validateTurkishPhone } from '@/lib/upload-validation';
 
 export default function Profile() {
   const { profile, dogs, selectedPark, signOut, refreshDogs } = useAuth();
@@ -21,7 +19,6 @@ export default function Profile() {
   const [editing, setEditing] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showLostModal, setShowLostModal] = useState(false);
-  const [expandedSection, setExpandedSection] = useState<string | null>(null);
 
   // Editable fields
   const [name, setName] = useState(myDog?.name || '');
@@ -31,6 +28,10 @@ export default function Profile() {
   const [triggers, setTriggers] = useState<string[]>(myDog?.triggers || []);
   const [neutered, setNeutered] = useState(myDog?.neutered);
   const [bio, setBio] = useState((myDog as any)?.bio || '');
+
+  // Lost mode fields
+  const [emergencyPhone, setEmergencyPhone] = useState('');
+  const [phoneError, setPhoneError] = useState('');
 
   const handleLogout = async () => {
     await signOut();
@@ -105,44 +106,44 @@ export default function Profile() {
   const handleLostMode = async () => {
     if (!myDog) return;
 
+    const newLostState = !myDog.is_lost;
+
+    // Validate phone when activating
+    if (newLostState) {
+      const phoneValidation = validateTurkishPhone(emergencyPhone);
+      if (!phoneValidation.valid) {
+        setPhoneError(phoneValidation.error || 'Geçersiz telefon numarası');
+        return;
+      }
+    }
+
     setLoading(true);
     try {
-      const newLostState = !myDog.is_lost;
-      
-      await supabase
-        .from('dogs')
-        .update({ is_lost: newLostState })
-        .eq('id', myDog.id);
+      const { data, error } = await supabase.rpc('toggle_lost_mode', {
+        p_dog_id: myDog.id,
+        p_enable: newLostState,
+        p_emergency_phone: newLostState ? emergencyPhone : undefined,
+        p_last_seen_park_id: newLostState && selectedPark ? selectedPark.id : undefined,
+      });
 
-      if (newLostState) {
-        // Create notification for park users
-        const { data: lostProfile } = await supabase
-          .from('dog_lost_profile')
-          .select('last_seen_park_id')
-          .eq('dog_id', myDog.id)
-          .single();
+      if (error) throw error;
 
-        if (lostProfile?.last_seen_park_id) {
-          await supabase
-            .from('notifications')
-            .insert({
-              park_id: lostProfile.last_seen_park_id,
-              type: 'lost_dog',
-              payload: {
-                dog_id: myDog.id,
-                dog_name: myDog.name,
-                breed: myDog.breed?.name,
-              },
-            });
-        }
-
-        toast.success('Lost Mode aktif! Parkta aktiflere bildirim gönderildi.');
-      } else {
-        toast.info('Lost Mode kapatıldı.');
+      const result = data as { status: string; message: string };
+      if (result.status === 'ERROR') {
+        toast.error(result.message);
+        return;
       }
 
       await refreshDogs();
       setShowLostModal(false);
+      setEmergencyPhone('');
+      setPhoneError('');
+
+      if (newLostState) {
+        toast.success('Kayıp modu aktif! Yakındaki kullanıcılar bilgilendirilecek.');
+      } else {
+        toast.info('Kayıp modu kapatıldı.');
+      }
     } catch (error) {
       console.error('Error toggling lost mode:', error);
       toast.error('Bir hata oluştu');
@@ -259,15 +260,8 @@ export default function Profile() {
           <div className="space-y-4 rounded-2xl bg-card p-4" style={{ boxShadow: 'var(--shadow-card)' }}>
             {/* Name */}
             <div>
-              <label className="mb-1.5 block text-sm font-medium text-foreground">
-                Ad
-              </label>
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="dogspace-input w-full"
-              />
+              <label className="mb-1.5 block text-sm font-medium text-foreground">Ad</label>
+              <input type="text" value={name} onChange={(e) => setName(e.target.value)} className="dogspace-input w-full" />
             </div>
 
             {/* Bio */}
@@ -287,22 +281,13 @@ export default function Profile() {
 
             {/* Age */}
             <div>
-              <label className="mb-1.5 block text-sm font-medium text-foreground">
-                Yaş
-              </label>
-              <input
-                type="text"
-                value={age}
-                onChange={(e) => setAge(e.target.value)}
-                className="dogspace-input w-full"
-              />
+              <label className="mb-1.5 block text-sm font-medium text-foreground">Yaş</label>
+              <input type="text" value={age} onChange={(e) => setAge(e.target.value)} className="dogspace-input w-full" />
             </div>
 
             {/* Energy Level */}
             <div>
-              <label className="mb-2 block text-sm font-medium text-foreground">
-                Enerji Seviyesi
-              </label>
+              <label className="mb-2 block text-sm font-medium text-foreground">Enerji Seviyesi</label>
               <div className="flex justify-between gap-2">
                 {([1, 2, 3, 4, 5] as const).map((level) => (
                   <button
@@ -324,9 +309,7 @@ export default function Profile() {
 
             {/* Social Style */}
             <div>
-              <label className="mb-2 block text-sm font-medium text-foreground">
-                Sosyal Tarz
-              </label>
+              <label className="mb-2 block text-sm font-medium text-foreground">Sosyal Tarz</label>
               <div className="flex flex-wrap gap-2">
                 {SOCIAL_STYLE_OPTIONS.map((opt) => (
                   <button
@@ -348,9 +331,7 @@ export default function Profile() {
 
             {/* Triggers */}
             <div>
-              <label className="mb-2 block text-sm font-medium text-foreground">
-                Tetikleyiciler (Hassasiyetler)
-              </label>
+              <label className="mb-2 block text-sm font-medium text-foreground">Tetikleyiciler (Hassasiyetler)</label>
               <div className="flex flex-wrap gap-2">
                 {TRIGGER_OPTIONS.map((opt) => (
                   <button
@@ -374,9 +355,7 @@ export default function Profile() {
                   </button>
                 ))}
               </div>
-              <p className="mt-1 text-xs text-muted-foreground">
-                Bu bilgiler güvenli playdate için kullanılır
-              </p>
+              <p className="mt-1 text-xs text-muted-foreground">Bu bilgiler güvenli playdate için kullanılır</p>
             </div>
 
             {/* Neutered */}
@@ -387,9 +366,7 @@ export default function Profile() {
                 onClick={() => setNeutered(!neutered)}
                 className={cn(
                   "rounded-full px-4 py-1.5 text-sm font-medium transition-all",
-                  neutered 
-                    ? "bg-primary text-primary-foreground" 
-                    : "bg-muted text-muted-foreground"
+                  neutered ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
                 )}
               >
                 {neutered ? "Evet" : "Hayır"}
@@ -409,16 +386,10 @@ export default function Profile() {
           <>
             {/* Basic Info */}
             <div className="text-center">
-              <h2 className="font-display text-2xl font-bold text-foreground">
-                {myDog.name}
-              </h2>
-              <p className="text-muted-foreground">
-                {myDog.breed?.name} · {myDog.approximate_age}
-              </p>
+              <h2 className="font-display text-2xl font-bold text-foreground">{myDog.name}</h2>
+              <p className="text-muted-foreground">{myDog.breed?.name} · {myDog.approximate_age}</p>
               {(myDog as any)?.bio && (
-                <p className="mt-2 text-sm text-muted-foreground italic">
-                  "{(myDog as any).bio}"
-                </p>
+                <p className="mt-2 text-sm text-muted-foreground italic">"{(myDog as any).bio}"</p>
               )}
               <div className="mt-2 flex justify-center">
                 <EnergyIndicator level={myDog.energy_level} size="lg" showLabel />
@@ -429,58 +400,14 @@ export default function Profile() {
             <div className="flex justify-center">
               <span className={cn(
                 "rounded-full px-4 py-2 text-sm",
-                myDog.neutered 
-                  ? "bg-primary/10 text-primary" 
-                  : "bg-muted text-muted-foreground"
+                myDog.neutered ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"
               )}>
                 {myDog.neutered ? '✓ Kısırlaştırıldı' : 'Kısırlaştırılmadı'}
               </span>
             </div>
 
             {/* Status Pulse */}
-            <StatusPulse 
-              dog={myDog} 
-              selectedPark={selectedPark} 
-              onRefresh={refreshDogs} 
-            />
-
-            {/* Activity Strip */}
-            <ActivityStrip dogId={myDog.id} />
-
-            {/* Collapsible Sections */}
-            <div className="space-y-2">
-              {/* Playdate History */}
-              <button
-                onClick={() => setExpandedSection(expandedSection === 'history' ? null : 'history')}
-                className="w-full flex items-center justify-between rounded-xl bg-card p-4"
-                style={{ boxShadow: 'var(--shadow-card)' }}
-              >
-                <span className="text-sm font-medium text-foreground">🐕 Playdate Geçmişi</span>
-                <ChevronDown className={cn(
-                  "h-5 w-5 text-muted-foreground transition-transform",
-                  expandedSection === 'history' && "rotate-180"
-                )} />
-              </button>
-              {expandedSection === 'history' && (
-                <PlaydateHistory dogId={myDog.id} />
-              )}
-
-              {/* Care Vault */}
-              <button
-                onClick={() => setExpandedSection(expandedSection === 'vault' ? null : 'vault')}
-                className="w-full flex items-center justify-between rounded-xl bg-card p-4"
-                style={{ boxShadow: 'var(--shadow-card)' }}
-              >
-                <span className="text-sm font-medium text-foreground">🔐 Care Vault</span>
-                <ChevronDown className={cn(
-                  "h-5 w-5 text-muted-foreground transition-transform",
-                  expandedSection === 'vault' && "rotate-180"
-                )} />
-              </button>
-              {expandedSection === 'vault' && profile && (
-                <CareVault dogId={myDog.id} profileId={profile.id} />
-              )}
-            </div>
+            <StatusPulse dog={myDog} selectedPark={selectedPark} onRefresh={refreshDogs} />
 
             {/* Info Cards */}
             <div className="space-y-3 pt-2">
@@ -514,9 +441,7 @@ export default function Profile() {
                 onClick={() => setEditing(true)}
                 className="flex w-full items-center justify-between rounded-xl bg-secondary/50 p-4 text-left transition-all hover:bg-secondary"
               >
-                <span className="text-sm text-muted-foreground">
-                  Biliyorsan ekle, bilmiyorsan geç
-                </span>
+                <span className="text-sm text-muted-foreground">Biliyorsan ekle, bilmiyorsan geç</span>
                 <ChevronRight className="h-5 w-5 text-muted-foreground" />
               </button>
             </div>
@@ -553,23 +478,58 @@ export default function Profile() {
                 Lost Mode kapatılsın mı? Telefon numaran artık görünmeyecek.
               </p>
             ) : (
-              <p className="text-muted-foreground mb-6">
-                Lost Mode aktif edilsin mi? İletişim numaranız yalnızca şu an parkta aktif olanlara açılacaktır.
-              </p>
+              <div className="space-y-4 mb-6">
+                <p className="text-muted-foreground">
+                  Lost Mode aktif edilsin mi? İletişim numaranız yalnızca şu an parkta aktif olanlara açılacaktır.
+                </p>
+                
+                {/* Emergency Phone Input */}
+                <div>
+                  <label className="mb-1.5 block text-sm font-medium text-foreground">
+                    <Phone className="inline h-4 w-4 mr-1" />
+                    Acil Telefon Numarası
+                  </label>
+                  <input
+                    type="tel"
+                    placeholder="+905XXXXXXXXX veya 05XXXXXXXXX"
+                    value={emergencyPhone}
+                    onChange={(e) => {
+                      setEmergencyPhone(e.target.value);
+                      setPhoneError('');
+                    }}
+                    className="dogspace-input w-full"
+                  />
+                  {phoneError && (
+                    <p className="mt-1 text-sm text-destructive">{phoneError}</p>
+                  )}
+                </div>
+
+                {selectedPark && (
+                  <div className="rounded-lg bg-secondary/50 p-3">
+                    <p className="text-xs text-muted-foreground">
+                      Son görüldüğü park: <span className="font-medium text-foreground">{selectedPark.name}</span>
+                    </p>
+                  </div>
+                )}
+              </div>
             )}
             
             <div className="flex gap-3">
               <button
-                onClick={() => setShowLostModal(false)}
+                onClick={() => {
+                  setShowLostModal(false);
+                  setPhoneError('');
+                  setEmergencyPhone('');
+                }}
                 className="flex-1 rounded-xl border border-border py-3 font-medium text-foreground"
               >
                 İptal
               </button>
               <button
                 onClick={handleLostMode}
-                disabled={loading}
+                disabled={loading || (!myDog.is_lost && !emergencyPhone.trim())}
                 className={cn(
-                  "flex-1 rounded-xl py-3 font-semibold",
+                  "flex-1 rounded-xl py-3 font-semibold disabled:opacity-50",
                   myDog.is_lost ? "bg-primary text-primary-foreground" : "bg-destructive text-destructive-foreground"
                 )}
               >
