@@ -13,7 +13,7 @@ import { formatOwnerName } from '@/types/dogspace';
 const dogSchema = z.object({
   name: z.string().min(1, 'Köpeğinin adını gir'),
   approximate_age: z.string().min(1, 'Yaklaşık yaşını gir'),
-  energy_level: z.number().min(1).max(5),
+  energy_level: z.number().min(1).max(3),
   neutered: z.boolean(),
   emergency_phone: z.string().regex(/^(\+90[0-9]{10}|0[0-9]{10})$/, 'Geçerli format: +90XXXXXXXXXX veya 0XXXXXXXXXX'),
 });
