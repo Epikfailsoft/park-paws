@@ -289,7 +289,7 @@ export default function Profile() {
 
             <button onClick={handleSave} disabled={loading}
               className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl py-3 font-semibold text-white transition-all hover:opacity-90 disabled:opacity-50 shadow-lg"
-              style={{ background: 'var(--gradient-accent)', boxShadow: 'var(--shadow-glow-accent)' }}
+              style={{ background: 'var(--gradient-accent)', boxShadow: 'var(--shadow-glow-accent)' }}>
               {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Kaydet'}
             </button>
           </div>
