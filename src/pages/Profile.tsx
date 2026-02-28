@@ -143,21 +143,22 @@ export default function Profile() {
       <header className="sticky top-0 z-40 glass border-b px-4 py-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary">
-              <Dog className="h-5 w-5 text-primary-foreground" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl text-white shadow-md"
+              style={{ background: 'var(--gradient-accent)' }}>
+              <Dog className="h-5 w-5" />
             </div>
             <div>
-              <h1 className="font-display text-lg font-bold text-foreground">Köpeğim</h1>
-              <p className="text-xs text-muted-foreground">
+              <h1 className="font-display text-lg font-extrabold text-foreground">Köpeğim</h1>
+              <p className="text-xs text-muted-foreground font-medium">
                 {profile ? formatOwnerName(profile.display_name, profile.last_name) : ''}
               </p>
             </div>
           </div>
           <div className="flex gap-2">
-            <button onClick={() => setEditing(!editing)} className="flex h-10 w-10 items-center justify-center rounded-xl bg-secondary text-secondary-foreground">
+            <button onClick={() => setEditing(!editing)} className="flex h-10 w-10 items-center justify-center rounded-xl bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-all">
               <Settings className="h-5 w-5" />
             </button>
-            <button onClick={handleLogout} className="flex h-10 w-10 items-center justify-center rounded-xl bg-destructive/10 text-destructive">
+            <button onClick={handleLogout} className="flex h-10 w-10 items-center justify-center rounded-xl bg-destructive/10 text-destructive hover:bg-destructive/20 transition-all">
               <LogOut className="h-5 w-5" />
             </button>
           </div>
