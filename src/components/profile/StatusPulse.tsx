@@ -205,11 +205,9 @@ export function StatusPulse({ dog, selectedPark, onRefresh }: StatusPulseProps) 
         <div className="flex items-center justify-between mb-2">
           <p className="text-sm font-medium text-foreground">Bugünkü Enerji</p>
           <p className="text-xs text-muted-foreground">
-            {dailyEnergy === 1 && 'Sakin'}
-            {dailyEnergy === 2 && 'Rahat'}
-            {dailyEnergy === 3 && 'Orta'}
-            {dailyEnergy === 4 && 'Enerjik'}
-            {dailyEnergy === 5 && 'Çok Enerjik'}
+            {dailyEnergy === 1 && '🐢 Sakin'}
+            {dailyEnergy === 2 && '🐕 Normal'}
+            {dailyEnergy === 3 && '⚡ Enerjik'}
           </p>
         </div>
         <div className="flex justify-between gap-2">
