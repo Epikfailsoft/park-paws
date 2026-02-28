@@ -208,14 +208,23 @@ export const SOCIAL_STYLE_OPTIONS = [
   { value: 'SELECTIVE', label: 'Mesafeli', icon: '😐' },
 ] as const;
 
-// Trigger options
-export const TRIGGER_OPTIONS = [
-  { value: 'food', label: 'Yemek', icon: '🍖' },
-  { value: 'toy', label: 'Oyuncak', icon: '🎾' },
-  { value: 'leash', label: 'Tasma', icon: '🦴' },
-  { value: 'high_motion', label: 'Hızlı hareketler', icon: '⚡' },
-  { value: 'large_dogs', label: 'Büyük köpekler', icon: '🐕‍🦺' },
+// Hashtag suggestions for likes/dislikes
+export const LIKES_SUGGESTIONS = [
+  '#top', '#koşmak', '#su', '#yüzmek', '#oyun', '#oyuncak', '#park',
+  '#çocuklar', '#ödül', '#yürüyüş', '#agility', '#getir',
 ] as const;
+
+export const DISLIKES_SUGGESTIONS = [
+  '#gürültü', '#kedi', '#yalnızlık', '#araç', '#tasma', '#kalabalık',
+  '#havai_fişek', '#büyük_köpekler', '#banyo', '#fırtına',
+] as const;
+
+// Energy level labels (3 levels)
+export const ENERGY_LABELS_3 = {
+  1: 'Sakin',
+  2: 'Normal',
+  3: 'Enerjik',
+} as const;
 
 // Quick actions for messaging
 export const QUICK_ACTIONS = [

@@ -28,7 +28,7 @@ export function EnergyIndicator({ level, size = 'md', showLabel = false }: Energ
   return (
     <div className="flex items-center gap-2">
       <div className={cn("energy-bar", gapSizes[size])}>
-        {[1, 2, 3, 4, 5].map((i) => (
+        {[1, 2, 3].map((i) => (
           <div
             key={i}
             className={cn(
