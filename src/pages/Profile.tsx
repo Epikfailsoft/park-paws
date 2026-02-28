@@ -7,7 +7,7 @@ import { StatusPulse } from '@/components/profile/StatusPulse';
 import { Dog, Camera, LogOut, Settings, Loader2, ChevronRight, AlertTriangle, Phone } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
-import { SOCIAL_STYLE_OPTIONS, TRIGGER_OPTIONS, formatOwnerName } from '@/types/dogspace';
+import { SOCIAL_STYLE_OPTIONS, LIKES_SUGGESTIONS, DISLIKES_SUGGESTIONS, formatOwnerName } from '@/types/dogspace';
 import { validateTurkishPhone } from '@/lib/upload-validation';
 
 export default function Profile() {
