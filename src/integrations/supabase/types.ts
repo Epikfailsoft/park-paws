@@ -96,6 +96,50 @@ export type Database = {
           },
         ]
       }
+      dog_care: {
+        Row: {
+          dog_id: string
+          last_vet_visit: string | null
+          notes: string | null
+          parasite_protection_date: string | null
+          parasite_protection_next_date: string | null
+          updated_at: string
+          vaccination_date: string | null
+          vaccination_next_date: string | null
+          vaccination_status: string
+        }
+        Insert: {
+          dog_id: string
+          last_vet_visit?: string | null
+          notes?: string | null
+          parasite_protection_date?: string | null
+          parasite_protection_next_date?: string | null
+          updated_at?: string
+          vaccination_date?: string | null
+          vaccination_next_date?: string | null
+          vaccination_status?: string
+        }
+        Update: {
+          dog_id?: string
+          last_vet_visit?: string | null
+          notes?: string | null
+          parasite_protection_date?: string | null
+          parasite_protection_next_date?: string | null
+          updated_at?: string
+          vaccination_date?: string | null
+          vaccination_next_date?: string | null
+          vaccination_status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dog_care_dog_id_fkey"
+            columns: ["dog_id"]
+            isOneToOne: true
+            referencedRelation: "dogs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       dog_lost_profile: {
         Row: {
           created_at: string | null
