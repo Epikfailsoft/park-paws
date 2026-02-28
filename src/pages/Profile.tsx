@@ -171,7 +171,7 @@ export default function Profile() {
       <div className="px-4 pb-4 space-y-4">
         {editing ? (
           /* EDIT MODE */
-          <div className="space-y-4 rounded-2xl bg-card p-4" style={{ boxShadow: 'var(--shadow-card)' }}>
+          <div className="section-card space-y-4">
             <div>
               <label className="mb-1.5 block text-sm font-medium text-foreground">Ad</label>
               <input type="text" value={name} onChange={(e) => setName(e.target.value)} className="dogspace-input w-full" />
