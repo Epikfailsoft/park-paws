@@ -29,7 +29,7 @@ export default function Onboarding() {
   // Dog form state
   const [name, setName] = useState('');
   const [age, setAge] = useState('');
-  const [energyLevel, setEnergyLevel] = useState<1 | 2 | 3 | 4 | 5>(3);
+  const [energyLevel, setEnergyLevel] = useState<1 | 2 | 3>(2);
   const [neutered, setNeutered] = useState<boolean | null>(null);
   const [emergencyPhone, setEmergencyPhone] = useState('');
   const [photo, setPhoto] = useState<File | null>(null);
