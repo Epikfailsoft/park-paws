@@ -21,7 +21,7 @@ interface StatusPulseProps {
 
 export function StatusPulse({ dog, selectedPark, onRefresh }: StatusPulseProps) {
   const [loading, setLoading] = useState<'playdate' | 'checkin' | 'energy' | null>(null);
-  const [dailyEnergy, setDailyEnergy] = useState<1 | 2 | 3 | 4 | 5>(dog.daily_energy || dog.energy_level);
+  const [dailyEnergy, setDailyEnergy] = useState<1 | 2 | 3>((dog.daily_energy || dog.energy_level) as 1 | 2 | 3);
 
   const playdateActive = isPlaydateActive(dog);
   const parkActive = isParkCheckinActive(dog);
@@ -90,7 +90,7 @@ export function StatusPulse({ dog, selectedPark, onRefresh }: StatusPulseProps) 
     }
   };
 
-  const updateDailyEnergy = async (level: 1 | 2 | 3 | 4 | 5) => {
+  const updateDailyEnergy = async (level: 1 | 2 | 3) => {
     setLoading('energy');
     try {
       const { error } = await supabase
@@ -205,15 +205,13 @@ export function StatusPulse({ dog, selectedPark, onRefresh }: StatusPulseProps) 
         <div className="flex items-center justify-between mb-2">
           <p className="text-sm font-medium text-foreground">Bugünkü Enerji</p>
           <p className="text-xs text-muted-foreground">
-            {dailyEnergy === 1 && 'Sakin'}
-            {dailyEnergy === 2 && 'Rahat'}
-            {dailyEnergy === 3 && 'Orta'}
-            {dailyEnergy === 4 && 'Enerjik'}
-            {dailyEnergy === 5 && 'Çok Enerjik'}
+            {dailyEnergy === 1 && '🐢 Sakin'}
+            {dailyEnergy === 2 && '🐕 Normal'}
+            {dailyEnergy === 3 && '⚡ Enerjik'}
           </p>
         </div>
         <div className="flex justify-between gap-2">
-          {([1, 2, 3, 4, 5] as const).map((level) => (
+          {([1, 2, 3] as const).map((level) => (
             <button
               key={level}
               onClick={() => updateDailyEnergy(level)}

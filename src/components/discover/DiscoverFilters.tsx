@@ -48,7 +48,7 @@ export function DiscoverFilters({
         <div className="flex-1">
           <p className="text-xs font-medium text-muted-foreground mb-1.5">Enerji</p>
           <div className="flex gap-1">
-            {[1, 2, 3, 4, 5].map((level) => (
+            {[1, 2, 3].map((level) => (
               <button
                 key={level}
                 onClick={() => onEnergyChange(energyFilter === level ? null : level)}

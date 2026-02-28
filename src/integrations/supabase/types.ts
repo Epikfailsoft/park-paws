@@ -180,10 +180,12 @@ export type Database = {
           current_park_id: string | null
           daily_energy: number | null
           deleted_at: string | null
+          dislikes: string[] | null
           energy_level: number
           gender: string | null
           id: string
           is_lost: boolean | null
+          likes: string[] | null
           location: unknown
           location_updated_at: string | null
           name: string
@@ -212,10 +214,12 @@ export type Database = {
           current_park_id?: string | null
           daily_energy?: number | null
           deleted_at?: string | null
+          dislikes?: string[] | null
           energy_level: number
           gender?: string | null
           id?: string
           is_lost?: boolean | null
+          likes?: string[] | null
           location?: unknown
           location_updated_at?: string | null
           name: string
@@ -244,10 +248,12 @@ export type Database = {
           current_park_id?: string | null
           daily_energy?: number | null
           deleted_at?: string | null
+          dislikes?: string[] | null
           energy_level?: number
           gender?: string | null
           id?: string
           is_lost?: boolean | null
+          likes?: string[] | null
           location?: unknown
           location_updated_at?: string | null
           name?: string

@@ -72,14 +72,16 @@ export interface Dog {
   name: string;
   photo_url: string;
   approximate_age: string;
-  energy_level: 1 | 2 | 3 | 4 | 5;
-  daily_energy?: 1 | 2 | 3 | 4 | 5;
+  energy_level: 1 | 2 | 3;
+  daily_energy?: 1 | 2 | 3;
   breed_id: string;
   breed_custom_text?: string;
   breed?: Breed;
   neutered: boolean;
   social_style?: 'FRIENDLY' | 'NEUTRAL' | 'SELECTIVE';
   triggers?: string[];
+  likes?: string[];
+  dislikes?: string[];
   bio?: string; // max 150 chars
   gender?: 'male' | 'female';
   weight_kg?: number;
@@ -206,14 +208,23 @@ export const SOCIAL_STYLE_OPTIONS = [
   { value: 'SELECTIVE', label: 'Mesafeli', icon: '😐' },
 ] as const;
 
-// Trigger options
-export const TRIGGER_OPTIONS = [
-  { value: 'food', label: 'Yemek', icon: '🍖' },
-  { value: 'toy', label: 'Oyuncak', icon: '🎾' },
-  { value: 'leash', label: 'Tasma', icon: '🦴' },
-  { value: 'high_motion', label: 'Hızlı hareketler', icon: '⚡' },
-  { value: 'large_dogs', label: 'Büyük köpekler', icon: '🐕‍🦺' },
+// Hashtag suggestions for likes/dislikes
+export const LIKES_SUGGESTIONS = [
+  '#top', '#koşmak', '#su', '#yüzmek', '#oyun', '#oyuncak', '#park',
+  '#çocuklar', '#ödül', '#yürüyüş', '#agility', '#getir',
 ] as const;
+
+export const DISLIKES_SUGGESTIONS = [
+  '#gürültü', '#kedi', '#yalnızlık', '#araç', '#tasma', '#kalabalık',
+  '#havai_fişek', '#büyük_köpekler', '#banyo', '#fırtına',
+] as const;
+
+// Energy level labels (3 levels)
+export const ENERGY_LABELS_3 = {
+  1: 'Sakin',
+  2: 'Normal',
+  3: 'Enerjik',
+} as const;
 
 // Quick actions for messaging
 export const QUICK_ACTIONS = [

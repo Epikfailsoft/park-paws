@@ -1,17 +1,15 @@
 import { cn } from '@/lib/utils';
 
 interface EnergyIndicatorProps {
-  level: 1 | 2 | 3 | 4 | 5;
+  level: 1 | 2 | 3;
   size?: 'sm' | 'md' | 'lg';
   showLabel?: boolean;
 }
 
 const ENERGY_LABELS = {
   1: 'Sakin',
-  2: 'Rahat',
-  3: 'Orta',
-  4: 'Enerjik',
-  5: 'Çok Enerjik',
+  2: 'Normal',
+  3: 'Enerjik',
 } as const;
 
 export function EnergyIndicator({ level, size = 'md', showLabel = false }: EnergyIndicatorProps) {
@@ -30,7 +28,7 @@ export function EnergyIndicator({ level, size = 'md', showLabel = false }: Energ
   return (
     <div className="flex items-center gap-2">
       <div className={cn("energy-bar", gapSizes[size])}>
-        {[1, 2, 3, 4, 5].map((i) => (
+        {[1, 2, 3].map((i) => (
           <div
             key={i}
             className={cn(

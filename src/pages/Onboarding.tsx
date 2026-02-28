@@ -13,7 +13,7 @@ import { formatOwnerName } from '@/types/dogspace';
 const dogSchema = z.object({
   name: z.string().min(1, 'Köpeğinin adını gir'),
   approximate_age: z.string().min(1, 'Yaklaşık yaşını gir'),
-  energy_level: z.number().min(1).max(5),
+  energy_level: z.number().min(1).max(3),
   neutered: z.boolean(),
   emergency_phone: z.string().regex(/^(\+90[0-9]{10}|0[0-9]{10})$/, 'Geçerli format: +90XXXXXXXXXX veya 0XXXXXXXXXX'),
 });
@@ -29,7 +29,7 @@ export default function Onboarding() {
   // Dog form state
   const [name, setName] = useState('');
   const [age, setAge] = useState('');
-  const [energyLevel, setEnergyLevel] = useState<1 | 2 | 3 | 4 | 5>(3);
+  const [energyLevel, setEnergyLevel] = useState<1 | 2 | 3>(2);
   const [neutered, setNeutered] = useState<boolean | null>(null);
   const [emergencyPhone, setEmergencyPhone] = useState('');
   const [photo, setPhoto] = useState<File | null>(null);
@@ -564,7 +564,7 @@ export default function Onboarding() {
               Enerji Seviyesi *
             </label>
             <div className="flex justify-between gap-2">
-              {([1, 2, 3, 4, 5] as const).map((level) => (
+              {([1, 2, 3] as const).map((level) => (
                 <button
                   key={level}
                   type="button"
@@ -576,13 +576,9 @@ export default function Onboarding() {
                       : "border-border bg-card text-muted-foreground hover:border-primary/50"
                   )}
                 >
-                  {level}
+                  {level === 1 ? '🐢 Sakin' : level === 2 ? '🐕 Normal' : '⚡ Enerjik'}
                 </button>
               ))}
-            </div>
-            <div className="mt-2 flex justify-between text-xs text-muted-foreground">
-              <span>Sakin</span>
-              <span>Çok Enerjik</span>
             </div>
           </div>
 
@@ -645,7 +641,7 @@ export default function Onboarding() {
           {/* Info box */}
           <div className="mb-6 rounded-xl bg-secondary/50 p-4">
             <p className="text-sm text-muted-foreground">
-              💡 <strong>Sosyal tarz ve tetikleyicileri</strong> daha sonra profil sayfasından ekleyebilirsin.
+              💡 <strong>Sosyal tarz, sevdikleri ve sevmedikleri</strong> daha sonra profil sayfasından ekleyebilirsin.
             </p>
           </div>
         </div>

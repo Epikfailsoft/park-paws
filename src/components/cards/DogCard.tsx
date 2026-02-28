@@ -2,7 +2,7 @@ import { cn } from '@/lib/utils';
 import { EnergyIndicator } from '@/components/ui/EnergyIndicator';
 import { OwnerChip } from '@/components/ui/OwnerChip';
 import type { Dog, Profile } from '@/types/dogspace';
-import { SOCIAL_STYLE_OPTIONS, TRIGGER_OPTIONS } from '@/types/dogspace';
+import { SOCIAL_STYLE_OPTIONS } from '@/types/dogspace';
 
 interface DogCardProps {
   dog: Dog;
@@ -130,20 +130,31 @@ export function DogCard({
           </div>
         )}
 
-        {/* Triggers */}
-        {dog.triggers && dog.triggers.length > 0 && (showFullInfo || !compact) && (
+        {/* Likes */}
+        {dog.likes && dog.likes.length > 0 && (showFullInfo || !compact) && (
           <div className="mt-2 flex flex-wrap gap-1">
-            {dog.triggers.map(trigger => {
-              const triggerInfo = TRIGGER_OPTIONS.find(t => t.value === trigger);
-              return (
-                <span 
-                  key={trigger}
-                  className="rounded-full bg-accent/20 px-2 py-0.5 text-xs text-accent"
-                >
-                  {triggerInfo?.label || trigger}
-                </span>
-              );
-            })}
+            {dog.likes.map(tag => (
+              <span 
+                key={tag}
+                className="rounded-full bg-primary/15 px-2 py-0.5 text-xs text-primary"
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+        )}
+
+        {/* Dislikes */}
+        {dog.dislikes && dog.dislikes.length > 0 && (showFullInfo || !compact) && (
+          <div className="mt-1 flex flex-wrap gap-1">
+            {dog.dislikes.map(tag => (
+              <span 
+                key={tag}
+                className="rounded-full bg-destructive/15 px-2 py-0.5 text-xs text-destructive"
+              >
+                {tag}
+              </span>
+            ))}
           </div>
         )}
 
