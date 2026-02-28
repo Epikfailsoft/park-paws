@@ -211,7 +211,7 @@ export function StatusPulse({ dog, selectedPark, onRefresh }: StatusPulseProps) 
           </p>
         </div>
         <div className="flex justify-between gap-2">
-          {([1, 2, 3, 4, 5] as const).map((level) => (
+          {([1, 2, 3] as const).map((level) => (
             <button
               key={level}
               onClick={() => updateDailyEnergy(level)}

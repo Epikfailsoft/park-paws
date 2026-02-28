@@ -564,7 +564,7 @@ export default function Onboarding() {
               Enerji Seviyesi *
             </label>
             <div className="flex justify-between gap-2">
-              {([1, 2, 3, 4, 5] as const).map((level) => (
+              {([1, 2, 3] as const).map((level) => (
                 <button
                   key={level}
                   type="button"
@@ -576,13 +576,9 @@ export default function Onboarding() {
                       : "border-border bg-card text-muted-foreground hover:border-primary/50"
                   )}
                 >
-                  {level}
+                  {level === 1 ? '🐢 Sakin' : level === 2 ? '🐕 Normal' : '⚡ Enerjik'}
                 </button>
               ))}
-            </div>
-            <div className="mt-2 flex justify-between text-xs text-muted-foreground">
-              <span>Sakin</span>
-              <span>Çok Enerjik</span>
             </div>
           </div>
 
