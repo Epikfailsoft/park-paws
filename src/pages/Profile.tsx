@@ -143,21 +143,22 @@ export default function Profile() {
       <header className="sticky top-0 z-40 glass border-b px-4 py-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary">
-              <Dog className="h-5 w-5 text-primary-foreground" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl text-white shadow-md"
+              style={{ background: 'var(--gradient-accent)' }}>
+              <Dog className="h-5 w-5" />
             </div>
             <div>
-              <h1 className="font-display text-lg font-bold text-foreground">Köpeğim</h1>
-              <p className="text-xs text-muted-foreground">
+              <h1 className="font-display text-lg font-extrabold text-foreground">Köpeğim</h1>
+              <p className="text-xs text-muted-foreground font-medium">
                 {profile ? formatOwnerName(profile.display_name, profile.last_name) : ''}
               </p>
             </div>
           </div>
           <div className="flex gap-2">
-            <button onClick={() => setEditing(!editing)} className="flex h-10 w-10 items-center justify-center rounded-xl bg-secondary text-secondary-foreground">
+            <button onClick={() => setEditing(!editing)} className="flex h-10 w-10 items-center justify-center rounded-xl bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-all">
               <Settings className="h-5 w-5" />
             </button>
-            <button onClick={handleLogout} className="flex h-10 w-10 items-center justify-center rounded-xl bg-destructive/10 text-destructive">
+            <button onClick={handleLogout} className="flex h-10 w-10 items-center justify-center rounded-xl bg-destructive/10 text-destructive hover:bg-destructive/20 transition-all">
               <LogOut className="h-5 w-5" />
             </button>
           </div>
@@ -170,7 +171,7 @@ export default function Profile() {
       <div className="px-4 pb-4 space-y-4">
         {editing ? (
           /* EDIT MODE */
-          <div className="space-y-4 rounded-2xl bg-card p-4" style={{ boxShadow: 'var(--shadow-card)' }}>
+          <div className="section-card space-y-4">
             <div>
               <label className="mb-1.5 block text-sm font-medium text-foreground">Ad</label>
               <input type="text" value={name} onChange={(e) => setName(e.target.value)} className="dogspace-input w-full" />
@@ -287,7 +288,8 @@ export default function Profile() {
             </div>
 
             <button onClick={handleSave} disabled={loading}
-              className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-accent py-3 font-medium text-accent-foreground transition-all hover:opacity-90 disabled:opacity-50">
+              className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl py-3 font-semibold text-white transition-all hover:opacity-90 disabled:opacity-50 shadow-lg"
+              style={{ background: 'var(--gradient-accent)', boxShadow: 'var(--shadow-glow-accent)' }}>
               {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Kaydet'}
             </button>
           </div>
@@ -297,36 +299,37 @@ export default function Profile() {
             <div className="space-y-3">
               {myDog.neutered !== undefined && (
                 <div className="flex justify-center">
-                  <span className={cn("rounded-full px-4 py-2 text-sm", myDog.neutered ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground")}>
+                  <span className={cn("rounded-full px-4 py-2 text-sm font-semibold", myDog.neutered ? "text-white shadow-md" : "bg-muted text-muted-foreground")}
+                    style={myDog.neutered ? { background: 'var(--gradient-hero)' } : {}}>
                     {myDog.neutered ? '✓ Kısırlaştırıldı' : 'Kısırlaştırılmadı'}
                   </span>
                 </div>
               )}
 
               {myDog.social_style && (
-                <div className="flex items-center justify-between rounded-xl bg-card p-4" style={{ boxShadow: 'var(--shadow-card)' }}>
-                  <span className="text-sm text-muted-foreground">Sosyal Tarz</span>
-                  <span className="font-medium text-foreground">{SOCIAL_STYLE_OPTIONS.find(o => o.value === myDog.social_style)?.label}</span>
+                <div className="section-card flex items-center justify-between">
+                  <span className="text-sm font-medium text-muted-foreground">Sosyal Tarz</span>
+                  <span className="rounded-full bg-secondary px-3 py-1 text-sm font-semibold text-secondary-foreground">{SOCIAL_STYLE_OPTIONS.find(o => o.value === myDog.social_style)?.label}</span>
                 </div>
               )}
 
               {(myDog as any).likes?.length > 0 && (
-                <div className="rounded-xl bg-card p-4" style={{ boxShadow: 'var(--shadow-card)' }}>
-                  <span className="text-sm text-muted-foreground">💚 Sevdikleri</span>
+                <div className="section-card">
+                  <span className="text-sm font-medium text-muted-foreground">💚 Sevdikleri</span>
                   <div className="mt-2 flex flex-wrap gap-2">
                     {(myDog as any).likes.map((t: string) => (
-                      <span key={t} className="rounded-full bg-primary/15 px-3 py-1 text-sm text-primary">{t}</span>
+                      <span key={t} className="tag-like">{t}</span>
                     ))}
                   </div>
                 </div>
               )}
 
               {(myDog as any).dislikes?.length > 0 && (
-                <div className="rounded-xl bg-card p-4" style={{ boxShadow: 'var(--shadow-card)' }}>
-                  <span className="text-sm text-muted-foreground">❌ Sevmedikleri</span>
+                <div className="section-card">
+                  <span className="text-sm font-medium text-muted-foreground">❌ Sevmedikleri</span>
                   <div className="mt-2 flex flex-wrap gap-2">
                     {(myDog as any).dislikes.map((t: string) => (
-                      <span key={t} className="rounded-full bg-destructive/15 px-3 py-1 text-sm text-destructive">{t}</span>
+                      <span key={t} className="tag-dislike">{t}</span>
                     ))}
                   </div>
                 </div>
@@ -356,20 +359,22 @@ export default function Profile() {
 
         {/* 6️⃣ MINIMAL OWNER PROFILE */}
         {!editing && profile && (
-          <div className="rounded-2xl bg-card p-4" style={{ boxShadow: 'var(--shadow-card)' }}>
-            <h3 className="font-display text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">
-              👤 Sahip
+          <div className="section-card">
+            <h3 className="font-display text-sm font-bold text-foreground uppercase tracking-wide mb-3 flex items-center gap-2">
+              <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-secondary">👤</span>
+              Sahip
             </h3>
             <div className="flex items-center gap-3">
               {profile.photo_url ? (
-                <img src={profile.photo_url} alt="" className="h-12 w-12 rounded-xl object-cover ring-2 ring-border" />
+                <img src={profile.photo_url} alt="" className="h-12 w-12 rounded-xl object-cover ring-2 ring-primary/20 shadow-md" />
               ) : (
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-muted text-lg font-medium text-muted-foreground ring-2 ring-border">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl text-lg font-bold text-white shadow-md"
+                  style={{ background: 'var(--gradient-hero)' }}>
                   {profile.display_name?.[0]}
                 </div>
               )}
               <div>
-                <p className="font-medium text-foreground">{formatOwnerName(profile.display_name, profile.last_name)}</p>
+                <p className="font-semibold text-foreground">{formatOwnerName(profile.display_name, profile.last_name)}</p>
                 <p className="text-xs text-muted-foreground">Acil durumlarda görünür</p>
               </div>
             </div>

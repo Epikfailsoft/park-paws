@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { FileText, Plus, Trash2, Loader2, Download } from 'lucide-react';
+import { FileText, Plus, Trash2, Loader2, Download, Lock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { RATE_LIMITS } from '@/types/dogspace';
@@ -20,9 +20,9 @@ interface CareVaultProps {
 }
 
 const DOC_TYPE_LABELS = {
-  vaccine: { label: 'Aşı Kartı', icon: '💉' },
-  vet: { label: 'Veteriner Raporu', icon: '🩺' },
-  other: { label: 'Diğer', icon: '📄' },
+  vaccine: { label: 'Aşı Kartı', icon: '💉', color: 'bg-primary/15 text-primary' },
+  vet: { label: 'Vet Raporu', icon: '🩺', color: 'bg-accent/15 text-accent' },
+  other: { label: 'Diğer', icon: '📄', color: 'bg-harmony/15 text-harmony' },
 };
 
 export function CareVault({ dogId, profileId }: CareVaultProps) {
@@ -33,152 +33,81 @@ export function CareVault({ dogId, profileId }: CareVaultProps) {
   const [showUpload, setShowUpload] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    fetchDocuments();
-  }, [dogId]);
+  useEffect(() => { fetchDocuments(); }, [dogId]);
 
   const fetchDocuments = async () => {
     try {
-      const { data, error } = await supabase
-        .from('care_documents')
-        .select('*')
-        .eq('dog_id', dogId)
-        .order('uploaded_at', { ascending: false });
-
+      const { data, error } = await supabase.from('care_documents').select('*').eq('dog_id', dogId).order('uploaded_at', { ascending: false });
       if (error) throw error;
       setDocuments((data || []) as CareDocument[]);
-    } catch (error) {
-      console.error('Error fetching documents:', error);
-    } finally {
-      setLoading(false);
-    }
+    } catch (error) { console.error('Error:', error); }
+    finally { setLoading(false); }
   };
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
-    if (documents.length >= RATE_LIMITS.CARE_VAULT_MAX_DOCS) {
-      toast.error(`Maksimum ${RATE_LIMITS.CARE_VAULT_MAX_DOCS} belge yükleyebilirsin`);
-      return;
-    }
-
-    // Validate file size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error('Dosya boyutu 5MB\'dan küçük olmalı');
-      return;
-    }
-
+    if (documents.length >= RATE_LIMITS.CARE_VAULT_MAX_DOCS) { toast.error(`Maksimum ${RATE_LIMITS.CARE_VAULT_MAX_DOCS} belge`); return; }
+    if (file.size > 5 * 1024 * 1024) { toast.error('Dosya 5MB\'dan küçük olmalı'); return; }
     setUploading(true);
     try {
-      // Upload to storage
       const fileExt = file.name.split('.').pop();
       const fileName = `${profileId}/care/${Date.now()}.${fileExt}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from('dog-photos')
-        .upload(fileName, file);
-
+      const { error: uploadError } = await supabase.storage.from('dog-photos').upload(fileName, file);
       if (uploadError) throw uploadError;
-
-      // Get public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('dog-photos')
-        .getPublicUrl(fileName);
-
-      // Create document record
-      const { error: dbError } = await supabase
-        .from('care_documents')
-        .insert({
-          dog_id: dogId,
-          document_type: selectedType,
-          file_url: publicUrl,
-          file_name: file.name,
-        });
-
+      const { data: { publicUrl } } = supabase.storage.from('dog-photos').getPublicUrl(fileName);
+      const { error: dbError } = await supabase.from('care_documents').insert({ dog_id: dogId, document_type: selectedType, file_url: publicUrl, file_name: file.name });
       if (dbError) throw dbError;
-
-      toast.success('Belge yüklendi!');
-      setShowUpload(false);
-      fetchDocuments();
-    } catch (error) {
-      console.error('Error uploading document:', error);
-      toast.error('Yükleme başarısız');
-    } finally {
-      setUploading(false);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
-    }
+      toast.success('Belge yüklendi!'); setShowUpload(false); fetchDocuments();
+    } catch (error) { console.error('Error:', error); toast.error('Yükleme başarısız'); }
+    finally { setUploading(false); if (fileInputRef.current) fileInputRef.current.value = ''; }
   };
 
   const handleDelete = async (docId: string) => {
     try {
-      const { error } = await supabase
-        .from('care_documents')
-        .delete()
-        .eq('id', docId);
-
+      const { error } = await supabase.from('care_documents').delete().eq('id', docId);
       if (error) throw error;
-
-      toast.success('Belge silindi');
-      fetchDocuments();
-    } catch (error) {
-      console.error('Error deleting document:', error);
-      toast.error('Silme başarısız');
-    }
+      toast.success('Belge silindi'); fetchDocuments();
+    } catch (error) { console.error('Error:', error); toast.error('Silme başarısız'); }
   };
 
   if (loading) {
-    return (
-      <div className="rounded-2xl bg-card p-4" style={{ boxShadow: 'var(--shadow-card)' }}>
-        <div className="h-24 animate-pulse bg-muted rounded-xl" />
-      </div>
-    );
+    return <div className="section-card"><div className="h-24 animate-pulse bg-muted rounded-xl" /></div>;
   }
 
   return (
-    <div className="rounded-2xl bg-card p-4" style={{ boxShadow: 'var(--shadow-card)' }}>
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="font-display text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-          🔐 Care Vault
+    <div className="section-card">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="font-display text-sm font-bold text-foreground uppercase tracking-wide flex items-center gap-2">
+          <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-accent/15">
+            <Lock className="h-3.5 w-3.5 text-accent" />
+          </span>
+          Care Vault
         </h3>
-        <span className="text-xs text-muted-foreground">
+        <span className="rounded-full bg-muted px-2.5 py-1 text-xs font-semibold text-muted-foreground">
           {documents.length}/{RATE_LIMITS.CARE_VAULT_MAX_DOCS}
         </span>
       </div>
 
-      {/* Documents List */}
       <div className="space-y-2">
         {documents.map((doc) => (
-          <div
-            key={doc.id}
-            className="flex items-center justify-between rounded-xl bg-secondary/50 p-3"
-          >
+          <div key={doc.id} className="flex items-center justify-between rounded-xl bg-muted/30 p-3 transition-all hover:bg-muted/50">
             <div className="flex items-center gap-3 min-w-0">
-              <span className="text-xl">{DOC_TYPE_LABELS[doc.document_type].icon}</span>
+              <span className={cn("flex h-10 w-10 items-center justify-center rounded-xl text-lg", DOC_TYPE_LABELS[doc.document_type].color)}>
+                {DOC_TYPE_LABELS[doc.document_type].icon}
+              </span>
               <div className="min-w-0">
-                <p className="text-sm font-medium text-foreground truncate">
-                  {doc.file_name}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  {DOC_TYPE_LABELS[doc.document_type].label}
-                </p>
+                <p className="text-sm font-semibold text-foreground truncate">{doc.file_name}</p>
+                <p className="text-xs text-muted-foreground">{DOC_TYPE_LABELS[doc.document_type].label}</p>
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <a
-                href={doc.file_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex h-8 w-8 items-center justify-center rounded-lg bg-muted text-muted-foreground hover:bg-primary hover:text-primary-foreground transition-colors"
-              >
+            <div className="flex items-center gap-1.5">
+              <a href={doc.file_url} target="_blank" rel="noopener noreferrer"
+                className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary hover:bg-primary hover:text-white transition-all">
                 <Download className="h-4 w-4" />
               </a>
-              <button
-                onClick={() => handleDelete(doc.id)}
-                className="flex h-8 w-8 items-center justify-center rounded-lg bg-muted text-muted-foreground hover:bg-destructive hover:text-destructive-foreground transition-colors"
-              >
+              <button onClick={() => handleDelete(doc.id)}
+                className="flex h-9 w-9 items-center justify-center rounded-lg bg-destructive/10 text-destructive hover:bg-destructive hover:text-white transition-all">
                 <Trash2 className="h-4 w-4" />
               </button>
             </div>
@@ -186,67 +115,39 @@ export function CareVault({ dogId, profileId }: CareVaultProps) {
         ))}
 
         {documents.length === 0 && !showUpload && (
-          <div className="text-center py-6">
-            <FileText className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
-            <p className="text-sm text-muted-foreground">
-              Aşı kartı, veteriner raporu ekle
-            </p>
+          <div className="text-center py-8 rounded-xl bg-muted/20">
+            <FileText className="h-10 w-10 mx-auto text-muted-foreground/40 mb-3" />
+            <p className="text-sm font-medium text-muted-foreground">Aşı kartı, veteriner raporu ekle</p>
+            <p className="text-xs text-muted-foreground/60 mt-1">Belgelerin güvende</p>
           </div>
         )}
       </div>
 
-      {/* Upload Section */}
       {showUpload && (
-        <div className="mt-3 rounded-xl bg-secondary/50 p-4 space-y-3">
-          <p className="text-sm font-medium text-foreground">Belge Türü</p>
+        <div className="mt-3 rounded-xl bg-muted/30 p-4 space-y-3">
+          <p className="text-sm font-semibold text-foreground">Belge Türü</p>
           <div className="flex gap-2">
             {(['vaccine', 'vet', 'other'] as const).map((type) => (
-              <button
-                key={type}
-                onClick={() => setSelectedType(type)}
-                className={cn(
-                  "flex-1 rounded-lg py-2 text-xs font-medium transition-all",
-                  selectedType === type
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-muted text-muted-foreground"
-                )}
-              >
+              <button key={type} onClick={() => setSelectedType(type)}
+                className={cn("flex-1 rounded-xl py-2.5 text-xs font-semibold transition-all",
+                  selectedType === type ? "text-white shadow-md" : "bg-muted text-muted-foreground"
+                )} style={selectedType === type ? { background: 'var(--gradient-hero)' } : {}}>
                 {DOC_TYPE_LABELS[type].icon} {DOC_TYPE_LABELS[type].label}
               </button>
             ))}
           </div>
-          
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept=".pdf,.jpg,.jpeg,.png"
-            onChange={handleUpload}
-            className="hidden"
-          />
-          
-          <button
-            onClick={() => fileInputRef.current?.click()}
-            disabled={uploading}
-            className="w-full flex items-center justify-center gap-2 rounded-xl bg-primary py-3 font-medium text-primary-foreground"
-          >
-            {uploading ? (
-              <Loader2 className="h-5 w-5 animate-spin" />
-            ) : (
-              <>
-                <Plus className="h-5 w-5" />
-                Dosya Seç
-              </>
-            )}
+          <input ref={fileInputRef} type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={handleUpload} className="hidden" />
+          <button onClick={() => fileInputRef.current?.click()} disabled={uploading}
+            className="w-full flex items-center justify-center gap-2 rounded-xl py-3 font-semibold text-white"
+            style={{ background: 'var(--gradient-accent)' }}>
+            {uploading ? <Loader2 className="h-5 w-5 animate-spin" /> : <><Plus className="h-5 w-5" /> Dosya Seç</>}
           </button>
         </div>
       )}
 
-      {/* Add Button */}
       {!showUpload && documents.length < RATE_LIMITS.CARE_VAULT_MAX_DOCS && (
-        <button
-          onClick={() => setShowUpload(true)}
-          className="mt-3 w-full flex items-center justify-center gap-2 rounded-xl border-2 border-dashed border-border py-3 text-sm text-muted-foreground hover:border-primary hover:text-primary transition-colors"
-        >
+        <button onClick={() => setShowUpload(true)}
+          className="mt-3 w-full flex items-center justify-center gap-2 rounded-xl border-2 border-dashed border-primary/30 py-3 text-sm font-semibold text-primary hover:border-primary hover:bg-primary/5 transition-all">
           <Plus className="h-4 w-4" />
           Belge Ekle
         </button>

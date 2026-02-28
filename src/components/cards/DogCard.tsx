@@ -20,63 +20,44 @@ interface DogCardProps {
 }
 
 export function DogCard({ 
-  dog, 
-  owner, 
-  showWaveButton = false, 
-  onWave,
-  hasWaved = false,
-  isHarmony = false,
-  compact = false,
-  isLost = false,
-  isOwnDog = false,
-  showFullInfo = false,
-  distanceKm,
-  parkName,
+  dog, owner, showWaveButton = false, onWave, hasWaved = false,
+  isHarmony = false, compact = false, isLost = false, isOwnDog = false,
+  showFullInfo = false, distanceKm, parkName,
 }: DogCardProps) {
   return (
-    <div 
-      className={cn(
-        "dog-card",
-        isHarmony && "harmony-glow active",
-        isLost && "ring-2 ring-destructive",
-        isOwnDog && "ring-2 ring-primary"
-      )}
-    >
+    <div className={cn(
+      "dog-card",
+      isHarmony && "harmony-glow active",
+      isLost && "ring-2 ring-destructive",
+      isOwnDog && "ring-2 ring-primary"
+    )}>
       {/* Dog Photo */}
       <div className="relative">
-        <img
-          src={dog.photo_url}
-          alt={dog.name}
-          className={cn(
-            "dog-card-photo",
-            compact ? "aspect-[4/3]" : "aspect-square"
-          )}
-        />
+        <img src={dog.photo_url} alt={dog.name}
+          className={cn("dog-card-photo", compact ? "aspect-[4/3]" : "aspect-square")} />
         
-        {/* Lost overlay */}
         {isLost && (
-          <div className="absolute inset-0 bg-destructive/80 flex items-center justify-center">
-            <span className="text-destructive-foreground font-bold text-xl">KAYIP</span>
+          <div className="absolute inset-0 bg-gradient-to-t from-destructive/90 to-destructive/60 flex items-center justify-center">
+            <span className="text-white font-extrabold text-xl tracking-wide">KAYIP</span>
           </div>
         )}
         
-        {/* Owner chip overlay */}
         {owner && !isLost && (
           <div className="absolute bottom-2 left-2">
             <OwnerChip owner={owner} />
           </div>
         )}
 
-        {/* Neutered badge */}
         {dog.neutered && !compact && (
-          <div className="absolute right-2 top-2 bg-primary/90 text-primary-foreground text-xs px-2 py-0.5 rounded-full">
+          <div className="absolute right-2 top-2 text-xs px-2.5 py-1 rounded-full font-semibold text-white shadow-md"
+            style={{ background: 'var(--gradient-hero)' }}>
             ✓ Kısır
           </div>
         )}
 
-        {/* Own dog badge */}
         {isOwnDog && (
-          <div className="absolute left-2 top-2 bg-primary text-primary-foreground text-xs px-2 py-0.5 rounded-full">
+          <div className="absolute left-2 top-2 text-xs px-2.5 py-1 rounded-full font-semibold text-white shadow-md"
+            style={{ background: 'var(--gradient-accent)' }}>
             Senin
           </div>
         )}
@@ -86,99 +67,58 @@ export function DogCard({
       <div className="p-3">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0 flex-1">
-            <h3 className="truncate font-display text-lg font-semibold text-foreground">
-              {dog.name}
-            </h3>
-            <p className="text-sm text-muted-foreground">
-              {dog.breed?.name || 'Karışık'} · {dog.approximate_age}
-            </p>
+            <h3 className="truncate font-display text-lg font-bold text-foreground">{dog.name}</h3>
+            <p className="text-sm text-muted-foreground">{dog.breed?.name || 'Karışık'} · {dog.approximate_age}</p>
           </div>
-          
           <EnergyIndicator level={dog.daily_energy || dog.energy_level} size="sm" />
         </div>
 
-        {/* Distance & Park info */}
         {(distanceKm != null || parkName) && (
-          <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
-            {distanceKm != null && <span>📍 {distanceKm.toFixed(1)} km</span>}
-            {parkName && (
-              <span className="text-[hsl(var(--park-active))] font-medium">🟢 {parkName}</span>
-            )}
+          <div className="mt-1.5 flex items-center gap-2 text-xs">
+            {distanceKm != null && <span className="text-muted-foreground font-medium">📍 {distanceKm.toFixed(1)} km</span>}
+            {parkName && <span className="font-semibold text-[hsl(var(--park-active))]">🟢 {parkName}</span>}
           </div>
         )}
 
-        {/* Park checkin badge */}
         {dog.park_checkin_active && !parkName && (
-          <div className="mt-1">
-            <span className="text-xs text-[hsl(var(--park-active))] font-medium">🟢 Parkta</span>
-          </div>
+          <div className="mt-1"><span className="text-xs font-semibold text-[hsl(var(--park-active))]">🟢 Parkta</span></div>
         )}
 
-        {/* Owner chip for lost dogs */}
-        {isLost && owner && (
-          <div className="mt-2">
-            <OwnerChip owner={owner} />
-          </div>
-        )}
+        {isLost && owner && <div className="mt-2"><OwnerChip owner={owner} /></div>}
 
-        {/* Social style tag if set */}
         {dog.social_style && (showFullInfo || !compact) && (
           <div className="mt-2">
-            <span className="rounded-full bg-secondary px-2 py-0.5 text-xs text-secondary-foreground">
+            <span className="rounded-full bg-secondary px-2.5 py-1 text-xs font-semibold text-secondary-foreground">
               {SOCIAL_STYLE_OPTIONS.find(o => o.value === dog.social_style)?.label}
             </span>
           </div>
         )}
 
-        {/* Likes */}
         {dog.likes && dog.likes.length > 0 && (showFullInfo || !compact) && (
           <div className="mt-2 flex flex-wrap gap-1">
-            {dog.likes.map(tag => (
-              <span 
-                key={tag}
-                className="rounded-full bg-primary/15 px-2 py-0.5 text-xs text-primary"
-              >
-                {tag}
-              </span>
-            ))}
+            {dog.likes.map(tag => <span key={tag} className="tag-like">{tag}</span>)}
           </div>
         )}
 
-        {/* Dislikes */}
         {dog.dislikes && dog.dislikes.length > 0 && (showFullInfo || !compact) && (
           <div className="mt-1 flex flex-wrap gap-1">
-            {dog.dislikes.map(tag => (
-              <span 
-                key={tag}
-                className="rounded-full bg-destructive/15 px-2 py-0.5 text-xs text-destructive"
-              >
-                {tag}
-              </span>
-            ))}
+            {dog.dislikes.map(tag => <span key={tag} className="tag-dislike">{tag}</span>)}
           </div>
         )}
 
-        {/* Neutered badge for compact mode */}
-        {compact && (
-          <div className="mt-2 flex items-center gap-2">
-            {dog.neutered && (
-              <span className="text-xs text-primary">✓ Kısır</span>
-            )}
-          </div>
+        {compact && dog.neutered && (
+          <div className="mt-2"><span className="text-xs font-semibold text-primary">✓ Kısır</span></div>
         )}
 
-        {/* Wave button */}
         {showWaveButton && onWave && (
-          <button
-            onClick={onWave}
-            disabled={hasWaved}
+          <button onClick={onWave} disabled={hasWaved}
             className={cn(
-              "mt-3 w-full rounded-xl py-2.5 text-sm font-medium transition-all",
+              "mt-3 w-full rounded-xl py-2.5 text-sm font-semibold transition-all",
               hasWaved
                 ? "bg-muted text-muted-foreground cursor-not-allowed"
-                : "bg-accent text-accent-foreground hover:opacity-90 active:scale-[0.98]"
+                : "text-white hover:opacity-90 active:scale-[0.97] shadow-md"
             )}
-          >
+            style={!hasWaved ? { background: 'var(--gradient-accent)', boxShadow: 'var(--shadow-glow-accent)' } : {}}>
             {hasWaved ? "El salladın 👋" : "El salla 👋"}
           </button>
         )}
