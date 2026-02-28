@@ -641,7 +641,7 @@ export default function Onboarding() {
           {/* Info box */}
           <div className="mb-6 rounded-xl bg-secondary/50 p-4">
             <p className="text-sm text-muted-foreground">
-              💡 <strong>Sosyal tarz ve tetikleyicileri</strong> daha sonra profil sayfasından ekleyebilirsin.
+              💡 <strong>Sosyal tarz, sevdikleri ve sevmedikleri</strong> daha sonra profil sayfasından ekleyebilirsin.
             </p>
           </div>
         </div>

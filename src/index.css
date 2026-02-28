@@ -191,10 +191,8 @@
   }
 
   .energy-dot.active-1 { @apply bg-[hsl(var(--energy-1))]; }
-  .energy-dot.active-2 { @apply bg-[hsl(var(--energy-2))]; }
-  .energy-dot.active-3 { @apply bg-[hsl(var(--energy-3))]; }
-  .energy-dot.active-4 { @apply bg-[hsl(var(--energy-4))]; }
-  .energy-dot.active-5 { @apply bg-[hsl(var(--energy-5))]; }
+  .energy-dot.active-2 { @apply bg-[hsl(var(--energy-3))]; }
+  .energy-dot.active-3 { @apply bg-[hsl(var(--energy-5))]; }
 
   /* Park status badges */
   .park-badge {
