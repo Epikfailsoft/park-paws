@@ -299,36 +299,37 @@ export default function Profile() {
             <div className="space-y-3">
               {myDog.neutered !== undefined && (
                 <div className="flex justify-center">
-                  <span className={cn("rounded-full px-4 py-2 text-sm", myDog.neutered ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground")}>
+                  <span className={cn("rounded-full px-4 py-2 text-sm font-semibold", myDog.neutered ? "text-white shadow-md" : "bg-muted text-muted-foreground")}
+                    style={myDog.neutered ? { background: 'var(--gradient-hero)' } : {}}>
                     {myDog.neutered ? '✓ Kısırlaştırıldı' : 'Kısırlaştırılmadı'}
                   </span>
                 </div>
               )}
 
               {myDog.social_style && (
-                <div className="flex items-center justify-between rounded-xl bg-card p-4" style={{ boxShadow: 'var(--shadow-card)' }}>
-                  <span className="text-sm text-muted-foreground">Sosyal Tarz</span>
-                  <span className="font-medium text-foreground">{SOCIAL_STYLE_OPTIONS.find(o => o.value === myDog.social_style)?.label}</span>
+                <div className="section-card flex items-center justify-between">
+                  <span className="text-sm font-medium text-muted-foreground">Sosyal Tarz</span>
+                  <span className="rounded-full bg-secondary px-3 py-1 text-sm font-semibold text-secondary-foreground">{SOCIAL_STYLE_OPTIONS.find(o => o.value === myDog.social_style)?.label}</span>
                 </div>
               )}
 
               {(myDog as any).likes?.length > 0 && (
-                <div className="rounded-xl bg-card p-4" style={{ boxShadow: 'var(--shadow-card)' }}>
-                  <span className="text-sm text-muted-foreground">💚 Sevdikleri</span>
+                <div className="section-card">
+                  <span className="text-sm font-medium text-muted-foreground">💚 Sevdikleri</span>
                   <div className="mt-2 flex flex-wrap gap-2">
                     {(myDog as any).likes.map((t: string) => (
-                      <span key={t} className="rounded-full bg-primary/15 px-3 py-1 text-sm text-primary">{t}</span>
+                      <span key={t} className="tag-like">{t}</span>
                     ))}
                   </div>
                 </div>
               )}
 
               {(myDog as any).dislikes?.length > 0 && (
-                <div className="rounded-xl bg-card p-4" style={{ boxShadow: 'var(--shadow-card)' }}>
-                  <span className="text-sm text-muted-foreground">❌ Sevmedikleri</span>
+                <div className="section-card">
+                  <span className="text-sm font-medium text-muted-foreground">❌ Sevmedikleri</span>
                   <div className="mt-2 flex flex-wrap gap-2">
                     {(myDog as any).dislikes.map((t: string) => (
-                      <span key={t} className="rounded-full bg-destructive/15 px-3 py-1 text-sm text-destructive">{t}</span>
+                      <span key={t} className="tag-dislike">{t}</span>
                     ))}
                   </div>
                 </div>
