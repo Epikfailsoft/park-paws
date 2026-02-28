@@ -1,0 +1,3 @@
+
+ALTER TABLE public.dogs ADD COLUMN IF NOT EXISTS likes text[] DEFAULT NULL;
+ALTER TABLE public.dogs ADD COLUMN IF NOT EXISTS dislikes text[] DEFAULT NULL;
