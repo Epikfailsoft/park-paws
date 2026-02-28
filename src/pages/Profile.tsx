@@ -4,7 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { EnergyIndicator } from '@/components/ui/EnergyIndicator';
 import { StatusPulse } from '@/components/profile/StatusPulse';
-import { Dog, Camera, LogOut, Settings, Loader2, ChevronRight, AlertTriangle, Phone } from 'lucide-react';
+import { Dog, Camera, LogOut, Settings, Loader2, ChevronRight, AlertTriangle, Phone, Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { SOCIAL_STYLE_OPTIONS, LIKES_SUGGESTIONS, DISLIKES_SUGGESTIONS, formatOwnerName } from '@/types/dogspace';
