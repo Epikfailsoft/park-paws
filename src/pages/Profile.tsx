@@ -281,6 +281,54 @@ export default function Profile() {
               <input type="text" value={name} onChange={(e) => setName(e.target.value)} className="dogspace-input w-full" />
             </div>
 
+            {/* Breed Selection */}
+            <div className="relative">
+              <label className="mb-1.5 block text-sm font-medium text-foreground">Irk</label>
+              <button
+                type="button"
+                onClick={() => setShowBreedDropdown(!showBreedDropdown)}
+                className="dogspace-input w-full text-left flex items-center justify-between"
+              >
+                <span className="text-foreground">
+                  {breeds.find(b => b.id === selectedBreedId)?.name || myDog?.breed?.name || 'Irk seçin'}
+                </span>
+                <Search className="h-4 w-4 text-muted-foreground" />
+              </button>
+              {showBreedDropdown && (
+                <div className="absolute top-full left-0 right-0 mt-2 bg-card border border-border rounded-xl shadow-lg max-h-64 overflow-hidden z-50">
+                  <div className="p-2 border-b border-border">
+                    <input
+                      type="text"
+                      placeholder="Ara..."
+                      value={breedSearch}
+                      onChange={(e) => setBreedSearch(e.target.value)}
+                      className="w-full px-3 py-2 rounded-lg border border-border text-sm"
+                      autoFocus
+                    />
+                  </div>
+                  <div className="overflow-y-auto max-h-48">
+                    {breeds.filter(b => b.name.toLowerCase().includes(breedSearch.toLowerCase())).map(breed => (
+                      <button
+                        key={breed.id}
+                        type="button"
+                        onClick={() => {
+                          setSelectedBreedId(breed.id);
+                          setShowBreedDropdown(false);
+                          setBreedSearch('');
+                        }}
+                        className={cn(
+                          "w-full text-left px-4 py-3 hover:bg-secondary/50 text-sm",
+                          breed.id === selectedBreedId && "bg-primary/10 text-primary font-medium"
+                        )}
+                      >
+                        {breed.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
             {/* Bio */}
             <div>
               <label className="mb-1.5 block text-sm font-medium text-foreground">
