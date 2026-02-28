@@ -80,6 +80,8 @@ export interface Dog {
   neutered: boolean;
   social_style?: 'FRIENDLY' | 'NEUTRAL' | 'SELECTIVE';
   triggers?: string[];
+  likes?: string[];
+  dislikes?: string[];
   bio?: string; // max 150 chars
   gender?: 'male' | 'female';
   weight_kg?: number;
