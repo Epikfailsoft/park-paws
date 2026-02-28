@@ -90,7 +90,7 @@ export function StatusPulse({ dog, selectedPark, onRefresh }: StatusPulseProps) 
     }
   };
 
-  const updateDailyEnergy = async (level: 1 | 2 | 3 | 4 | 5) => {
+  const updateDailyEnergy = async (level: 1 | 2 | 3) => {
     setLoading('energy');
     try {
       const { error } = await supabase
