@@ -536,17 +536,23 @@ export default function Profile() {
                 </div>
               )}
 
-              {myDog.triggers && myDog.triggers.length > 0 && (
+              {(myDog as any).likes && (myDog as any).likes.length > 0 && (
                 <div className="rounded-xl bg-card p-4" style={{ boxShadow: 'var(--shadow-card)' }}>
-                  <span className="text-sm text-muted-foreground">Tetikleyiciler</span>
+                  <span className="text-sm text-muted-foreground">💚 Sevdikleri</span>
                   <div className="mt-2 flex flex-wrap gap-2">
-                    {myDog.triggers.map(t => (
-                      <span 
-                        key={t}
-                        className="rounded-full bg-[hsl(var(--energy-5))]/20 px-3 py-1 text-sm text-[hsl(var(--energy-5))]"
-                      >
-                        {TRIGGER_OPTIONS.find(o => o.value === t)?.label}
-                      </span>
+                    {(myDog as any).likes.map((t: string) => (
+                      <span key={t} className="rounded-full bg-primary/15 px-3 py-1 text-sm text-primary">{t}</span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {(myDog as any).dislikes && (myDog as any).dislikes.length > 0 && (
+                <div className="rounded-xl bg-card p-4" style={{ boxShadow: 'var(--shadow-card)' }}>
+                  <span className="text-sm text-muted-foreground">❌ Sevmedikleri</span>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {(myDog as any).dislikes.map((t: string) => (
+                      <span key={t} className="rounded-full bg-destructive/15 px-3 py-1 text-sm text-destructive">{t}</span>
                     ))}
                   </div>
                 </div>
