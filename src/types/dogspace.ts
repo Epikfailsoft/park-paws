@@ -72,8 +72,8 @@ export interface Dog {
   name: string;
   photo_url: string;
   approximate_age: string;
-  energy_level: 1 | 2 | 3 | 4 | 5;
-  daily_energy?: 1 | 2 | 3 | 4 | 5;
+  energy_level: 1 | 2 | 3;
+  daily_energy?: 1 | 2 | 3;
   breed_id: string;
   breed_custom_text?: string;
   breed?: Breed;
