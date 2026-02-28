@@ -23,11 +23,26 @@ export default function Profile() {
   // Editable fields
   const [name, setName] = useState(myDog?.name || '');
   const [age, setAge] = useState(myDog?.approximate_age || '');
-  const [energyLevel, setEnergyLevel] = useState(myDog?.energy_level || 3);
+  const [energyLevel, setEnergyLevel] = useState<1 | 2 | 3>((myDog?.energy_level as 1 | 2 | 3) || 2);
   const [socialStyle, setSocialStyle] = useState<'FRIENDLY' | 'NEUTRAL' | 'SELECTIVE' | ''>(myDog?.social_style || '');
-  const [triggers, setTriggers] = useState<string[]>(myDog?.triggers || []);
+  const [likes, setLikes] = useState<string[]>((myDog as any)?.likes || []);
+  const [dislikes, setDislikes] = useState<string[]>((myDog as any)?.dislikes || []);
   const [neutered, setNeutered] = useState(myDog?.neutered);
   const [bio, setBio] = useState((myDog as any)?.bio || '');
+  const [likeInput, setLikeInput] = useState('');
+  const [dislikeInput, setDislikeInput] = useState('');
+  
+  // Breed editing
+  const [breeds, setBreeds] = useState<{ id: string; name: string; code: string }[]>([]);
+  const [selectedBreedId, setSelectedBreedId] = useState(myDog?.breed_id || '');
+  const [showBreedDropdown, setShowBreedDropdown] = useState(false);
+  const [breedSearch, setBreedSearch] = useState('');
+
+  useEffect(() => {
+    supabase.from('breeds').select('id, name, code').order('name').then(({ data }) => {
+      if (data) setBreeds(data);
+    });
+  }, []);
 
   // Lost mode fields
   const [emergencyPhone, setEmergencyPhone] = useState('');
