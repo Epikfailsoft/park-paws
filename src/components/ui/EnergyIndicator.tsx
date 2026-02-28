@@ -1,17 +1,15 @@
 import { cn } from '@/lib/utils';
 
 interface EnergyIndicatorProps {
-  level: 1 | 2 | 3 | 4 | 5;
+  level: 1 | 2 | 3;
   size?: 'sm' | 'md' | 'lg';
   showLabel?: boolean;
 }
 
 const ENERGY_LABELS = {
   1: 'Sakin',
-  2: 'Rahat',
-  3: 'Orta',
-  4: 'Enerjik',
-  5: 'Çok Enerjik',
+  2: 'Normal',
+  3: 'Enerjik',
 } as const;
 
 export function EnergyIndicator({ level, size = 'md', showLabel = false }: EnergyIndicatorProps) {
