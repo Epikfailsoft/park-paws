@@ -2,7 +2,7 @@ import { cn } from '@/lib/utils';
 import { EnergyIndicator } from '@/components/ui/EnergyIndicator';
 import { OwnerChip } from '@/components/ui/OwnerChip';
 import type { Dog, Profile } from '@/types/dogspace';
-import { SOCIAL_STYLE_OPTIONS, TRIGGER_OPTIONS } from '@/types/dogspace';
+import { SOCIAL_STYLE_OPTIONS } from '@/types/dogspace';
 
 interface DogCardProps {
   dog: Dog;
