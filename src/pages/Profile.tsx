@@ -359,20 +359,22 @@ export default function Profile() {
 
         {/* 6️⃣ MINIMAL OWNER PROFILE */}
         {!editing && profile && (
-          <div className="rounded-2xl bg-card p-4" style={{ boxShadow: 'var(--shadow-card)' }}>
-            <h3 className="font-display text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">
-              👤 Sahip
+          <div className="section-card">
+            <h3 className="font-display text-sm font-bold text-foreground uppercase tracking-wide mb-3 flex items-center gap-2">
+              <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-secondary">👤</span>
+              Sahip
             </h3>
             <div className="flex items-center gap-3">
               {profile.photo_url ? (
-                <img src={profile.photo_url} alt="" className="h-12 w-12 rounded-xl object-cover ring-2 ring-border" />
+                <img src={profile.photo_url} alt="" className="h-12 w-12 rounded-xl object-cover ring-2 ring-primary/20 shadow-md" />
               ) : (
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-muted text-lg font-medium text-muted-foreground ring-2 ring-border">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl text-lg font-bold text-white shadow-md"
+                  style={{ background: 'var(--gradient-hero)' }}>
                   {profile.display_name?.[0]}
                 </div>
               )}
               <div>
-                <p className="font-medium text-foreground">{formatOwnerName(profile.display_name, profile.last_name)}</p>
+                <p className="font-semibold text-foreground">{formatOwnerName(profile.display_name, profile.last_name)}</p>
                 <p className="text-xs text-muted-foreground">Acil durumlarda görünür</p>
               </div>
             </div>
