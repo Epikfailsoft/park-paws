@@ -350,11 +350,11 @@ export default function Profile() {
               <input type="text" value={age} onChange={(e) => setAge(e.target.value)} className="dogspace-input w-full" />
             </div>
 
-            {/* Energy Level */}
+            {/* Energy Level - 3 levels */}
             <div>
               <label className="mb-2 block text-sm font-medium text-foreground">Enerji Seviyesi</label>
               <div className="flex justify-between gap-2">
-                {([1, 2, 3, 4, 5] as const).map((level) => (
+                {([1, 2, 3] as const).map((level) => (
                   <button
                     key={level}
                     type="button"
@@ -366,7 +366,7 @@ export default function Profile() {
                         : "border-border bg-card text-muted-foreground"
                     )}
                   >
-                    {level}
+                    {level === 1 ? '🐢 Sakin' : level === 2 ? '🐕 Normal' : '⚡ Enerjik'}
                   </button>
                 ))}
               </div>
@@ -394,33 +394,84 @@ export default function Profile() {
               </div>
             </div>
 
-            {/* Triggers */}
+            {/* Likes - hashtag input */}
             <div>
-              <label className="mb-2 block text-sm font-medium text-foreground">Tetikleyiciler (Hassasiyetler)</label>
-              <div className="flex flex-wrap gap-2">
-                {TRIGGER_OPTIONS.map((opt) => (
+              <label className="mb-2 block text-sm font-medium text-foreground">💚 Sevdikleri</label>
+              <div className="flex flex-wrap gap-1.5 mb-2">
+                {likes.map(tag => (
                   <button
-                    key={opt.value}
+                    key={tag}
                     type="button"
-                    onClick={() => {
-                      setTriggers(prev => 
-                        prev.includes(opt.value) 
-                          ? prev.filter(t => t !== opt.value)
-                          : [...prev, opt.value]
-                      );
-                    }}
-                    className={cn(
-                      "rounded-full border-2 px-4 py-2 text-sm font-medium transition-all",
-                      triggers.includes(opt.value)
-                        ? "border-[hsl(var(--energy-5))] bg-[hsl(var(--energy-5))]/10 text-[hsl(var(--energy-5))]"
-                        : "border-border bg-card text-muted-foreground"
-                    )}
+                    onClick={() => setLikes(prev => prev.filter(t => t !== tag))}
+                    className="rounded-full bg-primary/15 px-3 py-1 text-sm text-primary hover:bg-primary/25 transition-all"
                   >
-                    {opt.label}
+                    {tag} ✕
                   </button>
                 ))}
               </div>
-              <p className="mt-1 text-xs text-muted-foreground">Bu bilgiler güvenli playdate için kullanılır</p>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={likeInput}
+                  onChange={(e) => setLikeInput(e.target.value.startsWith('#') ? e.target.value : `#${e.target.value}`)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && likeInput.trim().length > 1) {
+                      e.preventDefault();
+                      if (!likes.includes(likeInput.trim())) setLikes(prev => [...prev, likeInput.trim()]);
+                      setLikeInput('');
+                    }
+                  }}
+                  placeholder="#top, #koşmak..."
+                  className="dogspace-input flex-1 text-sm"
+                />
+              </div>
+              <div className="mt-2 flex flex-wrap gap-1">
+                {LIKES_SUGGESTIONS.filter(s => !likes.includes(s)).slice(0, 6).map(s => (
+                  <button key={s} type="button" onClick={() => setLikes(prev => [...prev, s])}
+                    className="rounded-full border border-border px-2.5 py-0.5 text-xs text-muted-foreground hover:bg-secondary transition-all"
+                  >{s}</button>
+                ))}
+              </div>
+            </div>
+
+            {/* Dislikes - hashtag input */}
+            <div>
+              <label className="mb-2 block text-sm font-medium text-foreground">❌ Sevmedikleri</label>
+              <div className="flex flex-wrap gap-1.5 mb-2">
+                {dislikes.map(tag => (
+                  <button
+                    key={tag}
+                    type="button"
+                    onClick={() => setDislikes(prev => prev.filter(t => t !== tag))}
+                    className="rounded-full bg-destructive/15 px-3 py-1 text-sm text-destructive hover:bg-destructive/25 transition-all"
+                  >
+                    {tag} ✕
+                  </button>
+                ))}
+              </div>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={dislikeInput}
+                  onChange={(e) => setDislikeInput(e.target.value.startsWith('#') ? e.target.value : `#${e.target.value}`)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && dislikeInput.trim().length > 1) {
+                      e.preventDefault();
+                      if (!dislikes.includes(dislikeInput.trim())) setDislikes(prev => [...prev, dislikeInput.trim()]);
+                      setDislikeInput('');
+                    }
+                  }}
+                  placeholder="#gürültü, #kedi..."
+                  className="dogspace-input flex-1 text-sm"
+                />
+              </div>
+              <div className="mt-2 flex flex-wrap gap-1">
+                {DISLIKES_SUGGESTIONS.filter(s => !dislikes.includes(s)).slice(0, 6).map(s => (
+                  <button key={s} type="button" onClick={() => setDislikes(prev => [...prev, s])}
+                    className="rounded-full border border-border px-2.5 py-0.5 text-xs text-muted-foreground hover:bg-secondary transition-all"
+                  >{s}</button>
+                ))}
+              </div>
             </div>
 
             {/* Neutered */}
