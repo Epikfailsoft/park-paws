@@ -235,6 +235,14 @@ export default function Park() {
               </button>
             </div>
           </div>
+          <div className="flex items-center gap-2">
+            {myDog && (
+              <div className="rounded-full bg-secondary px-3 py-1.5">
+                <span className="text-sm font-medium text-secondary-foreground">
+                  👋 {wavesRemaining}/{RATE_LIMITS.DAILY_WAVES}
+                </span>
+              </div>
+            )}
 
           {myDog && selectedPark && (
             <button
