@@ -1,12 +1,13 @@
 import { cn } from '@/lib/utils';
+import { SOCIAL_STYLE_OPTIONS } from '@/types/dogspace';
 
 interface DiscoverFiltersProps {
   distance: number;
   onDistanceChange: (km: number) => void;
-  energyFilter: number | null;
-  onEnergyChange: (level: number | null) => void;
-  neuteredFilter: boolean | null;
-  onNeuteredChange: (val: boolean | null) => void;
+  genderFilter: string | null;
+  onGenderChange: (val: string | null) => void;
+  socialStyleFilter: string | null;
+  onSocialStyleChange: (val: string | null) => void;
 }
 
 const DISTANCE_OPTIONS = [1, 2, 5, 10];
@@ -14,10 +15,10 @@ const DISTANCE_OPTIONS = [1, 2, 5, 10];
 export function DiscoverFilters({
   distance,
   onDistanceChange,
-  energyFilter,
-  onEnergyChange,
-  neuteredFilter,
-  onNeuteredChange,
+  genderFilter,
+  onGenderChange,
+  socialStyleFilter,
+  onSocialStyleChange,
 }: DiscoverFiltersProps) {
   return (
     <div className="space-y-3">
@@ -42,45 +43,48 @@ export function DiscoverFilters({
         </div>
       </div>
 
-      {/* Energy + Neutered row */}
+      {/* Gender + Social Style row */}
       <div className="flex gap-4">
-        {/* Energy */}
+        {/* Gender */}
         <div className="flex-1">
-          <p className="text-xs font-medium text-muted-foreground mb-1.5">Enerji</p>
+          <p className="text-xs font-medium text-muted-foreground mb-1.5">Cinsiyet</p>
           <div className="flex gap-1">
-            {[1, 2, 3].map((level) => (
+            {[
+              { value: 'female', label: '♀ Dişi' },
+              { value: 'male', label: '♂ Erkek' },
+            ].map((g) => (
               <button
-                key={level}
-                onClick={() => onEnergyChange(energyFilter === level ? null : level)}
+                key={g.value}
+                onClick={() => onGenderChange(genderFilter === g.value ? null : g.value)}
                 className={cn(
                   "flex-1 rounded-lg py-1.5 text-xs font-medium transition-all",
-                  energyFilter === level
-                    ? "bg-accent text-accent-foreground"
+                  genderFilter === g.value
+                    ? "bg-primary text-primary-foreground"
                     : "bg-secondary text-secondary-foreground"
                 )}
               >
-                {level}
+                {g.label}
               </button>
             ))}
           </div>
         </div>
 
-        {/* Neutered */}
-        <div>
-          <p className="text-xs font-medium text-muted-foreground mb-1.5">Kısır</p>
+        {/* Social Style */}
+        <div className="flex-1">
+          <p className="text-xs font-medium text-muted-foreground mb-1.5">Oyun Tarzı</p>
           <div className="flex gap-1">
-            {([true, false] as const).map((val) => (
+            {SOCIAL_STYLE_OPTIONS.map((style) => (
               <button
-                key={String(val)}
-                onClick={() => onNeuteredChange(neuteredFilter === val ? null : val)}
+                key={style.value}
+                onClick={() => onSocialStyleChange(socialStyleFilter === style.value ? null : style.value)}
                 className={cn(
-                  "rounded-lg px-3 py-1.5 text-xs font-medium transition-all",
-                  neuteredFilter === val
-                    ? "bg-primary text-primary-foreground"
+                  "flex-1 rounded-lg py-1.5 text-[10px] font-medium transition-all",
+                  socialStyleFilter === style.value
+                    ? "bg-accent text-accent-foreground"
                     : "bg-secondary text-secondary-foreground"
                 )}
               >
-                {val ? '✓' : '✗'}
+                {style.icon}
               </button>
             ))}
           </div>

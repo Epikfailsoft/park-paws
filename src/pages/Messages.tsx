@@ -11,6 +11,7 @@ import { formatOwnerName, QUICK_ACTIONS } from '@/types/dogspace';
 import { WavePendingList } from '@/components/social/WavePendingList';
 import { ParkBulletinBoard } from '@/components/social/ParkBulletinBoard';
 import { BadgeShowcase } from '@/components/social/BadgeShowcase';
+import { DogProfileModal } from '@/components/social/DogProfileModal';
 
 interface HarmonyWithDogs extends Harmony {
   dog_a: Dog & { owner: Profile };
@@ -25,6 +26,7 @@ export default function Messages() {
   const [harmonies, setHarmonies] = useState<HarmonyWithDogs[]>([]);
   const [selectedHarmony, setSelectedHarmony] = useState<HarmonyWithDogs | null>(null);
   const [activeTab, setActiveTab] = useState<SocialTab>('chat');
+  const [profileModalDog, setProfileModalDog] = useState<(Dog & { owner: Profile }) | null>(null);
 
   // Expose chat state for BottomNav visibility
   useEffect(() => {
@@ -190,11 +192,13 @@ export default function Messages() {
         <header className="sticky top-0 z-40 glass border-b px-4 py-3">
           <div className="flex items-center gap-3">
             <button onClick={() => setSelectedHarmony(null)} className="flex h-10 w-10 items-center justify-center rounded-xl bg-secondary text-secondary-foreground">←</button>
-            <img src={otherDog.photo_url} alt={otherDog.name} className="h-10 w-10 rounded-xl object-cover" />
-            <div className="flex-1">
-              <h2 className="font-display font-semibold text-foreground">{otherDog.name}</h2>
-              <p className="text-xs text-muted-foreground">{formatOwnerName(otherDog.owner.display_name, otherDog.owner.last_name)}</p>
-            </div>
+            <button onClick={() => setProfileModalDog(otherDog)} className="flex items-center gap-3 flex-1 min-w-0">
+              <img src={otherDog.photo_url} alt={otherDog.name} className="h-10 w-10 rounded-xl object-cover" />
+              <div className="flex-1 min-w-0 text-left">
+                <h2 className="font-display font-semibold text-foreground">{otherDog.name}</h2>
+                <p className="text-xs text-muted-foreground">{formatOwnerName(otherDog.owner.display_name, otherDog.owner.last_name)} · Profili gör</p>
+              </div>
+            </button>
           </div>
         </header>
         <div className="p-3 bg-secondary/30 border-b flex gap-2 overflow-x-auto no-scrollbar">
@@ -231,6 +235,12 @@ export default function Messages() {
             </button>
           </div>
         </div>
+
+        {/* Dog Profile Modal */}
+        <DogProfileModal
+          dog={profileModalDog}
+          onClose={() => setProfileModalDog(null)}
+        />
       </div>
     );
   }
@@ -244,7 +254,6 @@ export default function Messages() {
 
   return (
     <div className="min-h-screen bg-background safe-top safe-bottom">
-      {/* Header */}
       <header className="sticky top-0 z-40 glass border-b px-4 py-4">
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary">
@@ -257,7 +266,6 @@ export default function Messages() {
         </div>
       </header>
 
-      {/* Tabs */}
       <div className="flex border-b bg-card px-2">
         {tabs.map(tab => (
           <button
@@ -276,7 +284,6 @@ export default function Messages() {
         ))}
       </div>
 
-      {/* Tab Content */}
       <div className="px-4 py-4">
         {activeTab === 'chat' && (
           <>
@@ -336,6 +343,12 @@ export default function Messages() {
         {activeTab === 'board' && <ParkBulletinBoard />}
         {activeTab === 'badges' && <BadgeShowcase />}
       </div>
+
+      {/* Dog Profile Modal */}
+      <DogProfileModal
+        dog={profileModalDog}
+        onClose={() => setProfileModalDog(null)}
+      />
     </div>
   );
 }

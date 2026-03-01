@@ -8,7 +8,7 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import type { Park as ParkType } from '@/types/dogspace';
 import type { ParkDog } from '@/types/dogspace';
-import { RATE_LIMITS, isParkCheckinActive, getParkCheckinRemainingMinutes, formatTimeRemaining } from '@/types/dogspace';
+import { isParkCheckinActive, getParkCheckinRemainingMinutes, formatTimeRemaining, RATE_LIMITS } from '@/types/dogspace';
 
 export default function Park() {
   const navigate = useNavigate();
@@ -20,7 +20,6 @@ export default function Park() {
   const [remainingMinutes, setRemainingMinutes] = useState(0);
   const [showExpiryWarning, setShowExpiryWarning] = useState(false);
   const [wavedDogs, setWavedDogs] = useState<Set<string>>(new Set());
-  const [wavesRemaining, setWavesRemaining] = useState<number>(RATE_LIMITS.DAILY_WAVES);
 
   const myDog = dogs[0];
   const isCheckedIn = myDog && isParkCheckinActive(myDog);
@@ -51,7 +50,6 @@ export default function Park() {
     if (data) setParks(data as unknown as ParkType[]);
   }, []);
 
-  // Fetch park dogs using RPC
   const fetchParkDogs = useCallback(async () => {
     if (!selectedPark) return;
 
@@ -73,10 +71,6 @@ export default function Park() {
   const fetchWaveStatus = useCallback(async () => {
     if (!profile || !myDog) return;
     try {
-      const { data: remaining } = await supabase
-        .rpc('get_remaining_waves', { p_user_id: profile.id });
-      if (remaining !== null) setWavesRemaining(remaining);
-
       const { data: wavesData } = await supabase
         .from('waves')
         .select('to_dog_id')
@@ -137,6 +131,7 @@ export default function Park() {
     }
   };
 
+  // Park waves are FREE - no limit check
   const handleWave = async (toDogId: string) => {
     if (!myDog || !profile) return;
 
@@ -155,7 +150,6 @@ export default function Park() {
       }
 
       setWavedDogs(prev => new Set([...prev, toDogId]));
-      setWavesRemaining(prev => prev - 1);
 
       if (result.status === 'HARMONY_CREATED') {
         toast.success('🎉 Eşleştiniz!', { duration: 5000 });
@@ -214,7 +208,7 @@ export default function Park() {
         </div>
       )}
 
-      {/* Header */}
+      {/* Header - NO wave counter */}
       <header className="sticky top-0 z-40 glass border-b px-4 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -236,14 +230,6 @@ export default function Park() {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            {myDog && (
-              <div className="rounded-full bg-secondary px-3 py-1.5">
-                <span className="text-sm font-medium text-secondary-foreground">
-                  👋 {wavesRemaining}/{RATE_LIMITS.DAILY_WAVES}
-                </span>
-              </div>
-            )}
-
             {myDog && selectedPark && (
               <button
                 onClick={toggleParkCheckin}
@@ -295,7 +281,6 @@ export default function Park() {
           </div>
         )}
       </header>
-
 
       {/* Live density indicator */}
       {selectedPark && (
@@ -380,7 +365,6 @@ export default function Park() {
                   )}
                   style={{ boxShadow: 'var(--shadow-card)' }}
                 >
-                  {/* Lost overlay */}
                   {dog.is_lost && (
                     <div className="mb-3 flex items-center gap-2 rounded-lg bg-destructive/20 p-2">
                       <AlertTriangle className="h-5 w-5 text-destructive" />
