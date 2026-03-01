@@ -4,10 +4,10 @@ import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
 
 const navItems = [
-  { path: '/discover', icon: Compass, label: 'Keşfet', color: 'hsl(210, 60%, 55%)' },
-  { path: '/park', icon: MapPin, label: 'Park', color: 'hsl(152, 60%, 45%)' },
-  { path: '/messages', icon: MessageCircle, label: 'Sosyal', color: 'hsl(260, 60%, 55%)' },
-  { path: '/profile', icon: Dog, label: 'Köpeğim', color: 'hsl(14, 90%, 58%)' },
+  { path: '/discover', icon: Compass, label: 'Keşfet', cssVar: '--page-discover' },
+  { path: '/park', icon: MapPin, label: 'Park', cssVar: '--page-park' },
+  { path: '/messages', icon: MessageCircle, label: 'Sosyal', cssVar: '--page-social' },
+  { path: '/profile', icon: Dog, label: 'Köpeğim', cssVar: '--page-profile' },
 ];
 
 export function BottomNav() {
