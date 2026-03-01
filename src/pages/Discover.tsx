@@ -295,8 +295,8 @@ export default function Discover() {
         )}
 
         <div className="flex flex-col items-center justify-center py-20 px-4 text-center">
-          <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-secondary">
-            <Compass className="h-10 w-10 text-muted-foreground" />
+          <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full" style={{ background: 'hsl(var(--page-discover) / 0.15)' }}>
+            <Compass className="h-10 w-10" style={{ color: 'hsl(var(--page-discover))' }} />
           </div>
           <h2 className="mb-2 font-display text-xl font-bold text-foreground">
             Playdate modunu aç!
