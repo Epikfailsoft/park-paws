@@ -276,8 +276,8 @@ export default function Discover() {
       <div className="min-h-screen bg-background safe-top safe-bottom">
         <header className="sticky top-0 z-40 glass border-b px-4 py-4">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary">
-              <Compass className="h-5 w-5 text-primary-foreground" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl" style={{ background: 'hsl(var(--page-discover))' }}>
+              <Compass className="h-5 w-5 text-white" />
             </div>
             <div>
               <h1 className="font-display text-lg font-bold text-foreground">Keşfet</h1>
@@ -295,8 +295,8 @@ export default function Discover() {
         )}
 
         <div className="flex flex-col items-center justify-center py-20 px-4 text-center">
-          <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-secondary">
-            <Compass className="h-10 w-10 text-muted-foreground" />
+          <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full" style={{ background: 'hsl(var(--page-discover) / 0.15)' }}>
+            <Compass className="h-10 w-10" style={{ color: 'hsl(var(--page-discover))' }} />
           </div>
           <h2 className="mb-2 font-display text-xl font-bold text-foreground">
             Playdate modunu aç!
@@ -306,7 +306,8 @@ export default function Discover() {
           </p>
           <button
             onClick={togglePlaydateOn}
-            className="flex items-center gap-2 rounded-xl bg-primary px-6 py-3 text-base font-semibold text-primary-foreground shadow-lg transition-all hover:opacity-90 active:scale-[0.98]"
+            className="flex items-center gap-2 rounded-xl px-6 py-3 text-base font-semibold text-white shadow-lg transition-all hover:opacity-90 active:scale-[0.98]"
+            style={{ background: 'hsl(var(--page-discover))' }}
           >
             <ToggleRight className="h-5 w-5" />
             Playdate'i Aç
