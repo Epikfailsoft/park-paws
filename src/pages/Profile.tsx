@@ -149,7 +149,7 @@ export default function Profile() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl text-white shadow-md"
-              style={{ background: 'var(--gradient-accent)' }}>
+              style={{ background: 'hsl(var(--page-profile))' }}>
               <Dog className="h-5 w-5" />
             </div>
             <div>

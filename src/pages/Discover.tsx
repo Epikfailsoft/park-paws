@@ -376,12 +376,12 @@ export default function Discover() {
 
       {/* Community Stats Bar */}
       <div className="mx-4 mt-3 flex items-center gap-3 overflow-x-auto no-scrollbar">
-        <div className="flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1.5 whitespace-nowrap">
+        <div className="flex items-center gap-1.5 rounded-full px-3 py-1.5 whitespace-nowrap" style={{ background: 'hsl(var(--page-discover) / 0.12)' }}>
           <span className="relative flex h-2 w-2">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75"></span>
-            <span className="relative inline-flex h-2 w-2 rounded-full bg-primary"></span>
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full opacity-75" style={{ background: 'hsl(var(--page-discover))' }}></span>
+            <span className="relative inline-flex h-2 w-2 rounded-full" style={{ background: 'hsl(var(--page-discover))' }}></span>
           </span>
-          <span className="text-xs font-semibold text-primary">Son 24s: {last24hDogCount} köpek</span>
+          <span className="text-xs font-semibold" style={{ color: 'hsl(var(--page-discover))' }}>Son 24s: {last24hDogCount} köpek</span>
         </div>
         <div className="flex items-center gap-1.5 rounded-full bg-secondary px-3 py-1.5 whitespace-nowrap">
           <Users className="h-3 w-3 text-muted-foreground" />

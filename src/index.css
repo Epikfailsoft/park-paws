@@ -129,6 +129,15 @@
     --input: 240 8% 20%;
     --ring: 152 55% 50%;
 
+    --page-discover: 210 60% 60%;
+    --page-discover-light: 210 40% 18%;
+    --page-park: 152 55% 50%;
+    --page-park-light: 152 30% 16%;
+    --page-social: 24 85% 55%;
+    --page-social-light: 24 50% 16%;
+    --page-profile: 0 65% 55%;
+    --page-profile-light: 0 40% 16%;
+
     --sidebar-background: 240 10% 8%;
     --sidebar-foreground: 0 0% 90%;
     --sidebar-primary: 152 55% 50%;

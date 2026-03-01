@@ -274,8 +274,8 @@ export default function Messages() {
             className={cn(
               "flex-1 flex items-center justify-center gap-1.5 py-3 text-xs font-semibold transition-colors border-b-2",
               activeTab === tab.id
-                ? "border-primary text-primary"
-                : "border-transparent text-muted-foreground"
+                 ? "border-transparent text-foreground"
+                 : "border-transparent text-muted-foreground"
             )}
           >
             {tab.icon}

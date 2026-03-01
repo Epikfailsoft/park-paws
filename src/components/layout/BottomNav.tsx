@@ -39,7 +39,7 @@ export function BottomNav() {
                   "h-5 w-5 transition-all",
                   isActive && "scale-110"
                 )}
-                style={isActive ? { color: item.color, filter: `drop-shadow(0 2px 4px ${item.color}40)` } : {}}
+                style={isActive ? { color: `hsl(var(${item.cssVar}))`, filter: `drop-shadow(0 2px 4px hsl(var(${item.cssVar}) / 0.4))` } : {}}
               />
               <span className={cn(
                 "text-[10px] font-semibold",
