@@ -57,16 +57,21 @@ export function StatusPulse({ dog, selectedPark, onRefresh }: StatusPulseProps) 
     } finally { setLoading(null); }
   };
 
-  const updateDailyEnergy = async (level: 1 | 2 | 3) => {
-    setLoading('energy');
+  const toggleLostMode = async () => {
+    setLoading('lost');
     try {
-      const { error } = await supabase.from('dogs').update({ daily_energy: level }).eq('id', dog.id);
+      const { data, error } = await supabase.rpc('toggle_lost_mode', { 
+        p_dog_id: dog.id, 
+        p_enable: !dog.is_lost,
+        p_emergency_phone: '05001234567',
+      });
       if (error) throw error;
-      setDailyEnergy(level);
-      toast.success('Bugünkü enerji güncellendi');
+      const result = data as { status: string; message: string };
+      if (result.status === 'ERROR') { toast.error(result.message); return; }
+      toast.success(dog.is_lost ? 'Kayıp modu kapatıldı' : '🔴 Kayıp modu aktif!');
       onRefresh();
     } catch (error) {
-      console.error('Error updating energy:', error);
+      console.error('Error toggling lost mode:', error);
       toast.error('Bir hata oluştu');
     } finally { setLoading(null); }
   };
