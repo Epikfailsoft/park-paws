@@ -276,8 +276,8 @@ export default function Discover() {
       <div className="min-h-screen bg-background safe-top safe-bottom">
         <header className="sticky top-0 z-40 glass border-b px-4 py-4">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary">
-              <Compass className="h-5 w-5 text-primary-foreground" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl" style={{ background: 'hsl(var(--page-discover))' }}>
+              <Compass className="h-5 w-5 text-white" />
             </div>
             <div>
               <h1 className="font-display text-lg font-bold text-foreground">Keşfet</h1>
