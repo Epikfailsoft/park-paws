@@ -177,7 +177,7 @@ export default function Park() {
   }
 
   return (
-    <div className="min-h-screen bg-background safe-top safe-bottom">
+    <div className="min-h-screen safe-top safe-bottom" style={{ background: `linear-gradient(180deg, hsl(var(--page-park-light)) 0%, hsl(var(--background)) 30%)` }}>
       {/* Expiry Warning */}
       {showExpiryWarning && isCheckedIn && (
         <div className="bg-amber-100 border-b border-amber-300 p-3">
@@ -213,11 +213,9 @@ export default function Park() {
       <header className="sticky top-0 z-40 glass border-b px-4 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className={cn(
-              "flex h-10 w-10 items-center justify-center rounded-xl",
-              isCheckedIn ? "bg-[hsl(var(--park-active))]" : "bg-primary"
-            )}>
-              <MapPin className="h-5 w-5 text-primary-foreground" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl"
+              style={{ background: isCheckedIn ? 'hsl(var(--park-active))' : 'hsl(var(--page-park))' }}>
+              <MapPin className="h-5 w-5 text-white" />
             </div>
             <div>
               <h1 className="font-display text-lg font-bold text-foreground">Park</h1>

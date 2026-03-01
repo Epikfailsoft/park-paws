@@ -4,10 +4,10 @@ import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
 
 const navItems = [
-  { path: '/discover', icon: Compass, label: 'Keşfet', color: 'hsl(210, 60%, 55%)' },
-  { path: '/park', icon: MapPin, label: 'Park', color: 'hsl(152, 60%, 45%)' },
-  { path: '/messages', icon: MessageCircle, label: 'Sosyal', color: 'hsl(260, 60%, 55%)' },
-  { path: '/profile', icon: Dog, label: 'Köpeğim', color: 'hsl(14, 90%, 58%)' },
+  { path: '/discover', icon: Compass, label: 'Keşfet', cssVar: '--page-discover' },
+  { path: '/park', icon: MapPin, label: 'Park', cssVar: '--page-park' },
+  { path: '/messages', icon: MessageCircle, label: 'Sosyal', cssVar: '--page-social' },
+  { path: '/profile', icon: Dog, label: 'Köpeğim', cssVar: '--page-profile' },
 ];
 
 export function BottomNav() {
@@ -39,7 +39,7 @@ export function BottomNav() {
                   "h-5 w-5 transition-all",
                   isActive && "scale-110"
                 )}
-                style={isActive ? { color: item.color, filter: `drop-shadow(0 2px 4px ${item.color}40)` } : {}}
+                style={isActive ? { color: `hsl(var(${item.cssVar}))`, filter: `drop-shadow(0 2px 4px hsl(var(${item.cssVar}) / 0.4))` } : {}}
               />
               <span className={cn(
                 "text-[10px] font-semibold",

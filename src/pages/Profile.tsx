@@ -135,7 +135,7 @@ export default function Profile() {
   }
 
   return (
-    <div className="min-h-screen bg-background safe-top safe-bottom">
+    <div className="min-h-screen safe-top safe-bottom" style={{ background: `linear-gradient(180deg, hsl(var(--page-profile-light)) 0%, hsl(var(--background)) 30%)` }}>
       {/* Lost Mode Banner */}
       {myDog.is_lost && (
         <div className="bg-destructive text-destructive-foreground p-3 text-center">
@@ -149,7 +149,7 @@ export default function Profile() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl text-white shadow-md"
-              style={{ background: 'var(--gradient-accent)' }}>
+              style={{ background: 'hsl(var(--page-profile))' }}>
               <Dog className="h-5 w-5" />
             </div>
             <div>
