@@ -98,7 +98,7 @@ export function HeroIdentityCard({ dog, profile, onRefresh }: HeroIdentityCardPr
               src={dog.photo_url}
               alt={dog.name}
               className={cn(
-                "h-36 w-36 rounded-full object-cover transition-all",
+                "h-36 w-36 rounded-2xl object-cover transition-all",
                 STATUS_RING_STYLES[status]
               )}
             />
