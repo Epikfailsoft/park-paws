@@ -135,7 +135,7 @@ export default function Profile() {
   }
 
   return (
-    <div className="min-h-screen bg-background safe-top safe-bottom">
+    <div className="min-h-screen safe-top safe-bottom" style={{ background: `linear-gradient(180deg, hsl(var(--page-profile-light)) 0%, hsl(var(--background)) 30%)` }}>
       {/* Lost Mode Banner */}
       {myDog.is_lost && (
         <div className="bg-destructive text-destructive-foreground p-3 text-center">
