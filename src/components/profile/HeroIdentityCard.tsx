@@ -102,11 +102,7 @@ export function HeroIdentityCard({ dog, profile, onRefresh }: HeroIdentityCardPr
                 STATUS_RING_STYLES[status]
               )}
             />
-            {/* Decorative ring */}
-            {status !== 'passive' && (
-              <div className="absolute -inset-2 rounded-[1.25rem] border-2 border-dashed opacity-30 animate-[spin_12s_linear_infinite]"
-                style={{ borderColor: status === 'lost' ? 'hsl(var(--destructive))' : 'hsl(var(--primary))' }} />
-            )}
+            {/* Decorative ring removed */}
           </div>
           
           {/* Owner avatar overlay */}

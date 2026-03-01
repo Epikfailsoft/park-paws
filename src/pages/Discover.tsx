@@ -6,7 +6,7 @@ import { DogCard } from '@/components/cards/DogCard';
 import { DiscoverFilters } from '@/components/discover/DiscoverFilters';
 import { MapTeaser } from '@/components/discover/MapTeaser';
 import { WaveLimitModal } from '@/components/discover/WaveLimitModal';
-import { Compass, Loader2, ToggleLeft, ToggleRight, Filter, AlertTriangle } from 'lucide-react';
+import { Compass, Loader2, ToggleRight, Filter, AlertTriangle, Users } from 'lucide-react';
 import { toast } from 'sonner';
 import { RATE_LIMITS, getTimeContext, isPlaydateActive } from '@/types/dogspace';
 import type { DiscoverDog } from '@/types/dogspace';
@@ -28,8 +28,8 @@ export default function Discover() {
   // Filters
   const [showFilters, setShowFilters] = useState(false);
   const [distance, setDistance] = useState(10);
-  const [energyFilter, setEnergyFilter] = useState<number | null>(null);
-  const [neuteredFilter, setNeuteredFilter] = useState<boolean | null>(null);
+  const [genderFilter, setGenderFilter] = useState<string | null>(null);
+  const [socialStyleFilter, setSocialStyleFilter] = useState<string | null>(null);
 
   // Wave limit modal
   const [showWaveLimitModal, setShowWaveLimitModal] = useState(false);
@@ -37,6 +37,13 @@ export default function Discover() {
   // Map teaser stats
   const [activeDogCount, setActiveDogCount] = useState(0);
   const [activeParkCount, setActiveParkCount] = useState(0);
+
+  // Community stats
+  const [totalMembers, setTotalMembers] = useState(0);
+  const [last24hDogCount, setLast24hDogCount] = useState(0);
+
+  // Park waitlist
+  const [waitlistCount, setWaitlistCount] = useState(0);
 
   const observerRef = useRef<IntersectionObserver | null>(null);
   const loadMoreRef = useRef<HTMLDivElement>(null);
@@ -73,11 +80,11 @@ export default function Discover() {
       let results = (data || []) as DiscoverDog[];
 
       // Client-side filters
-      if (energyFilter !== null) {
-        results = results.filter(d => d.energy_level === energyFilter);
+      if (genderFilter !== null) {
+        results = results.filter(d => d.gender === genderFilter);
       }
-      if (neuteredFilter !== null) {
-        results = results.filter(d => d.is_neutered === neuteredFilter);
+      if (socialStyleFilter !== null) {
+        results = results.filter(d => d.social_style === socialStyleFilter);
       }
 
       if (reset) {
@@ -95,7 +102,7 @@ export default function Discover() {
       setLoading(false);
       setLoadingMore(false);
     }
-  }, [profile, lat, lng, distance, energyFilter, neuteredFilter, offset]);
+  }, [profile, lat, lng, distance, genderFilter, socialStyleFilter, offset]);
 
   // Fetch wave status
   const fetchWaveStatus = useCallback(async () => {
@@ -117,22 +124,24 @@ export default function Discover() {
     }
   }, [profile, myDog]);
 
-  // Fetch map teaser stats
+  // Fetch map teaser stats + community stats
   const fetchTeaserStats = useCallback(async () => {
     try {
-      const { count: dogCount } = await supabase
-        .from('dogs')
-        .select('*', { count: 'exact', head: true })
-        .eq('playdate_on', true)
-        .is('deleted_at', null);
+      const [dogRes, parkRes, memberRes, last24hRes, waitlistRes] = await Promise.all([
+        supabase.from('dogs').select('*', { count: 'exact', head: true }).eq('playdate_on', true).is('deleted_at', null),
+        supabase.from('parks').select('*', { count: 'exact', head: true }).eq('status', 'ACTIVE'),
+        supabase.from('profiles').select('*', { count: 'exact', head: true }),
+        supabase.from('dogs').select('*', { count: 'exact', head: true })
+          .is('deleted_at', null)
+          .gte('playdate_started_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()),
+        supabase.from('parks').select('*', { count: 'exact', head: true }).eq('status', 'REQUESTED'),
+      ]);
 
-      const { count: parkCount } = await supabase
-        .from('parks')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'ACTIVE');
-
-      setActiveDogCount(dogCount || 0);
-      setActiveParkCount(parkCount || 0);
+      setActiveDogCount(dogRes.count || 0);
+      setActiveParkCount(parkRes.count || 0);
+      setTotalMembers(memberRes.count || 0);
+      setLast24hDogCount(last24hRes.count || 0);
+      setWaitlistCount(waitlistRes.count || 0);
     } catch {
       /* ignore */
     }
@@ -147,7 +156,7 @@ export default function Discover() {
     } else {
       setLoading(false);
     }
-  }, [profile, distance, energyFilter, neuteredFilter, lat, lng]);
+  }, [profile, distance, genderFilter, socialStyleFilter, lat, lng]);
 
   // Infinite scroll observer
   useEffect(() => {
@@ -250,6 +259,9 @@ export default function Discover() {
     }
   };
 
+  // Neighborhood name from park
+  const neighborhoodName = selectedPark?.name?.replace(/\s*(Parkı|Park)$/i, '') || null;
+
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -262,7 +274,6 @@ export default function Discover() {
   if (myDog && !playdateActive) {
     return (
       <div className="min-h-screen bg-background safe-top safe-bottom">
-        {/* Header */}
         <header className="sticky top-0 z-40 glass border-b px-4 py-4">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary">
@@ -271,20 +282,18 @@ export default function Discover() {
             <div>
               <h1 className="font-display text-lg font-bold text-foreground">Keşfet</h1>
               <p className="text-xs text-muted-foreground">
-                {getTimeContext()} · {selectedPark?.name || 'Park seç'}
+                {neighborhoodName ? `${neighborhoodName} · ` : ''}{getTimeContext()}
               </p>
             </div>
           </div>
         </header>
 
-        {/* Lost Dogs Banner (always visible) */}
         {lostDogs.length > 0 && (
           <div className="mx-4 mt-4">
             <LostDogsBanner dogs={lostDogs} onWave={handleWave} wavedDogs={wavedDogs} />
           </div>
         )}
 
-        {/* Playdate OFF empty state */}
         <div className="flex flex-col items-center justify-center py-20 px-4 text-center">
           <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-secondary">
             <Compass className="h-10 w-10 text-muted-foreground" />
@@ -319,7 +328,7 @@ export default function Discover() {
             <div>
               <h1 className="font-display text-lg font-bold text-foreground">Keşfet</h1>
               <p className="text-xs text-muted-foreground">
-                {getTimeContext()} · {selectedPark?.name || 'Park seç'}
+                {neighborhoodName ? `${neighborhoodName} · ` : ''}{getTimeContext()}
               </p>
             </div>
           </div>
@@ -357,14 +366,33 @@ export default function Discover() {
           <DiscoverFilters
             distance={distance}
             onDistanceChange={(km) => { setDistance(km); setOffset(0); }}
-            energyFilter={energyFilter}
-            onEnergyChange={(val) => { setEnergyFilter(val); setOffset(0); }}
-            neuteredFilter={neuteredFilter}
-            onNeuteredChange={(val) => { setNeuteredFilter(val); setOffset(0); }}
+            genderFilter={genderFilter}
+            onGenderChange={(val) => { setGenderFilter(val); setOffset(0); }}
+            socialStyleFilter={socialStyleFilter}
+            onSocialStyleChange={(val) => { setSocialStyleFilter(val); setOffset(0); }}
           />
         </div>
       )}
 
+      {/* Community Stats Bar */}
+      <div className="mx-4 mt-3 flex items-center gap-3 overflow-x-auto no-scrollbar">
+        <div className="flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1.5 whitespace-nowrap">
+          <span className="relative flex h-2 w-2">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75"></span>
+            <span className="relative inline-flex h-2 w-2 rounded-full bg-primary"></span>
+          </span>
+          <span className="text-xs font-semibold text-primary">Son 24s: {last24hDogCount} köpek</span>
+        </div>
+        <div className="flex items-center gap-1.5 rounded-full bg-secondary px-3 py-1.5 whitespace-nowrap">
+          <Users className="h-3 w-3 text-muted-foreground" />
+          <span className="text-xs font-medium text-secondary-foreground">{totalMembers} üye</span>
+        </div>
+        {waitlistCount > 0 && (
+          <div className="flex items-center gap-1.5 rounded-full bg-[hsl(var(--harmony))]/15 px-3 py-1.5 whitespace-nowrap">
+            <span className="text-xs font-medium text-[hsl(var(--harmony-foreground))]">🏗️ {waitlistCount} park beklemede</span>
+          </div>
+        )}
+      </div>
 
       {/* Map Teaser */}
       {(activeDogCount > 0 || activeParkCount > 0) && (
