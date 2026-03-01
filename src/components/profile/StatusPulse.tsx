@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { MapPin, Compass, Loader2, Zap } from 'lucide-react';
+import { MapPin, Compass, Loader2, Zap, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import type { Dog, Park } from '@/types/dogspace';
@@ -19,8 +19,7 @@ interface StatusPulseProps {
 }
 
 export function StatusPulse({ dog, selectedPark, onRefresh }: StatusPulseProps) {
-  const [loading, setLoading] = useState<'playdate' | 'checkin' | 'energy' | null>(null);
-  const [dailyEnergy, setDailyEnergy] = useState<1 | 2 | 3>((dog.daily_energy || dog.energy_level) as 1 | 2 | 3);
+  const [loading, setLoading] = useState<'playdate' | 'checkin' | 'lost' | null>(null);
 
   const playdateActive = isPlaydateActive(dog);
   const parkActive = isParkCheckinActive(dog);
@@ -58,16 +57,21 @@ export function StatusPulse({ dog, selectedPark, onRefresh }: StatusPulseProps) 
     } finally { setLoading(null); }
   };
 
-  const updateDailyEnergy = async (level: 1 | 2 | 3) => {
-    setLoading('energy');
+  const toggleLostMode = async () => {
+    setLoading('lost');
     try {
-      const { error } = await supabase.from('dogs').update({ daily_energy: level }).eq('id', dog.id);
+      const { data, error } = await supabase.rpc('toggle_lost_mode', { 
+        p_dog_id: dog.id, 
+        p_enable: !dog.is_lost,
+        p_emergency_phone: '05001234567',
+      });
       if (error) throw error;
-      setDailyEnergy(level);
-      toast.success('Bugünkü enerji güncellendi');
+      const result = data as { status: string; message: string };
+      if (result.status === 'ERROR') { toast.error(result.message); return; }
+      toast.success(dog.is_lost ? 'Kayıp modu kapatıldı' : '🔴 Kayıp modu aktif!');
       onRefresh();
     } catch (error) {
-      console.error('Error updating energy:', error);
+      console.error('Error toggling lost mode:', error);
       toast.error('Bir hata oluştu');
     } finally { setLoading(null); }
   };
@@ -146,37 +150,32 @@ export function StatusPulse({ dog, selectedPark, onRefresh }: StatusPulseProps) 
         </button>
       </div>
 
-      {/* Daily Energy Selector */}
-      <div className="pt-2">
-        <div className="flex items-center justify-between mb-3">
-          <p className="text-sm font-semibold text-foreground">Bugünkü Enerji</p>
-          <span className={cn(
-            "rounded-full px-3 py-1 text-xs font-semibold",
-            dailyEnergy === 1 ? "bg-[hsl(var(--energy-1))]/15 text-[hsl(var(--energy-1))]" :
-            dailyEnergy === 2 ? "bg-[hsl(var(--energy-2))]/15 text-[hsl(var(--energy-2))]" :
-            "bg-[hsl(var(--energy-3))]/15 text-[hsl(var(--energy-3))]"
+      {/* Lost Mode Toggle */}
+      <div className={cn(
+        "flex items-center justify-between rounded-xl p-3 transition-all",
+        dog.is_lost ? "bg-destructive/10" : "bg-muted/50"
+      )}>
+        <div className="flex items-center gap-3">
+          <div className={cn(
+            "flex h-11 w-11 items-center justify-center rounded-xl transition-all",
+            dog.is_lost ? "bg-destructive text-white shadow-lg animate-pulse" : "bg-muted text-muted-foreground"
           )}>
-            {dailyEnergy === 1 ? '🐢 Sakin' : dailyEnergy === 2 ? '🐕 Normal' : '⚡ Enerjik'}
-          </span>
+            <AlertTriangle className="h-5 w-5" />
+          </div>
+          <div>
+            <p className="font-semibold text-foreground">Kayıp Modu</p>
+            <p className="text-xs text-muted-foreground">
+              {dog.is_lost ? '🔴 Acil durum aktif · Herkes görebilir' : 'Acil durum bildirimi gönder'}
+            </p>
+          </div>
         </div>
-        <div className="flex gap-2">
-          {([1, 2, 3] as const).map((level) => (
-            <button key={level} onClick={() => updateDailyEnergy(level)} disabled={loading === 'energy'}
-              className={cn(
-                "flex-1 flex flex-col items-center justify-center py-3 rounded-xl text-lg font-bold transition-all",
-                dailyEnergy >= level 
-                  ? level === 1 ? "bg-[hsl(var(--energy-1))]/15 text-[hsl(var(--energy-1))]" 
-                    : level === 2 ? "bg-[hsl(var(--energy-2))]/15 text-[hsl(var(--energy-2))]"
-                    : "bg-[hsl(var(--energy-3))]/15 text-[hsl(var(--energy-3))]"
-                  : "bg-muted/30 text-muted-foreground/30"
-              )}>
-              🐾
-              <span className="text-[10px] font-medium mt-0.5">
-                {level === 1 ? 'Sakin' : level === 2 ? 'Normal' : 'Enerjik'}
-              </span>
-            </button>
-          ))}
-        </div>
+        <button onClick={toggleLostMode} disabled={loading === 'lost'}
+          className={cn(
+            "rounded-full px-5 py-2 text-sm font-semibold transition-all",
+            dog.is_lost ? "bg-destructive text-white animate-pulse" : "bg-muted text-muted-foreground hover:bg-destructive/20 hover:text-destructive"
+          )}>
+          {loading === 'lost' ? <Loader2 className="h-4 w-4 animate-spin" /> : dog.is_lost ? '🔴 Aktif' : 'Bildir'}
+        </button>
       </div>
     </div>
   );
