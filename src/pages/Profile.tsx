@@ -7,7 +7,8 @@ import { HeroIdentityCard } from '@/components/profile/HeroIdentityCard';
 import { CareCenter } from '@/components/profile/CareCenter';
 import { ActivityBadges } from '@/components/profile/ActivityBadges';
 import { CareVault } from '@/components/profile/CareVault';
-import { Dog, LogOut, Settings, Loader2, ChevronRight, AlertTriangle, Phone, Search, Camera } from 'lucide-react';
+import { Dog, LogOut, Settings, Loader2, ChevronRight, AlertTriangle, Phone, Search, Camera, Shield } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { SOCIAL_STYLE_OPTIONS, LIKES_SUGGESTIONS, DISLIKES_SUGGESTIONS, formatOwnerName } from '@/types/dogspace';
@@ -152,22 +153,36 @@ export default function Profile() {
               <Dog className="h-5 w-5" />
             </div>
             <div>
-              <h1 className="font-display text-lg font-extrabold text-foreground">Köpeğim</h1>
+              <h1 className="font-display text-lg font-extrabold text-foreground">dogSpace</h1>
               <p className="text-xs text-muted-foreground font-medium">
                 {profile ? formatOwnerName(profile.display_name, profile.last_name) : ''}
               </p>
             </div>
           </div>
-          <div className="flex gap-2">
-            <button onClick={() => setEditing(!editing)} className="flex h-10 w-10 items-center justify-center rounded-xl bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-all">
-              <Settings className="h-5 w-5" />
-            </button>
-            <button onClick={handleLogout} className="flex h-10 w-10 items-center justify-center rounded-xl bg-destructive/10 text-destructive hover:bg-destructive/20 transition-all">
-              <LogOut className="h-5 w-5" />
-            </button>
-          </div>
+          <button onClick={() => setEditing(!editing)} className="flex h-10 w-10 items-center justify-center rounded-xl bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-all">
+            <Settings className="h-5 w-5" />
+          </button>
         </div>
       </header>
+
+      {/* Lost Mode Switch */}
+      <div className="mx-4 mt-3">
+        <div className={cn(
+          "flex items-center justify-between rounded-xl p-3 transition-all",
+          myDog.is_lost ? "bg-destructive/15 border border-destructive/30" : "bg-secondary"
+        )}>
+          <div className="flex items-center gap-2">
+            <Shield className={cn("h-4 w-4", myDog.is_lost ? "text-destructive" : "text-muted-foreground")} />
+            <span className={cn("text-sm font-semibold", myDog.is_lost ? "text-destructive" : "text-foreground")}>
+              Kayıp Modu
+            </span>
+          </div>
+          <Switch
+            checked={!!myDog.is_lost}
+            onCheckedChange={() => setShowLostModal(true)}
+          />
+        </div>
+      </div>
 
       {/* 1️⃣ HERO & IDENTITY CARD */}
       <HeroIdentityCard dog={myDog} profile={profile!} onRefresh={refreshDogs} />
@@ -352,12 +367,6 @@ export default function Profile() {
             {/* 5️⃣ SAFETY & DOCUMENT VAULT */}
             <CareVault dogId={myDog.id} profileId={profile!.id} />
 
-            {/* Edit prompt */}
-            <button onClick={() => setEditing(true)}
-              className="flex w-full items-center justify-between rounded-xl bg-secondary/50 p-4 text-left transition-all hover:bg-secondary">
-              <span className="text-sm text-muted-foreground">Profili düzenle</span>
-              <ChevronRight className="h-5 w-5 text-muted-foreground" />
-            </button>
           </>
         )}
 
@@ -434,17 +443,23 @@ export default function Profile() {
           </div>
         )}
 
-        {/* LOST MODE (Emergency Protocol) */}
-        <div className="border-t border-border pt-4">
-          <button onClick={() => setShowLostModal(true)}
-            className={cn(
-              "flex w-full items-center justify-center gap-2 rounded-xl border-2 py-3 font-semibold transition-all",
-              myDog.is_lost
-                ? "border-destructive bg-destructive text-destructive-foreground"
-                : "border-destructive text-destructive hover:bg-destructive/10"
-            )}>
-            <AlertTriangle className="h-5 w-5" />
-            {myDog.is_lost ? 'KAYIP MODU KAPAT' : 'KAYIP MODU AKTİF ET'}
+        {/* Settings & Logout */}
+        <div className="border-t border-border pt-4 space-y-2">
+          <button onClick={() => setEditing(true)}
+            className="flex w-full items-center justify-between rounded-xl bg-secondary/50 p-4 text-left transition-all hover:bg-secondary">
+            <div className="flex items-center gap-3">
+              <Settings className="h-5 w-5 text-muted-foreground" />
+              <span className="text-sm font-medium text-foreground">Ayarlar</span>
+            </div>
+            <ChevronRight className="h-5 w-5 text-muted-foreground" />
+          </button>
+          <button onClick={handleLogout}
+            className="flex w-full items-center justify-between rounded-xl bg-destructive/10 p-4 text-left transition-all hover:bg-destructive/15">
+            <div className="flex items-center gap-3">
+              <LogOut className="h-5 w-5 text-destructive" />
+              <span className="text-sm font-medium text-destructive">Çıkış Yap</span>
+            </div>
+            <ChevronRight className="h-5 w-5 text-destructive/50" />
           </button>
         </div>
       </div>

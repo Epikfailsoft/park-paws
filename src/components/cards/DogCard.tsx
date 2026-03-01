@@ -48,10 +48,10 @@ export function DogCard({
           </div>
         )}
 
-        {dog.neutered && !compact && (
+        {dog.gender && !compact && (
           <div className="absolute right-2 top-2 text-xs px-2.5 py-1 rounded-full font-semibold text-white shadow-md"
-            style={{ background: 'var(--gradient-hero)' }}>
-            ✓ Kısır
+            style={{ background: dog.gender === 'female' ? 'hsl(330, 60%, 50%)' : 'hsl(210, 60%, 50%)' }}>
+            {dog.gender === 'male' ? '♂ Erkek' : dog.gender === 'female' ? '♀ Dişi' : ''}
           </div>
         )}
 
@@ -78,7 +78,7 @@ export function DogCard({
 
         {(distanceKm != null || parkName) && (
           <div className="mt-1.5 flex items-center gap-2 text-xs">
-            {distanceKm != null && <span className="text-muted-foreground font-medium">📍 {distanceKm.toFixed(1)} km</span>}
+            {distanceKm != null && <span className="text-muted-foreground font-medium">📍 {distanceKm < 1 ? `${Math.round(distanceKm * 1000)} m` : `${distanceKm.toFixed(1)} km`}</span>}
             {parkName && <span className="font-semibold text-[hsl(var(--park-active))]">🟢 {parkName}</span>}
           </div>
         )}
@@ -109,8 +109,8 @@ export function DogCard({
           </div>
         )}
 
-        {compact && dog.neutered && (
-          <div className="mt-2"><span className="text-xs font-semibold text-primary">✓ Kısır</span></div>
+        {compact && dog.gender && (
+          <div className="mt-2"><span className="text-xs font-semibold" style={{ color: dog.gender === 'female' ? 'hsl(330, 60%, 50%)' : 'hsl(210, 60%, 50%)' }}>{dog.gender === 'male' ? '♂ Erkek' : '♀ Dişi'}</span></div>
         )}
 
         {showWaveButton && onWave && (
