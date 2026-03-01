@@ -244,31 +244,32 @@ export default function Park() {
               </div>
             )}
 
-          {myDog && selectedPark && (
-            <button
-              onClick={toggleParkCheckin}
-              disabled={!hasPhoto && !myDog.photo_url}
-              className={cn(
-                "flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-all",
-                isCheckedIn
-                  ? "bg-[hsl(var(--park-active))] text-white"
-                  : "bg-secondary text-secondary-foreground",
-                (!hasPhoto && !myDog.photo_url) && "opacity-50"
-              )}
-            >
-              {isCheckedIn ? (
-                <>
-                  <span className="relative flex h-2 w-2">
-                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white opacity-75"></span>
-                    <span className="relative inline-flex h-2 w-2 rounded-full bg-white"></span>
-                  </span>
-                  {formatTimeRemaining(remainingMinutes)}
-                </>
-              ) : (
-                'Giriş Yap'
-              )}
-            </button>
-          )}
+            {myDog && selectedPark && (
+              <button
+                onClick={toggleParkCheckin}
+                disabled={!hasPhoto && !myDog.photo_url}
+                className={cn(
+                  "flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-all",
+                  isCheckedIn
+                    ? "bg-[hsl(var(--park-active))] text-white"
+                    : "bg-secondary text-secondary-foreground",
+                  (!hasPhoto && !myDog.photo_url) && "opacity-50"
+                )}
+              >
+                {isCheckedIn ? (
+                  <>
+                    <span className="relative flex h-2 w-2">
+                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white opacity-75"></span>
+                      <span className="relative inline-flex h-2 w-2 rounded-full bg-white"></span>
+                    </span>
+                    {formatTimeRemaining(remainingMinutes)}
+                  </>
+                ) : (
+                  'Giriş Yap'
+                )}
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Park Dropdown */}
