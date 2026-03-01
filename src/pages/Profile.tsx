@@ -14,7 +14,7 @@ import { SOCIAL_STYLE_OPTIONS, LIKES_SUGGESTIONS, DISLIKES_SUGGESTIONS, formatOw
 import { validateTurkishPhone } from '@/lib/upload-validation';
 
 export default function Profile() {
-  const { profile, dogs, selectedPark, signOut, refreshDogs } = useAuth();
+  const { profile, dogs, selectedPark, signOut, refreshDogs, refreshProfile } = useAuth();
   const navigate = useNavigate();
   
   const myDog = dogs[0];
