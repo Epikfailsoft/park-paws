@@ -177,7 +177,7 @@ export default function Park() {
   }
 
   return (
-    <div className="min-h-screen bg-background safe-top safe-bottom">
+    <div className="min-h-screen safe-top safe-bottom" style={{ background: `linear-gradient(180deg, hsl(var(--page-park-light)) 0%, hsl(var(--background)) 30%)` }}>
       {/* Expiry Warning */}
       {showExpiryWarning && isCheckedIn && (
         <div className="bg-amber-100 border-b border-amber-300 p-3">
