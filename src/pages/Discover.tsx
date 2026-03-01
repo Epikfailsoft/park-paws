@@ -317,13 +317,13 @@ export default function Discover() {
   }
 
   return (
-    <div className="min-h-screen bg-background safe-top safe-bottom">
+    <div className="min-h-screen safe-top safe-bottom" style={{ background: `linear-gradient(180deg, hsl(var(--page-discover-light)) 0%, hsl(var(--background)) 30%)` }}>
       {/* Header */}
       <header className="sticky top-0 z-40 glass border-b px-4 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary">
-              <Compass className="h-5 w-5 text-primary-foreground" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl" style={{ background: 'hsl(var(--page-discover))' }}>
+              <Compass className="h-5 w-5 text-white" />
             </div>
             <div>
               <h1 className="font-display text-lg font-bold text-foreground">Keşfet</h1>
