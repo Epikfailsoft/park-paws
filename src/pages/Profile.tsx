@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -7,14 +7,14 @@ import { HeroIdentityCard } from '@/components/profile/HeroIdentityCard';
 import { CareCenter } from '@/components/profile/CareCenter';
 import { ActivityBadges } from '@/components/profile/ActivityBadges';
 import { CareVault } from '@/components/profile/CareVault';
-import { Dog, LogOut, Settings, Loader2, ChevronRight, AlertTriangle, Phone, Search } from 'lucide-react';
+import { Dog, LogOut, Settings, Loader2, ChevronRight, AlertTriangle, Phone, Search, Camera } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { SOCIAL_STYLE_OPTIONS, LIKES_SUGGESTIONS, DISLIKES_SUGGESTIONS, formatOwnerName } from '@/types/dogspace';
 import { validateTurkishPhone } from '@/lib/upload-validation';
 
 export default function Profile() {
-  const { profile, dogs, selectedPark, signOut, refreshDogs } = useAuth();
+  const { profile, dogs, selectedPark, signOut, refreshDogs, refreshProfile } = useAuth();
   const navigate = useNavigate();
   
   const myDog = dogs[0];
@@ -22,6 +22,10 @@ export default function Profile() {
   const [loading, setLoading] = useState(false);
   const [showLostModal, setShowLostModal] = useState(false);
   const [parkActivityDays, setParkActivityDays] = useState(0);
+  const ownerPhotoRef = useRef<HTMLInputElement>(null);
+  const [ownerPhotoLoading, setOwnerPhotoLoading] = useState(false);
+  const [ownerName, setOwnerName] = useState(profile?.display_name || '');
+  const [editingOwnerName, setEditingOwnerName] = useState(false);
 
   // Editable fields
   const [name, setName] = useState(myDog?.name || '');
@@ -365,17 +369,66 @@ export default function Profile() {
               Sahip
             </h3>
             <div className="flex items-center gap-3">
-              {profile.photo_url ? (
-                <img src={profile.photo_url} alt="" className="h-12 w-12 rounded-xl object-cover ring-2 ring-primary/20 shadow-md" />
-              ) : (
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl text-lg font-bold text-white shadow-md"
-                  style={{ background: 'var(--gradient-hero)' }}>
-                  {profile.display_name?.[0]}
-                </div>
-              )}
-              <div>
-                <p className="font-semibold text-foreground">{formatOwnerName(profile.display_name, profile.last_name)}</p>
-                <p className="text-xs text-muted-foreground">Acil durumlarda görünür</p>
+              <div className="relative">
+                <input ref={ownerPhotoRef} type="file" accept="image/*" className="hidden"
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (!file || !profile) return;
+                    setOwnerPhotoLoading(true);
+                    try {
+                      const fileExt = file.name.split('.').pop();
+                      const fileName = `owner/${profile.id}/${Date.now()}.${fileExt}`;
+                      const { error: uploadError } = await supabase.storage.from('dog-photos').upload(fileName, file);
+                      if (uploadError) throw uploadError;
+                      const { data: { publicUrl } } = supabase.storage.from('dog-photos').getPublicUrl(fileName);
+                      await supabase.from('profiles').update({ photo_url: publicUrl } as any).eq('id', profile.id);
+                      await refreshProfile();
+                      toast.success('Fotoğraf güncellendi!');
+                    } catch (err) { console.error(err); toast.error('Hata oluştu'); }
+                    finally { setOwnerPhotoLoading(false); }
+                  }} />
+                {profile.photo_url ? (
+                  <img src={profile.photo_url} alt="" className="h-12 w-12 rounded-xl object-cover ring-2 ring-primary/20 shadow-md" />
+                ) : (
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl text-lg font-bold text-white shadow-md"
+                    style={{ background: 'var(--gradient-hero)' }}>
+                    {profile.display_name?.[0]}
+                  </div>
+                )}
+                <button onClick={() => ownerPhotoRef.current?.click()} disabled={ownerPhotoLoading}
+                  className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-primary text-white shadow-md">
+                  {ownerPhotoLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Camera className="h-3 w-3" />}
+                </button>
+              </div>
+              <div className="flex-1">
+                {editingOwnerName ? (
+                  <div className="flex items-center gap-2">
+                    <input type="text" value={ownerName} onChange={(e) => setOwnerName(e.target.value)}
+                      className="dogspace-input flex-1 text-sm py-1" autoFocus
+                      onKeyDown={async (e) => {
+                        if (e.key === 'Enter' && ownerName.trim()) {
+                          await supabase.from('profiles').update({ display_name: ownerName.trim() } as any).eq('id', profile.id);
+                          await refreshProfile();
+                          setEditingOwnerName(false);
+                          toast.success('İsim güncellendi!');
+                        }
+                      }} />
+                    <button onClick={async () => {
+                      if (ownerName.trim()) {
+                        await supabase.from('profiles').update({ display_name: ownerName.trim() } as any).eq('id', profile.id);
+                        await refreshProfile();
+                        setEditingOwnerName(false);
+                        toast.success('İsim güncellendi!');
+                      }
+                    }} className="rounded-lg bg-primary px-3 py-1 text-xs font-medium text-primary-foreground">✓</button>
+                  </div>
+                ) : (
+                  <button onClick={() => { setOwnerName(profile.display_name); setEditingOwnerName(true); }}
+                    className="text-left">
+                    <p className="font-semibold text-foreground">{formatOwnerName(profile.display_name, profile.last_name)}</p>
+                    <p className="text-xs text-muted-foreground">Düzenlemek için dokun</p>
+                  </button>
+                )}
               </div>
             </div>
           </div>

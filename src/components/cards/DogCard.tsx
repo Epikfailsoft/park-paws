@@ -68,7 +68,10 @@ export function DogCard({
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0 flex-1">
             <h3 className="truncate font-display text-lg font-bold text-foreground">{dog.name}</h3>
-            <p className="text-sm text-muted-foreground">{dog.breed?.name || 'Karışık'} · {dog.approximate_age}</p>
+            <p className="text-sm text-muted-foreground">
+              {dog.breed?.name || 'Karışık'} · {dog.approximate_age}
+              {dog.gender && <span> · {dog.gender === 'male' ? '♂' : dog.gender === 'female' ? '♀' : ''}</span>}
+            </p>
           </div>
           <EnergyIndicator level={dog.daily_energy || dog.energy_level} size="sm" />
         </div>

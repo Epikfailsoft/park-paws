@@ -192,7 +192,7 @@ export interface PlaydateHistory {
 
 // V1.22 Rate Limits
 export const RATE_LIMITS = {
-  DAILY_WAVES: 10,
+  DAILY_WAVES: 5,
   PARK_CHECKIN_HOURS: 4,
   PLAYDATE_ON_HOURS: 24,
   DISCOVER_ACTIVE_HOURS: 24,
