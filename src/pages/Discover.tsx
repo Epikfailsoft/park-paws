@@ -335,6 +335,18 @@ export default function Discover() {
                 👋 {wavesRemaining}/{RATE_LIMITS.DAILY_WAVES}
               </span>
             </div>
+            {myDog && (
+              <button
+                onClick={togglePlaydateOn}
+                className="flex items-center gap-1.5 rounded-full bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground"
+              >
+                <span className="relative flex h-2 w-2">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white opacity-75"></span>
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-white"></span>
+                </span>
+                Aktif
+              </button>
+            )}
           </div>
         </div>
       </header>
