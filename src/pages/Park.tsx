@@ -15,6 +15,7 @@ export default function Park() {
   const { profile, dogs, selectedPark, hasPhoto, selectPark, refreshDogs } = useAuth();
   const [parkDogs, setParkDogs] = useState<ParkDog[]>([]);
   const [parks, setParks] = useState<ParkType[]>([]);
+  const [waitlistParks, setWaitlistParks] = useState<ParkType[]>([]);
   const [loading, setLoading] = useState(true);
   const [showParkSelect, setShowParkSelect] = useState(false);
   const [remainingMinutes, setRemainingMinutes] = useState(0);
