@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { DogCard } from '@/components/cards/DogCard';
-import { MapPin, Loader2, Timer, AlertTriangle, ChevronDown } from 'lucide-react';
+import { MapPin, Loader2, Timer, AlertTriangle, ChevronDown, Clock, Users } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import type { Park as ParkType } from '@/types/dogspace';
