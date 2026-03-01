@@ -287,15 +287,6 @@ export default function Park() {
         )}
       </header>
 
-      {/* Wave Counter */}
-      {myDog && (
-        <div className="mx-4 mt-4 flex items-center justify-between rounded-xl bg-secondary/50 px-4 py-2">
-          <span className="text-sm text-muted-foreground">Kalan Wave</span>
-          <span className="font-medium text-foreground">
-            👋 {wavesRemaining}/{RATE_LIMITS.DAILY_WAVES}
-          </span>
-        </div>
-      )}
 
       {/* Who is here now? */}
       <div className="px-4 py-4">
