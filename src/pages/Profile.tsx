@@ -22,6 +22,10 @@ export default function Profile() {
   const [loading, setLoading] = useState(false);
   const [showLostModal, setShowLostModal] = useState(false);
   const [parkActivityDays, setParkActivityDays] = useState(0);
+  const ownerPhotoRef = useRef<HTMLInputElement>(null);
+  const [ownerPhotoLoading, setOwnerPhotoLoading] = useState(false);
+  const [ownerName, setOwnerName] = useState(profile?.display_name || '');
+  const [editingOwnerName, setEditingOwnerName] = useState(false);
 
   // Editable fields
   const [name, setName] = useState(myDog?.name || '');
