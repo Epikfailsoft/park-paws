@@ -335,6 +335,18 @@ export default function Discover() {
                 👋 {wavesRemaining}/{RATE_LIMITS.DAILY_WAVES}
               </span>
             </div>
+            {myDog && (
+              <button
+                onClick={togglePlaydateOn}
+                className="flex items-center gap-1.5 rounded-full bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground"
+              >
+                <span className="relative flex h-2 w-2">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white opacity-75"></span>
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-white"></span>
+                </span>
+                Aktif
+              </button>
+            )}
           </div>
         </div>
       </header>
@@ -353,26 +365,6 @@ export default function Discover() {
         </div>
       )}
 
-      {/* Playdate Toggle */}
-      {myDog && (
-        <div className="mx-4 mt-4 rounded-xl bg-card p-4" style={{ boxShadow: 'var(--shadow-card)' }}>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <ToggleRight className="h-6 w-6 text-primary" />
-              <div>
-                <p className="font-medium text-foreground">Playdate Modu Aktif 🟢</p>
-                <p className="text-xs text-muted-foreground">24 saat boyunca görünür</p>
-              </div>
-            </div>
-            <button
-              onClick={togglePlaydateOn}
-              className="rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
-            >
-              Kapat
-            </button>
-          </div>
-        </div>
-      )}
 
       {/* Map Teaser */}
       {(activeDogCount > 0 || activeParkCount > 0) && (
