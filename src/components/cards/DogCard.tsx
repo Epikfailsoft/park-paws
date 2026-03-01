@@ -78,7 +78,7 @@ export function DogCard({
 
         {(distanceKm != null || parkName) && (
           <div className="mt-1.5 flex items-center gap-2 text-xs">
-            {distanceKm != null && <span className="text-muted-foreground font-medium">📍 {distanceKm.toFixed(1)} km</span>}
+            {distanceKm != null && <span className="text-muted-foreground font-medium">📍 {distanceKm < 1 ? `${Math.round(distanceKm * 1000)} m` : `${distanceKm.toFixed(1)} km`}</span>}
             {parkName && <span className="font-semibold text-[hsl(var(--park-active))]">🟢 {parkName}</span>}
           </div>
         )}
