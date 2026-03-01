@@ -449,17 +449,23 @@ export default function Profile() {
           </div>
         )}
 
-        {/* LOST MODE (Emergency Protocol) */}
-        <div className="border-t border-border pt-4">
-          <button onClick={() => setShowLostModal(true)}
-            className={cn(
-              "flex w-full items-center justify-center gap-2 rounded-xl border-2 py-3 font-semibold transition-all",
-              myDog.is_lost
-                ? "border-destructive bg-destructive text-destructive-foreground"
-                : "border-destructive text-destructive hover:bg-destructive/10"
-            )}>
-            <AlertTriangle className="h-5 w-5" />
-            {myDog.is_lost ? 'KAYIP MODU KAPAT' : 'KAYIP MODU AKTİF ET'}
+        {/* Settings & Logout */}
+        <div className="border-t border-border pt-4 space-y-2">
+          <button onClick={() => setEditing(true)}
+            className="flex w-full items-center justify-between rounded-xl bg-secondary/50 p-4 text-left transition-all hover:bg-secondary">
+            <div className="flex items-center gap-3">
+              <Settings className="h-5 w-5 text-muted-foreground" />
+              <span className="text-sm font-medium text-foreground">Ayarlar</span>
+            </div>
+            <ChevronRight className="h-5 w-5 text-muted-foreground" />
+          </button>
+          <button onClick={handleLogout}
+            className="flex w-full items-center justify-between rounded-xl bg-destructive/10 p-4 text-left transition-all hover:bg-destructive/15">
+            <div className="flex items-center gap-3">
+              <LogOut className="h-5 w-5 text-destructive" />
+              <span className="text-sm font-medium text-destructive">Çıkış Yap</span>
+            </div>
+            <ChevronRight className="h-5 w-5 text-destructive/50" />
           </button>
         </div>
       </div>

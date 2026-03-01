@@ -109,8 +109,8 @@ export function DogCard({
           </div>
         )}
 
-        {compact && dog.neutered && (
-          <div className="mt-2"><span className="text-xs font-semibold text-primary">✓ Kısır</span></div>
+        {compact && dog.gender && (
+          <div className="mt-2"><span className="text-xs font-semibold" style={{ color: dog.gender === 'female' ? 'hsl(330, 60%, 50%)' : 'hsl(210, 60%, 50%)' }}>{dog.gender === 'male' ? '♂ Erkek' : '♀ Dişi'}</span></div>
         )}
 
         {showWaveButton && onWave && (
