@@ -48,10 +48,10 @@ export function DogCard({
           </div>
         )}
 
-        {dog.neutered && !compact && (
+        {dog.gender && !compact && (
           <div className="absolute right-2 top-2 text-xs px-2.5 py-1 rounded-full font-semibold text-white shadow-md"
-            style={{ background: 'var(--gradient-hero)' }}>
-            ✓ Kısır
+            style={{ background: dog.gender === 'female' ? 'hsl(330, 60%, 50%)' : 'hsl(210, 60%, 50%)' }}>
+            {dog.gender === 'male' ? '♂ Erkek' : dog.gender === 'female' ? '♀ Dişi' : ''}
           </div>
         )}
 
