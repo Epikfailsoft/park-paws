@@ -23,10 +23,10 @@ function getStatusRing(dog: Dog): StatusRingColor {
 }
 
 const STATUS_RING_STYLES: Record<StatusRingColor, string> = {
-  lost: 'ring-[3px] ring-destructive animate-pulse shadow-[0_0_20px_hsl(0_72%_55%/0.4)]',
-  park: 'ring-[3px] ring-[hsl(var(--park-active))] shadow-[0_0_20px_hsl(152_60%_45%/0.3)]',
-  playdate: 'ring-[3px] ring-primary shadow-[0_0_20px_hsl(152_55%_42%/0.3)]',
-  passive: 'ring-2 ring-border',
+  lost: 'ring-[3px] ring-destructive animate-pulse shadow-[0_0_20px_hsl(0_72%_55%/0.4)] rounded-2xl',
+  park: 'ring-[3px] ring-[hsl(var(--park-active))] shadow-[0_0_20px_hsl(152_60%_45%/0.3)] rounded-2xl',
+  playdate: 'ring-[3px] ring-primary shadow-[0_0_20px_hsl(152_55%_42%/0.3)] rounded-2xl',
+  passive: 'ring-2 ring-border rounded-2xl',
 };
 
 const STATUS_LABELS: Record<StatusRingColor, { text: string; color: string; bg: string }> = {
@@ -98,13 +98,13 @@ export function HeroIdentityCard({ dog, profile, onRefresh }: HeroIdentityCardPr
               src={dog.photo_url}
               alt={dog.name}
               className={cn(
-                "h-36 w-36 rounded-full object-cover transition-all",
+                "h-36 w-36 rounded-2xl object-cover transition-all",
                 STATUS_RING_STYLES[status]
               )}
             />
             {/* Decorative ring */}
             {status !== 'passive' && (
-              <div className="absolute -inset-2 rounded-full border-2 border-dashed opacity-30 animate-[spin_12s_linear_infinite]"
+              <div className="absolute -inset-2 rounded-[1.25rem] border-2 border-dashed opacity-30 animate-[spin_12s_linear_infinite]"
                 style={{ borderColor: status === 'lost' ? 'hsl(var(--destructive))' : 'hsl(var(--primary))' }} />
             )}
           </div>

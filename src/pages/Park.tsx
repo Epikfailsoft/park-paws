@@ -297,6 +297,35 @@ export default function Park() {
       </header>
 
 
+      {/* Live density indicator */}
+      {selectedPark && (
+        <div className="mx-4 mt-3 flex items-center gap-3 rounded-xl bg-card border p-3" style={{ boxShadow: 'var(--shadow-card)' }}>
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[hsl(var(--park-active))]/20">
+            <span className="text-lg">🐕</span>
+          </div>
+          <div className="flex-1">
+            <p className="text-sm font-semibold text-foreground">
+              Şu an {parkDogs.length} köpek parkta
+            </p>
+            <p className="text-xs text-muted-foreground">
+              {selectedPark.name} · Canlı veri
+            </p>
+          </div>
+          {parkDogs.length > 0 && (
+            <div className="flex -space-x-2">
+              {parkDogs.slice(0, 4).map(d => (
+                <img key={d.dog_id} src={d.photo_url} alt="" className="h-7 w-7 rounded-full object-cover ring-2 ring-card" />
+              ))}
+              {parkDogs.length > 4 && (
+                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-secondary ring-2 ring-card text-[10px] font-bold text-muted-foreground">
+                  +{parkDogs.length - 4}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Who is here now? */}
       <div className="px-4 py-4">
         <h2 className="mb-3 text-sm font-semibold text-muted-foreground uppercase tracking-wide">
