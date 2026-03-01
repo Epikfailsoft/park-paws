@@ -43,12 +43,12 @@ export default function Park() {
   }, [myDog, isCheckedIn]);
 
   const fetchParks = useCallback(async () => {
-    const { data } = await supabase
-      .from('parks')
-      .select('*')
-      .eq('status', 'ACTIVE')
-      .order('name');
-    if (data) setParks(data as unknown as ParkType[]);
+    const [activeRes, waitlistRes] = await Promise.all([
+      supabase.from('parks').select('*').eq('status', 'ACTIVE').order('name'),
+      supabase.from('parks').select('*').eq('status', 'REQUESTED').order('name'),
+    ]);
+    if (activeRes.data) setParks(activeRes.data as unknown as ParkType[]);
+    if (waitlistRes.data) setWaitlistParks(waitlistRes.data as unknown as ParkType[]);
   }, []);
 
   const fetchParkDogs = useCallback(async () => {
