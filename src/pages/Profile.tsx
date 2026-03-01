@@ -367,12 +367,6 @@ export default function Profile() {
             {/* 5️⃣ SAFETY & DOCUMENT VAULT */}
             <CareVault dogId={myDog.id} profileId={profile!.id} />
 
-            {/* Edit prompt */}
-            <button onClick={() => setEditing(true)}
-              className="flex w-full items-center justify-between rounded-xl bg-secondary/50 p-4 text-left transition-all hover:bg-secondary">
-              <span className="text-sm text-muted-foreground">Profili düzenle</span>
-              <ChevronRight className="h-5 w-5 text-muted-foreground" />
-            </button>
           </>
         )}
 
