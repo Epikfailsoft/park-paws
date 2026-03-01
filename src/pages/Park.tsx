@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { DogCard } from '@/components/cards/DogCard';
-import { MapPin, Loader2, Timer, AlertTriangle, ChevronDown } from 'lucide-react';
+import { MapPin, Loader2, Timer, AlertTriangle, ChevronDown, Clock, Users } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import type { Park as ParkType } from '@/types/dogspace';
@@ -15,6 +15,7 @@ export default function Park() {
   const { profile, dogs, selectedPark, hasPhoto, selectPark, refreshDogs } = useAuth();
   const [parkDogs, setParkDogs] = useState<ParkDog[]>([]);
   const [parks, setParks] = useState<ParkType[]>([]);
+  const [waitlistParks, setWaitlistParks] = useState<ParkType[]>([]);
   const [loading, setLoading] = useState(true);
   const [showParkSelect, setShowParkSelect] = useState(false);
   const [remainingMinutes, setRemainingMinutes] = useState(0);
@@ -42,12 +43,12 @@ export default function Park() {
   }, [myDog, isCheckedIn]);
 
   const fetchParks = useCallback(async () => {
-    const { data } = await supabase
-      .from('parks')
-      .select('*')
-      .eq('status', 'ACTIVE')
-      .order('name');
-    if (data) setParks(data as unknown as ParkType[]);
+    const [activeRes, waitlistRes] = await Promise.all([
+      supabase.from('parks').select('*').eq('status', 'ACTIVE').order('name'),
+      supabase.from('parks').select('*').eq('status', 'REQUESTED').order('name'),
+    ]);
+    if (activeRes.data) setParks(activeRes.data as unknown as ParkType[]);
+    if (waitlistRes.data) setWaitlistParks(waitlistRes.data as unknown as ParkType[]);
   }, []);
 
   const fetchParkDogs = useCallback(async () => {
@@ -446,6 +447,49 @@ export default function Park() {
           </div>
         )}
       </div>
+
+      {/* Waitlist Parks */}
+      {waitlistParks.length > 0 && (
+        <div className="px-4 pb-6">
+          <h2 className="mb-3 text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+            🏗️ Sıradaki Parklar
+          </h2>
+          <div className="space-y-3">
+            {waitlistParks.map(park => {
+              const progress = Math.round(((park.approval_count || 0) / (park.required_approvals || 10)) * 100);
+              return (
+                <div key={park.id} className="rounded-2xl border bg-card p-4" style={{ boxShadow: 'var(--shadow-card)' }}>
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <MapPin className="h-4 w-4 text-muted-foreground" />
+                      <span className="font-semibold text-foreground">{park.name}</span>
+                    </div>
+                    <span className="text-xs text-muted-foreground">
+                      <Clock className="inline h-3 w-3 mr-1" />
+                      Beklemede
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="flex-1 h-2 rounded-full bg-secondary overflow-hidden">
+                      <div
+                        className="h-full rounded-full bg-primary transition-all"
+                        style={{ width: `${progress}%` }}
+                      />
+                    </div>
+                    <div className="flex items-center gap-1 text-xs font-medium text-muted-foreground">
+                      <Users className="h-3 w-3" />
+                      {park.approval_count || 0}/{park.required_approvals || 10}
+                    </div>
+                  </div>
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    {(park.required_approvals || 10) - (park.approval_count || 0)} kişi daha katılırsa aktif olacak
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
