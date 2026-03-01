@@ -19,8 +19,7 @@ interface StatusPulseProps {
 }
 
 export function StatusPulse({ dog, selectedPark, onRefresh }: StatusPulseProps) {
-  const [loading, setLoading] = useState<'playdate' | 'checkin' | 'energy' | null>(null);
-  const [dailyEnergy, setDailyEnergy] = useState<1 | 2 | 3>((dog.daily_energy || dog.energy_level) as 1 | 2 | 3);
+  const [loading, setLoading] = useState<'playdate' | 'checkin' | 'lost' | null>(null);
 
   const playdateActive = isPlaydateActive(dog);
   const parkActive = isParkCheckinActive(dog);
