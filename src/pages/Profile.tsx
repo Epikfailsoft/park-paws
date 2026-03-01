@@ -153,22 +153,36 @@ export default function Profile() {
               <Dog className="h-5 w-5" />
             </div>
             <div>
-              <h1 className="font-display text-lg font-extrabold text-foreground">Köpeğim</h1>
+              <h1 className="font-display text-lg font-extrabold text-foreground">dogSpace</h1>
               <p className="text-xs text-muted-foreground font-medium">
                 {profile ? formatOwnerName(profile.display_name, profile.last_name) : ''}
               </p>
             </div>
           </div>
-          <div className="flex gap-2">
-            <button onClick={() => setEditing(!editing)} className="flex h-10 w-10 items-center justify-center rounded-xl bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-all">
-              <Settings className="h-5 w-5" />
-            </button>
-            <button onClick={handleLogout} className="flex h-10 w-10 items-center justify-center rounded-xl bg-destructive/10 text-destructive hover:bg-destructive/20 transition-all">
-              <LogOut className="h-5 w-5" />
-            </button>
-          </div>
+          <button onClick={() => setEditing(!editing)} className="flex h-10 w-10 items-center justify-center rounded-xl bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-all">
+            <Settings className="h-5 w-5" />
+          </button>
         </div>
       </header>
+
+      {/* Lost Mode Switch */}
+      <div className="mx-4 mt-3">
+        <div className={cn(
+          "flex items-center justify-between rounded-xl p-3 transition-all",
+          myDog.is_lost ? "bg-destructive/15 border border-destructive/30" : "bg-secondary"
+        )}>
+          <div className="flex items-center gap-2">
+            <Shield className={cn("h-4 w-4", myDog.is_lost ? "text-destructive" : "text-muted-foreground")} />
+            <span className={cn("text-sm font-semibold", myDog.is_lost ? "text-destructive" : "text-foreground")}>
+              Kayıp Modu
+            </span>
+          </div>
+          <Switch
+            checked={!!myDog.is_lost}
+            onCheckedChange={() => setShowLostModal(true)}
+          />
+        </div>
+      </div>
 
       {/* 1️⃣ HERO & IDENTITY CARD */}
       <HeroIdentityCard dog={myDog} profile={profile!} onRefresh={refreshDogs} />
