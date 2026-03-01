@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      badges: {
+        Row: {
+          code: string
+          created_at: string | null
+          description: string | null
+          icon: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          code: string
+          created_at?: string | null
+          description?: string | null
+          icon?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          code?: string
+          created_at?: string | null
+          description?: string | null
+          icon?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
       breeds: {
         Row: {
           code: string
@@ -92,6 +119,45 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dog_badges: {
+        Row: {
+          badge_id: string
+          dog_id: string
+          earned_at: string | null
+          id: string
+          metadata: Json | null
+        }
+        Insert: {
+          badge_id: string
+          dog_id: string
+          earned_at?: string | null
+          id?: string
+          metadata?: Json | null
+        }
+        Update: {
+          badge_id?: string
+          dog_id?: string
+          earned_at?: string | null
+          id?: string
+          metadata?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dog_badges_badge_id_fkey"
+            columns: ["badge_id"]
+            isOneToOne: false
+            referencedRelation: "badges"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dog_badges_dog_id_fkey"
+            columns: ["dog_id"]
+            isOneToOne: false
+            referencedRelation: "dogs"
             referencedColumns: ["id"]
           },
         ]
@@ -479,6 +545,57 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "notifications_park_id_fkey"
+            columns: ["park_id"]
+            isOneToOne: false
+            referencedRelation: "parks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      park_announcements: {
+        Row: {
+          announcement_type: string
+          author_id: string | null
+          body: string | null
+          created_at: string | null
+          expires_at: string | null
+          id: string
+          park_id: string
+          pinned: boolean | null
+          title: string
+        }
+        Insert: {
+          announcement_type?: string
+          author_id?: string | null
+          body?: string | null
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          park_id: string
+          pinned?: boolean | null
+          title: string
+        }
+        Update: {
+          announcement_type?: string
+          author_id?: string | null
+          body?: string | null
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          park_id?: string
+          pinned?: boolean | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "park_announcements_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "park_announcements_park_id_fkey"
             columns: ["park_id"]
             isOneToOne: false
             referencedRelation: "parks"
