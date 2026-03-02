@@ -147,7 +147,7 @@ export default function Profile() {
               <Dog className="h-5 w-5" />
             </div>
             <div>
-              <h1 className="font-display text-lg font-extrabold text-foreground">dogSpace</h1>
+              <h1 className="font-display text-lg font-extrabold text-foreground">Köpeğim</h1>
               <p className="text-xs text-muted-foreground font-medium">
                 {profile ? formatOwnerName(profile.display_name, profile.last_name) : ''}
               </p>

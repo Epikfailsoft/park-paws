@@ -25,7 +25,7 @@ export default function Messages() {
   const { profile, dogs } = useAuth();
   const [harmonies, setHarmonies] = useState<HarmonyWithDogs[]>([]);
   const [selectedHarmony, setSelectedHarmony] = useState<HarmonyWithDogs | null>(null);
-  const [activeTab, setActiveTab] = useState<SocialTab>('chat');
+  const [activeTab, setActiveTab] = useState<SocialTab>('waves');
   const [profileModalDog, setProfileModalDog] = useState<(Dog & { owner: Profile }) | null>(null);
 
   // Expose chat state for BottomNav visibility
