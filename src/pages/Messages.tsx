@@ -246,8 +246,8 @@ export default function Messages() {
   }
 
   const tabs: { id: SocialTab; label: string; icon: React.ReactNode }[] = [
-    { id: 'chat', label: 'Sohbet', icon: <MessageCircle className="h-4 w-4" /> },
-    { id: 'waves', label: 'Wave\'ler', icon: <Users className="h-4 w-4" /> },
+    { id: 'waves', label: 'Aktivite', icon: <Users className="h-4 w-4" /> },
+    { id: 'chat', label: 'Mesajlar', icon: <MessageCircle className="h-4 w-4" /> },
     { id: 'board', label: 'Pano', icon: <Megaphone className="h-4 w-4" /> },
     { id: 'badges', label: 'Rozetler', icon: <Award className="h-4 w-4" /> },
   ];
