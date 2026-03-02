@@ -7,12 +7,11 @@ import { HeroIdentityCard } from '@/components/profile/HeroIdentityCard';
 import { CareCenter } from '@/components/profile/CareCenter';
 import { ActivityBadges } from '@/components/profile/ActivityBadges';
 import { CareVault } from '@/components/profile/CareVault';
-import { Dog, LogOut, Settings, Loader2, ChevronRight, AlertTriangle, Phone, Search, Camera, Shield } from 'lucide-react';
-import { Switch } from '@/components/ui/switch';
+import { Dog, LogOut, Settings, Loader2, ChevronRight, Camera, Phone, User, Edit2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { SOCIAL_STYLE_OPTIONS, LIKES_SUGGESTIONS, DISLIKES_SUGGESTIONS, formatOwnerName } from '@/types/dogspace';
-import { validateTurkishPhone } from '@/lib/upload-validation';
+import { Search } from 'lucide-react';
 
 export default function Profile() {
   const { profile, dogs, selectedPark, signOut, refreshDogs, refreshProfile } = useAuth();
@@ -21,12 +20,12 @@ export default function Profile() {
   const myDog = dogs[0];
   const [editing, setEditing] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [showLostModal, setShowLostModal] = useState(false);
   const [parkActivityDays, setParkActivityDays] = useState(0);
   const ownerPhotoRef = useRef<HTMLInputElement>(null);
   const [ownerPhotoLoading, setOwnerPhotoLoading] = useState(false);
   const [ownerName, setOwnerName] = useState(profile?.display_name || '');
-  const [editingOwnerName, setEditingOwnerName] = useState(false);
+  const [ownerLastName, setOwnerLastName] = useState(profile?.last_name || '');
+  const [editingOwnerInfo, setEditingOwnerInfo] = useState(false);
 
   // Editable fields
   const [name, setName] = useState(myDog?.name || '');
@@ -51,10 +50,6 @@ export default function Profile() {
       if (data) setBreeds(data);
     });
   }, []);
-
-  // Lost mode fields
-  const [emergencyPhone, setEmergencyPhone] = useState('');
-  const [phoneError, setPhoneError] = useState('');
 
   const handleLogout = async () => {
     await signOut();
@@ -92,37 +87,36 @@ export default function Profile() {
     }
   };
 
-  const handleLostMode = async () => {
-    if (!myDog) return;
-    const newLostState = !myDog.is_lost;
-    if (newLostState) {
-      const phoneValidation = validateTurkishPhone(emergencyPhone);
-      if (!phoneValidation.valid) {
-        setPhoneError(phoneValidation.error || 'Geçersiz telefon numarası');
-        return;
-      }
-    }
-    setLoading(true);
+  const handleOwnerPhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !profile) return;
+    setOwnerPhotoLoading(true);
     try {
-      const { data, error } = await supabase.rpc('toggle_lost_mode', {
-        p_dog_id: myDog.id,
-        p_enable: newLostState,
-        p_emergency_phone: newLostState ? emergencyPhone : undefined,
-        p_last_seen_park_id: newLostState && selectedPark ? selectedPark.id : undefined,
-      });
-      if (error) throw error;
-      const result = data as { status: string; message: string };
-      if (result.status === 'ERROR') { toast.error(result.message); return; }
-      await refreshDogs();
-      setShowLostModal(false);
-      setEmergencyPhone('');
-      setPhoneError('');
-      toast.success(newLostState ? 'Kayıp modu aktif!' : 'Kayıp modu kapatıldı.');
-    } catch (error) {
-      console.error('Error toggling lost mode:', error);
-      toast.error('Bir hata oluştu');
-    } finally {
-      setLoading(false);
+      const fileExt = file.name.split('.').pop();
+      const fileName = `owner/${profile.id}/${Date.now()}.${fileExt}`;
+      const { error: uploadError } = await supabase.storage.from('dog-photos').upload(fileName, file);
+      if (uploadError) throw uploadError;
+      const { data: { publicUrl } } = supabase.storage.from('dog-photos').getPublicUrl(fileName);
+      await supabase.from('profiles').update({ photo_url: publicUrl } as any).eq('id', profile.id);
+      await refreshProfile();
+      toast.success('Fotoğraf güncellendi!');
+    } catch (err) { console.error(err); toast.error('Hata oluştu'); }
+    finally { setOwnerPhotoLoading(false); }
+  };
+
+  const handleSaveOwnerInfo = async () => {
+    if (!profile || !ownerName.trim()) return;
+    try {
+      await supabase.from('profiles').update({ 
+        display_name: ownerName.trim(),
+        last_name: ownerLastName.trim() || null,
+      } as any).eq('id', profile.id);
+      await refreshProfile();
+      setEditingOwnerInfo(false);
+      toast.success('Sahip bilgileri güncellendi!');
+    } catch (err) {
+      console.error(err);
+      toast.error('Hata oluştu');
     }
   };
 
@@ -164,25 +158,6 @@ export default function Profile() {
           </button>
         </div>
       </header>
-
-      {/* Lost Mode Switch */}
-      <div className="mx-4 mt-3">
-        <div className={cn(
-          "flex items-center justify-between rounded-xl p-3 transition-all",
-          myDog.is_lost ? "bg-destructive/15 border border-destructive/30" : "bg-secondary"
-        )}>
-          <div className="flex items-center gap-2">
-            <Shield className={cn("h-4 w-4", myDog.is_lost ? "text-destructive" : "text-muted-foreground")} />
-            <span className={cn("text-sm font-semibold", myDog.is_lost ? "text-destructive" : "text-foreground")}>
-              Kayıp Modu
-            </span>
-          </div>
-          <Switch
-            checked={!!myDog.is_lost}
-            onCheckedChange={() => setShowLostModal(true)}
-          />
-        </div>
-      </div>
 
       {/* 1️⃣ HERO & IDENTITY CARD */}
       <HeroIdentityCard dog={myDog} profile={profile!} onRefresh={refreshDogs} />
@@ -355,156 +330,108 @@ export default function Profile() {
               )}
             </div>
 
-            {/* 2️⃣ STATUS CONTROL PANEL */}
-            <StatusPulse dog={myDog} selectedPark={selectedPark} onRefresh={refreshDogs} />
-
-            {/* 3️⃣ CARE CENTER */}
+            {/* 2️⃣ CARE CENTER */}
             <CareCenter dogId={myDog.id} parkActivityDays={parkActivityDays} />
 
-            {/* 4️⃣ ACTIVITY & BADGES */}
+            {/* 3️⃣ ACTIVITY & BADGES */}
             <ActivityBadges dogId={myDog.id} profileId={profile!.id} onActivityDays={setParkActivityDays} />
 
-            {/* 5️⃣ SAFETY & DOCUMENT VAULT */}
+            {/* 4️⃣ SAFETY & DOCUMENT VAULT */}
             <CareVault dogId={myDog.id} profileId={profile!.id} />
 
-          </>
-        )}
-
-        {/* 6️⃣ MINIMAL OWNER PROFILE */}
-        {!editing && profile && (
-          <div className="section-card">
-            <h3 className="font-display text-sm font-bold text-foreground uppercase tracking-wide mb-3 flex items-center gap-2">
-              <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-secondary">👤</span>
-              Sahip
-            </h3>
-            <div className="flex items-center gap-3">
-              <div className="relative">
-                <input ref={ownerPhotoRef} type="file" accept="image/*" className="hidden"
-                  onChange={async (e) => {
-                    const file = e.target.files?.[0];
-                    if (!file || !profile) return;
-                    setOwnerPhotoLoading(true);
-                    try {
-                      const fileExt = file.name.split('.').pop();
-                      const fileName = `owner/${profile.id}/${Date.now()}.${fileExt}`;
-                      const { error: uploadError } = await supabase.storage.from('dog-photos').upload(fileName, file);
-                      if (uploadError) throw uploadError;
-                      const { data: { publicUrl } } = supabase.storage.from('dog-photos').getPublicUrl(fileName);
-                      await supabase.from('profiles').update({ photo_url: publicUrl } as any).eq('id', profile.id);
-                      await refreshProfile();
-                      toast.success('Fotoğraf güncellendi!');
-                    } catch (err) { console.error(err); toast.error('Hata oluştu'); }
-                    finally { setOwnerPhotoLoading(false); }
-                  }} />
-                {profile.photo_url ? (
-                  <img src={profile.photo_url} alt="" className="h-12 w-12 rounded-xl object-cover ring-2 ring-primary/20 shadow-md" />
-                ) : (
-                  <div className="flex h-12 w-12 items-center justify-center rounded-xl text-lg font-bold text-white shadow-md"
-                    style={{ background: 'var(--gradient-hero)' }}>
-                    {profile.display_name?.[0]}
-                  </div>
-                )}
-                <button onClick={() => ownerPhotoRef.current?.click()} disabled={ownerPhotoLoading}
-                  className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-primary text-white shadow-md">
-                  {ownerPhotoLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Camera className="h-3 w-3" />}
-                </button>
-              </div>
-              <div className="flex-1">
-                {editingOwnerName ? (
-                  <div className="flex items-center gap-2">
-                    <input type="text" value={ownerName} onChange={(e) => setOwnerName(e.target.value)}
-                      className="dogspace-input flex-1 text-sm py-1" autoFocus
-                      onKeyDown={async (e) => {
-                        if (e.key === 'Enter' && ownerName.trim()) {
-                          await supabase.from('profiles').update({ display_name: ownerName.trim() } as any).eq('id', profile.id);
-                          await refreshProfile();
-                          setEditingOwnerName(false);
-                          toast.success('İsim güncellendi!');
-                        }
-                      }} />
-                    <button onClick={async () => {
-                      if (ownerName.trim()) {
-                        await supabase.from('profiles').update({ display_name: ownerName.trim() } as any).eq('id', profile.id);
-                        await refreshProfile();
-                        setEditingOwnerName(false);
-                        toast.success('İsim güncellendi!');
-                      }
-                    }} className="rounded-lg bg-primary px-3 py-1 text-xs font-medium text-primary-foreground">✓</button>
-                  </div>
-                ) : (
-                  <button onClick={() => { setOwnerName(profile.display_name); setEditingOwnerName(true); }}
-                    className="text-left">
-                    <p className="font-semibold text-foreground">{formatOwnerName(profile.display_name, profile.last_name)}</p>
-                    <p className="text-xs text-muted-foreground">Düzenlemek için dokun</p>
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Settings & Logout */}
-        <div className="border-t border-border pt-4 space-y-2">
-          <button onClick={() => setEditing(true)}
-            className="flex w-full items-center justify-between rounded-xl bg-secondary/50 p-4 text-left transition-all hover:bg-secondary">
-            <div className="flex items-center gap-3">
-              <Settings className="h-5 w-5 text-muted-foreground" />
-              <span className="text-sm font-medium text-foreground">Ayarlar</span>
-            </div>
-            <ChevronRight className="h-5 w-5 text-muted-foreground" />
-          </button>
-          <button onClick={handleLogout}
-            className="flex w-full items-center justify-between rounded-xl bg-destructive/10 p-4 text-left transition-all hover:bg-destructive/15">
-            <div className="flex items-center gap-3">
-              <LogOut className="h-5 w-5 text-destructive" />
-              <span className="text-sm font-medium text-destructive">Çıkış Yap</span>
-            </div>
-            <ChevronRight className="h-5 w-5 text-destructive/50" />
-          </button>
-        </div>
-      </div>
-
-      {/* Lost Mode Modal */}
-      {showLostModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/50 p-4">
-          <div className="max-w-sm w-full rounded-2xl bg-card p-6">
-            <h2 className="text-xl font-bold text-foreground mb-4">
-              {myDog.is_lost ? '🆘 Kayıp Modu Kapat' : '⚠️ Kayıp Modu'}
-            </h2>
-            {myDog.is_lost ? (
-              <p className="text-muted-foreground mb-6">Kayıp modu kapatılsın mı? Telefon numaran artık görünmeyecek.</p>
-            ) : (
-              <div className="space-y-4 mb-6">
-                <p className="text-muted-foreground">Kayıp modu aktif edilsin mi? Telefon numarası yalnızca parkta aktif olanlara açılacaktır.</p>
-                <div>
-                  <label className="mb-1.5 block text-sm font-medium text-foreground">
-                    <Phone className="inline h-4 w-4 mr-1" />
-                    Acil Telefon Numarası
-                  </label>
-                  <input type="tel" placeholder="+905XXXXXXXXX veya 05XXXXXXXXX" value={emergencyPhone}
-                    onChange={(e) => { setEmergencyPhone(e.target.value); setPhoneError(''); }} className="dogspace-input w-full" />
-                  {phoneError && <p className="mt-1 text-sm text-destructive">{phoneError}</p>}
+            {/* 5️⃣ OWNER PROFILE - Editable */}
+            {profile && (
+              <div className="section-card">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-display text-sm font-bold text-foreground uppercase tracking-wide flex items-center gap-2">
+                    <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-secondary">
+                      <User className="h-3.5 w-3.5 text-muted-foreground" />
+                    </span>
+                    Sahip Bilgileri
+                  </h3>
+                  {!editingOwnerInfo && (
+                    <button onClick={() => { setOwnerName(profile.display_name); setOwnerLastName(profile.last_name || ''); setEditingOwnerInfo(true); }}
+                      className="flex items-center gap-1 text-xs text-primary font-medium">
+                      <Edit2 className="h-3 w-3" /> Düzenle
+                    </button>
+                  )}
                 </div>
-                {selectedPark && (
-                  <div className="rounded-lg bg-secondary/50 p-3">
-                    <p className="text-xs text-muted-foreground">Son görüldüğü park: <span className="font-medium text-foreground">{selectedPark.name}</span></p>
+                
+                <div className="flex items-start gap-3">
+                  {/* Owner Photo */}
+                  <div className="relative flex-shrink-0">
+                    <input ref={ownerPhotoRef} type="file" accept="image/*" className="hidden" onChange={handleOwnerPhotoUpload} />
+                    {profile.photo_url ? (
+                      <img src={profile.photo_url} alt="" className="h-14 w-14 rounded-xl object-cover ring-2 ring-primary/20 shadow-md" />
+                    ) : (
+                      <div className="flex h-14 w-14 items-center justify-center rounded-xl text-lg font-bold text-white shadow-md"
+                        style={{ background: 'var(--gradient-hero)' }}>
+                        {profile.display_name?.[0]}
+                      </div>
+                    )}
+                    <button onClick={() => ownerPhotoRef.current?.click()} disabled={ownerPhotoLoading}
+                      className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-primary text-white shadow-md">
+                      {ownerPhotoLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Camera className="h-3 w-3" />}
+                    </button>
                   </div>
-                )}
+
+                  {/* Owner Info */}
+                  <div className="flex-1">
+                    {editingOwnerInfo ? (
+                      <div className="space-y-2">
+                        <div>
+                          <label className="text-xs text-muted-foreground mb-0.5 block">Ad</label>
+                          <input type="text" value={ownerName} onChange={(e) => setOwnerName(e.target.value)}
+                            className="dogspace-input w-full text-sm py-1.5" placeholder="Adınız" />
+                        </div>
+                        <div>
+                          <label className="text-xs text-muted-foreground mb-0.5 block">Soyad</label>
+                          <input type="text" value={ownerLastName} onChange={(e) => setOwnerLastName(e.target.value)}
+                            className="dogspace-input w-full text-sm py-1.5" placeholder="Soyadınız" />
+                        </div>
+                        <div className="flex gap-2 pt-1">
+                          <button onClick={() => setEditingOwnerInfo(false)}
+                            className="rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground">İptal</button>
+                          <button onClick={handleSaveOwnerInfo}
+                            className="rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground">Kaydet</button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div>
+                        <p className="font-semibold text-foreground">{formatOwnerName(profile.display_name, profile.last_name)}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">Düzenlemek için sağ üstteki ikona dokun</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
             )}
-            <div className="flex gap-3">
-              <button onClick={() => { setShowLostModal(false); setPhoneError(''); setEmergencyPhone(''); }}
-                className="flex-1 rounded-xl border border-border py-3 font-medium text-foreground">İptal</button>
-              <button onClick={handleLostMode} disabled={loading || (!myDog.is_lost && !emergencyPhone.trim())}
-                className={cn("flex-1 rounded-xl py-3 font-semibold disabled:opacity-50",
-                  myDog.is_lost ? "bg-primary text-primary-foreground" : "bg-destructive text-destructive-foreground"
-                )}>
-                {loading ? <Loader2 className="h-5 w-5 animate-spin mx-auto" /> : myDog.is_lost ? 'Kapat' : 'Aktif Et'}
+
+            {/* 6️⃣ STATUS CONTROL - At Bottom */}
+            <StatusPulse dog={myDog} selectedPark={selectedPark} onRefresh={refreshDogs} />
+
+            {/* 7️⃣ Settings & Logout */}
+            <div className="border-t border-border pt-4 space-y-2">
+              <button onClick={() => setEditing(true)}
+                className="flex w-full items-center justify-between rounded-xl bg-secondary/50 p-4 text-left transition-all hover:bg-secondary">
+                <div className="flex items-center gap-3">
+                  <Settings className="h-5 w-5 text-muted-foreground" />
+                  <span className="text-sm font-medium text-foreground">Ayarlar</span>
+                </div>
+                <ChevronRight className="h-5 w-5 text-muted-foreground" />
+              </button>
+              <button onClick={handleLogout}
+                className="flex w-full items-center justify-between rounded-xl bg-destructive/10 p-4 text-left transition-all hover:bg-destructive/15">
+                <div className="flex items-center gap-3">
+                  <LogOut className="h-5 w-5 text-destructive" />
+                  <span className="text-sm font-medium text-destructive">Çıkış Yap</span>
+                </div>
+                <ChevronRight className="h-5 w-5 text-destructive/50" />
               </button>
             </div>
-          </div>
-        </div>
-      )}
+          </>
+        )}
+      </div>
     </div>
   );
 }
