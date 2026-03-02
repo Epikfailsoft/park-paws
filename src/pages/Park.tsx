@@ -423,7 +423,7 @@ export default function Park() {
                           🟢 Parkta Aktifsin
                         </span>
                         <button
-                          onClick={() => navigate('/profile')}
+                          onClick={() => navigate('/mydog')}
                           className="rounded-lg bg-secondary px-3 py-1.5 text-sm font-medium text-secondary-foreground"
                         >
                           Düzenle
