@@ -219,6 +219,15 @@ export default function Park() {
             </div>
             <div>
               <h1 className="font-display text-lg font-bold text-foreground">Park</h1>
+              {isCheckedIn && selectedPark && (
+                <div className="flex items-center gap-1.5">
+                  <span className="relative flex h-2 w-2">
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[hsl(var(--park-active))] opacity-75"></span>
+                    <span className="relative inline-flex h-2 w-2 rounded-full bg-[hsl(var(--park-active))]"></span>
+                  </span>
+                  <span className="text-[10px] font-semibold text-[hsl(var(--park-active))]">Prime Time</span>
+                </div>
+              )}
               <button
                 onClick={() => setShowParkSelect(!showParkSelect)}
                 className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
@@ -414,7 +423,7 @@ export default function Park() {
                           🟢 Parkta Aktifsin
                         </span>
                         <button
-                          onClick={() => navigate('/profile')}
+                          onClick={() => navigate('/mydog')}
                           className="rounded-lg bg-secondary px-3 py-1.5 text-sm font-medium text-secondary-foreground"
                         >
                           Düzenle

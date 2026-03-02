@@ -25,7 +25,7 @@ export default function Messages() {
   const { profile, dogs } = useAuth();
   const [harmonies, setHarmonies] = useState<HarmonyWithDogs[]>([]);
   const [selectedHarmony, setSelectedHarmony] = useState<HarmonyWithDogs | null>(null);
-  const [activeTab, setActiveTab] = useState<SocialTab>('chat');
+  const [activeTab, setActiveTab] = useState<SocialTab>('waves');
   const [profileModalDog, setProfileModalDog] = useState<(Dog & { owner: Profile }) | null>(null);
 
   // Expose chat state for BottomNav visibility
@@ -246,8 +246,8 @@ export default function Messages() {
   }
 
   const tabs: { id: SocialTab; label: string; icon: React.ReactNode }[] = [
-    { id: 'chat', label: 'Sohbet', icon: <MessageCircle className="h-4 w-4" /> },
-    { id: 'waves', label: 'Wave\'ler', icon: <Users className="h-4 w-4" /> },
+    { id: 'waves', label: 'Aktivite', icon: <Users className="h-4 w-4" /> },
+    { id: 'chat', label: 'Mesajlar', icon: <MessageCircle className="h-4 w-4" /> },
     { id: 'board', label: 'Pano', icon: <Megaphone className="h-4 w-4" /> },
     { id: 'badges', label: 'Rozetler', icon: <Award className="h-4 w-4" /> },
   ];
@@ -260,8 +260,8 @@ export default function Messages() {
             <MessageCircle className="h-5 w-5 text-white" />
           </div>
           <div>
-            <h1 className="font-display text-lg font-bold text-foreground">Sosyal</h1>
-            <p className="text-xs text-muted-foreground">Harmony, wave'ler ve park duyuruları</p>
+            <h1 className="font-display text-lg font-bold text-foreground">Inbox</h1>
+            <p className="text-xs text-muted-foreground">Mesajlar ve bildirimler</p>
           </div>
         </div>
       </header>

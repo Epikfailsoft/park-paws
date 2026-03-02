@@ -1,13 +1,13 @@
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Compass, MessageCircle, MapPin, Dog } from 'lucide-react';
+import { Compass, MapPin, Inbox, Dog } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
 
 const navItems = [
-  { path: '/discover', icon: Compass, label: 'Keşfet', cssVar: '--page-discover' },
   { path: '/park', icon: MapPin, label: 'Park', cssVar: '--page-park' },
-  { path: '/messages', icon: MessageCircle, label: 'Sosyal', cssVar: '--page-social' },
-  { path: '/profile', icon: Dog, label: 'Köpeğim', cssVar: '--page-profile' },
+  { path: '/discover', icon: Compass, label: 'Keşfet', cssVar: '--page-discover' },
+  { path: '/inbox', icon: Inbox, label: 'Inbox', cssVar: '--page-social' },
+  { path: '/mydog', icon: Dog, label: 'Köpeğim', cssVar: '--page-profile' },
 ];
 
 export function BottomNav() {

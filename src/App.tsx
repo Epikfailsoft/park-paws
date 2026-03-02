@@ -58,18 +58,21 @@ function AppRoutes() {
           element={
             user 
               ? hasDog 
-                ? <Navigate to="/discover" replace /> 
+                ? <Navigate to="/park" replace /> 
                 : <Navigate to="/onboarding" replace />
               : <Navigate to="/auth" replace />
           } 
         />
         <Route path="/auth" element={user ? <Navigate to="/" replace /> : <Auth />} />
         <Route path="/onboarding" element={user ? <Onboarding /> : <Navigate to="/auth" replace />} />
-        {/* V1.22: 4 main tabs */}
+        {/* V1.24: 4 main tabs - PARK first */}
         <Route path="/park" element={<ProtectedRoute><Park /></ProtectedRoute>} />
         <Route path="/discover" element={<ProtectedRoute><Discover /></ProtectedRoute>} />
-        <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
-        <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+        <Route path="/inbox" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
+        <Route path="/mydog" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+        {/* Legacy redirects */}
+        <Route path="/messages" element={<Navigate to="/inbox" replace />} />
+        <Route path="/profile" element={<Navigate to="/mydog" replace />} />
         {/* Admin */}
         <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
         <Route path="*" element={<NotFound />} />
