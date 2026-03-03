@@ -12,7 +12,7 @@ import type { Park as ParkType } from '@/types/dogspace';
 import type { ParkDog } from '@/types/dogspace';
 import { isParkCheckinActive, getParkCheckinRemainingMinutes, formatTimeRemaining, RATE_LIMITS } from '@/types/dogspace';
 import parkDogSilhouette from '@/assets/park-dog-silhouette.png';
-import dogspaceLogo from '@/assets/dogspace-logo.png';
+import dogiLogo from '@/assets/dogi-logo.png';
 
 export default function Park() {
   const navigate = useNavigate();
@@ -226,7 +226,7 @@ export default function Park() {
       <header className="sticky top-0 z-40 glass border-b px-4 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <img src={dogspaceLogo} alt="DogSpace" className="h-10 w-10 rounded-xl" />
+            <img src={dogiLogo} alt="DOGI" className="h-10 w-10 rounded-xl" />
             <div>
               <h1 className="font-display text-lg font-bold text-foreground">Park</h1>
               {isCheckedIn && selectedPark && (

@@ -5,6 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { DogCard } from '@/components/cards/DogCard';
 import { WaveLimitModal } from '@/components/discover/WaveLimitModal';
 import { Compass, Loader2, ToggleRight, ToggleLeft, AlertTriangle, Users, Zap, Filter, X } from 'lucide-react';
+import dogiLogo from '@/assets/dogi-logo.png';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { RATE_LIMITS, SOCIAL_STYLE_OPTIONS, getTimeContext, isPlaydateActive, getPlaydateRemainingHours } from '@/types/dogspace';
@@ -190,9 +191,7 @@ export default function Discover() {
       <div className="min-h-screen bg-background safe-top safe-bottom">
         <header className="sticky top-0 z-40 glass border-b px-4 py-4">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl" style={{ background: 'hsl(var(--page-discover))' }}>
-              <Compass className="h-5 w-5 text-white" />
-            </div>
+            <img src={dogiLogo} alt="DOGI" className="h-10 w-10 rounded-xl" />
             <div>
               <h1 className="font-display text-lg font-bold text-foreground">Keşfet</h1>
               <p className="text-xs text-muted-foreground">{neighborhoodName ? `${neighborhoodName} · ` : ''}{getTimeContext()}</p>
@@ -231,9 +230,7 @@ export default function Discover() {
         {/* Row 1: Title + Playdate toggle */}
         <div className="flex items-center justify-between px-4 pt-3 pb-2">
           <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl" style={{ background: 'hsl(var(--page-discover))' }}>
-              <Compass className="h-4.5 w-4.5 text-white" />
-            </div>
+            <img src={dogiLogo} alt="DOGI" className="h-9 w-9 rounded-xl" />
             <div>
               <h1 className="font-display text-lg font-bold text-foreground leading-tight">Keşfet</h1>
               <p className="text-[11px] text-muted-foreground">{neighborhoodName ? `${neighborhoodName} · ` : ''}{getTimeContext()}</p>
