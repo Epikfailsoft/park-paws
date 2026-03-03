@@ -311,7 +311,7 @@ export default function Park() {
 
       {/* Who is here now? */}
       <div className="px-4 py-4">
-        <h2 className="mb-3 text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide" style={{ color: 'hsl(30 50% 35%)' }}>
           🏞️ Şu an parkta kim var?
         </h2>
 
@@ -337,7 +337,7 @@ export default function Park() {
               const isOwnDog = dog.owner_id === profile?.id;
               return (
                 <div key={dog.dog_id}
-                  className={cn("rounded-2xl border-2 bg-card p-4", isOwnDog && "border-primary", dog.is_lost && "border-destructive bg-destructive/5")}
+                  className={cn("rounded-2xl border-2 border-sky-200 bg-card p-4", isOwnDog && "border-primary", dog.is_lost && "border-destructive bg-destructive/5")}
                   style={{ boxShadow: 'var(--shadow-card)' }}>
                   {dog.is_lost && (
                     <div className="mb-3 flex items-center gap-2 rounded-lg bg-destructive/20 p-2">
