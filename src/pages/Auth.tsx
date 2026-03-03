@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { lovable } from '@/integrations/lovable';
 import { Mail, Lock, User, ArrowRight, Loader2 } from 'lucide-react';
-import dogspaceLogo from '@/assets/dogspace-logo.png';
+import dogiLogo from '@/assets/dogi-logo.png';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { z } from 'zod';
