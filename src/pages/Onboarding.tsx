@@ -124,13 +124,15 @@ export default function Onboarding() {
         owner_id: profile.id, name, approximate_age: age, energy_level: energyLevel, neutered,
         breed_id: selectedBreed.id, breed_custom_text: selectedBreed.code === 'OTHER' ? customBreedText : null,
         photo_url: publicUrl, owner_name_stub: profile.display_name, owner_photo_stub: profile.photo_url || null,
-      }).select().single();
+        is_shelter: isShelter,
+      } as any).select().single();
       if (dogError) throw dogError;
 
       if (dogData) {
         await supabase.from('dog_lost_profile').insert({ dog_id: dogData.id, emergency_phone: emergencyPhone });
-        // Also save to dog_private for profile page access
         await supabase.from('dog_private').insert({ dog_id: dogData.id, emergency_phone: emergencyPhone });
+        // Auto-enable playdate
+        await supabase.rpc('toggle_playdate', { p_dog_id: dogData.id, p_activate: true });
       }
 
       await refreshDogs();

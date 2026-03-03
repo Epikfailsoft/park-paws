@@ -75,8 +75,7 @@ export default function Auth() {
             toast.error('Kayıt oluşturulamadı. Tekrar deneyin.');
           }
         } else {
-          toast.success('Hoş geldin! Şimdi köpeğini ekle.');
-          navigate('/onboarding');
+          toast.success('E-posta doğrulama linki gönderildi. Lütfen e-postanızı kontrol edin.');
         }
       }
     } finally {
