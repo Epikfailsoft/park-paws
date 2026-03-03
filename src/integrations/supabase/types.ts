@@ -295,6 +295,7 @@ export type Database = {
           gender: string | null
           id: string
           is_lost: boolean | null
+          is_shelter: boolean | null
           likes: string[] | null
           location: unknown
           location_updated_at: string | null
@@ -329,6 +330,7 @@ export type Database = {
           gender?: string | null
           id?: string
           is_lost?: boolean | null
+          is_shelter?: boolean | null
           likes?: string[] | null
           location?: unknown
           location_updated_at?: string | null
@@ -363,6 +365,7 @@ export type Database = {
           gender?: string | null
           id?: string
           is_lost?: boolean | null
+          is_shelter?: boolean | null
           likes?: string[] | null
           location?: unknown
           location_updated_at?: string | null
