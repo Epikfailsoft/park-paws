@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { lovable } from '@/integrations/lovable';
-import { Dog, Mail, Lock, User, ArrowRight, Loader2 } from 'lucide-react';
+import { Mail, Lock, User, ArrowRight, Loader2 } from 'lucide-react';
+import dogspaceLogo from '@/assets/dogspace-logo.png';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { z } from 'zod';
@@ -104,14 +105,12 @@ export default function Auth() {
     <div className="flex min-h-screen flex-col bg-background safe-top">
       {/* Header */}
       <div className="flex flex-col items-center pt-12 pb-8">
-        <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary">
-          <Dog className="h-8 w-8 text-primary-foreground" />
-        </div>
+        <img src={dogspaceLogo} alt="Dogspace" className="h-20 w-20 rounded-2xl object-contain" />
         <h1 className="font-display text-2xl font-bold text-foreground">
           DOGSPACE
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Köpekler tanışır, sahipler buluşur
+          Mahallenin Dijital Parkı
         </p>
       </div>
 
