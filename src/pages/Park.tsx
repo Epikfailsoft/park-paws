@@ -226,10 +226,7 @@ export default function Park() {
       <header className="sticky top-0 z-40 glass border-b px-4 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl"
-              style={{ background: isCheckedIn ? 'hsl(var(--park-active))' : 'hsl(var(--page-park))' }}>
-              <MapPin className="h-5 w-5 text-white" />
-            </div>
+            <img src={dogspaceLogo} alt="DogSpace" className="h-10 w-10 rounded-xl" />
             <div>
               <h1 className="font-display text-lg font-bold text-foreground">Park</h1>
               {isCheckedIn && selectedPark && (
