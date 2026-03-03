@@ -230,7 +230,7 @@ export default function Discover() {
         {/* Row 1: Title + Playdate toggle */}
         <div className="flex items-center justify-between px-4 pt-3 pb-2">
           <div className="flex items-center gap-3">
-            <img src={dogiLogo} alt="DOGI" className="h-9 w-9 rounded-xl" />
+            <img src={dogiLogo} alt="DOGI" className="h-[45px] w-[45px] rounded-xl" />
             <div>
               <h1 className="font-display text-lg font-bold text-foreground leading-tight">Keşfet</h1>
               <p className="text-[11px] text-muted-foreground">{neighborhoodName ? `${neighborhoodName} · ` : ''}{getTimeContext()}</p>
