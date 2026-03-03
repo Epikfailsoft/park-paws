@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { MapPin, Compass, Loader2, Zap, AlertTriangle, Phone } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -24,11 +24,41 @@ export function StatusPulse({ dog, selectedPark, onRefresh }: StatusPulseProps) 
   const [showLostConfirm, setShowLostConfirm] = useState(false);
   const [emergencyPhone, setEmergencyPhone] = useState('');
   const [phoneError, setPhoneError] = useState('');
+  const [fetchingPhone, setFetchingPhone] = useState(false);
 
   const playdateActive = isPlaydateActive(dog);
   const parkActive = isParkCheckinActive(dog);
   const playdateHoursLeft = getPlaydateRemainingHours(dog);
   const parkMinutesLeft = getParkCheckinRemainingMinutes(dog);
+
+  // Fetch existing emergency phone when lost mode dialog opens
+  const fetchExistingPhone = useCallback(async () => {
+    setFetchingPhone(true);
+    try {
+      const { data } = await supabase
+        .from('dog_private')
+        .select('emergency_phone')
+        .eq('dog_id', dog.id)
+        .single();
+      if (data?.emergency_phone) {
+        setEmergencyPhone(data.emergency_phone);
+      }
+    } catch (err) {
+      // Try dog_lost_profile as fallback
+      try {
+        const { data } = await supabase
+          .from('dog_lost_profile')
+          .select('emergency_phone')
+          .eq('dog_id', dog.id)
+          .single();
+        if (data?.emergency_phone) {
+          setEmergencyPhone(data.emergency_phone);
+        }
+      } catch { /* no existing phone */ }
+    } finally {
+      setFetchingPhone(false);
+    }
+  }, [dog.id]);
 
   const togglePlaydate = async () => {
     setLoading('playdate');
@@ -63,11 +93,10 @@ export function StatusPulse({ dog, selectedPark, onRefresh }: StatusPulseProps) 
 
   const handleLostToggle = () => {
     if (dog.is_lost) {
-      // Directly turn off
       confirmLostMode(false);
     } else {
-      // Show confirmation dialog
       setShowLostConfirm(true);
+      fetchExistingPhone();
     }
   };
 
@@ -82,8 +111,7 @@ export function StatusPulse({ dog, selectedPark, onRefresh }: StatusPulseProps) 
     setLoading('lost');
     try {
       const { data, error } = await supabase.rpc('toggle_lost_mode', { 
-        p_dog_id: dog.id, 
-        p_enable: enable,
+        p_dog_id: dog.id, p_enable: enable,
         p_emergency_phone: enable ? emergencyPhone : '05001234567',
       });
       if (error) throw error;
@@ -110,20 +138,12 @@ export function StatusPulse({ dog, selectedPark, onRefresh }: StatusPulseProps) 
           Durum Kontrol
         </h3>
 
-        {/* Uniform Status Buttons */}
         <div className="space-y-2">
           {/* Playdate Toggle */}
-          <button
-            onClick={togglePlaydate}
-            disabled={loading === 'playdate'}
-            className={cn(
-              "flex w-full items-center justify-between rounded-xl p-4 transition-all",
-              playdateActive 
-                ? "text-white shadow-lg" 
-                : "bg-muted/50 text-foreground hover:bg-muted"
-            )}
-            style={playdateActive ? { background: 'hsl(var(--page-discover))' } : {}}
-          >
+          <button onClick={togglePlaydate} disabled={loading === 'playdate'}
+            className={cn("flex w-full items-center justify-between rounded-xl p-4 transition-all",
+              playdateActive ? "text-white shadow-lg" : "bg-muted/50 text-foreground hover:bg-muted"
+            )} style={playdateActive ? { background: 'hsl(var(--page-discover))' } : {}}>
             <div className="flex items-center gap-3">
               <Compass className="h-5 w-5" />
               <div className="text-left">
@@ -134,32 +154,20 @@ export function StatusPulse({ dog, selectedPark, onRefresh }: StatusPulseProps) 
               </div>
             </div>
             <div className="flex items-center gap-2">
-              {loading === 'playdate' ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <span className={cn(
-                  "rounded-full px-3 py-1 text-xs font-bold",
+              {loading === 'playdate' ? <Loader2 className="h-4 w-4 animate-spin" /> : (
+                <span className={cn("rounded-full px-3 py-1 text-xs font-bold",
                   playdateActive ? "bg-white/20 text-white" : "bg-muted text-muted-foreground"
-                )}>
-                  {playdateActive ? 'ON' : 'OFF'}
-                </span>
+                )}>{playdateActive ? 'ON' : 'OFF'}</span>
               )}
             </div>
           </button>
 
           {/* Park Check-in Toggle */}
-          <button
-            onClick={toggleParkCheckin}
-            disabled={loading === 'checkin' || !selectedPark}
-            className={cn(
-              "flex w-full items-center justify-between rounded-xl p-4 transition-all",
-              parkActive 
-                ? "text-white shadow-lg" 
-                : "bg-muted/50 text-foreground hover:bg-muted",
+          <button onClick={toggleParkCheckin} disabled={loading === 'checkin' || !selectedPark}
+            className={cn("flex w-full items-center justify-between rounded-xl p-4 transition-all",
+              parkActive ? "text-white shadow-lg" : "bg-muted/50 text-foreground hover:bg-muted",
               !selectedPark && "opacity-40"
-            )}
-            style={parkActive ? { background: 'hsl(var(--page-park))' } : {}}
-          >
+            )} style={parkActive ? { background: 'hsl(var(--page-park))' } : {}}>
             <div className="flex items-center gap-3">
               <MapPin className="h-5 w-5" />
               <div className="text-left">
@@ -170,33 +178,22 @@ export function StatusPulse({ dog, selectedPark, onRefresh }: StatusPulseProps) 
               </div>
             </div>
             <div className="flex items-center gap-2">
-              {loading === 'checkin' ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : parkActive ? (
+              {loading === 'checkin' ? <Loader2 className="h-4 w-4 animate-spin" /> : parkActive ? (
                 <span className="flex items-center gap-1.5 rounded-full bg-white/20 px-3 py-1 text-xs font-bold text-white">
                   <span className="relative flex h-2 w-2">
                     <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white opacity-75"></span>
                     <span className="relative inline-flex h-2 w-2 rounded-full bg-white"></span>
-                  </span>
-                  IN
+                  </span>IN
                 </span>
-              ) : (
-                <span className="rounded-full bg-muted px-3 py-1 text-xs font-bold text-muted-foreground">OUT</span>
-              )}
+              ) : <span className="rounded-full bg-muted px-3 py-1 text-xs font-bold text-muted-foreground">OUT</span>}
             </div>
           </button>
 
           {/* Lost Mode Toggle */}
-          <button
-            onClick={handleLostToggle}
-            disabled={loading === 'lost'}
-            className={cn(
-              "flex w-full items-center justify-between rounded-xl p-4 transition-all",
-              dog.is_lost 
-                ? "bg-destructive text-white shadow-lg animate-pulse" 
-                : "bg-muted/50 text-foreground hover:bg-destructive/10"
-            )}
-          >
+          <button onClick={handleLostToggle} disabled={loading === 'lost'}
+            className={cn("flex w-full items-center justify-between rounded-xl p-4 transition-all",
+              dog.is_lost ? "bg-destructive text-white shadow-lg animate-pulse" : "bg-muted/50 text-foreground hover:bg-destructive/10"
+            )}>
             <div className="flex items-center gap-3">
               <AlertTriangle className="h-5 w-5" />
               <div className="text-left">
@@ -207,15 +204,10 @@ export function StatusPulse({ dog, selectedPark, onRefresh }: StatusPulseProps) 
               </div>
             </div>
             <div className="flex items-center gap-2">
-              {loading === 'lost' ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <span className={cn(
-                  "rounded-full px-3 py-1 text-xs font-bold",
+              {loading === 'lost' ? <Loader2 className="h-4 w-4 animate-spin" /> : (
+                <span className={cn("rounded-full px-3 py-1 text-xs font-bold",
                   dog.is_lost ? "bg-white/20 text-white" : "bg-muted text-muted-foreground"
-                )}>
-                  {dog.is_lost ? 'ON' : 'OFF'}
-                </span>
+                )}>{dog.is_lost ? 'ON' : 'OFF'}</span>
               )}
             </div>
           </button>
@@ -227,22 +219,19 @@ export function StatusPulse({ dog, selectedPark, onRefresh }: StatusPulseProps) 
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/50 p-4">
           <div className="max-w-sm w-full rounded-2xl bg-card p-6">
             <h2 className="text-xl font-bold text-foreground mb-2">⚠️ Kayıp Modu Aktif Et</h2>
-            <p className="text-sm text-muted-foreground mb-4">
-              Telefon numaran yalnızca parkta aktif olan kullanıcılara görünecektir.
-            </p>
+            <p className="text-sm text-muted-foreground mb-4">Telefon numaran yalnızca parkta aktif olan kullanıcılara görünecektir.</p>
             <div className="space-y-3 mb-5">
               <div>
                 <label className="mb-1.5 block text-sm font-medium text-foreground">
-                  <Phone className="inline h-4 w-4 mr-1" />
-                  Acil Telefon Numarası
+                  <Phone className="inline h-4 w-4 mr-1" />Acil Telefon Numarası
                 </label>
-                <input
-                  type="tel"
-                  placeholder="+905XXXXXXXXX veya 05XXXXXXXXX"
-                  value={emergencyPhone}
-                  onChange={(e) => { setEmergencyPhone(e.target.value); setPhoneError(''); }}
-                  className="dogspace-input w-full"
-                />
+                {fetchingPhone ? (
+                  <div className="flex items-center gap-2 py-2"><Loader2 className="h-4 w-4 animate-spin text-muted-foreground" /><span className="text-xs text-muted-foreground">Numara yükleniyor...</span></div>
+                ) : (
+                  <input type="tel" placeholder="+905XXXXXXXXX veya 05XXXXXXXXX" value={emergencyPhone}
+                    onChange={(e) => { setEmergencyPhone(e.target.value); setPhoneError(''); }}
+                    className="dogspace-input w-full" />
+                )}
                 {phoneError && <p className="mt-1 text-sm text-destructive">{phoneError}</p>}
               </div>
               {selectedPark && (
@@ -252,17 +241,10 @@ export function StatusPulse({ dog, selectedPark, onRefresh }: StatusPulseProps) 
               )}
             </div>
             <div className="flex gap-3">
-              <button
-                onClick={() => { setShowLostConfirm(false); setPhoneError(''); setEmergencyPhone(''); }}
-                className="flex-1 rounded-xl border border-border py-3 font-medium text-foreground"
-              >
-                İptal
-              </button>
-              <button
-                onClick={() => confirmLostMode(true)}
-                disabled={loading === 'lost' || !emergencyPhone.trim()}
-                className="flex-1 rounded-xl bg-destructive py-3 font-semibold text-destructive-foreground disabled:opacity-50"
-              >
+              <button onClick={() => { setShowLostConfirm(false); setPhoneError(''); setEmergencyPhone(''); }}
+                className="flex-1 rounded-xl border border-border py-3 font-medium text-foreground">İptal</button>
+              <button onClick={() => confirmLostMode(true)} disabled={loading === 'lost' || !emergencyPhone.trim()}
+                className="flex-1 rounded-xl bg-destructive py-3 font-semibold text-destructive-foreground disabled:opacity-50">
                 {loading === 'lost' ? <Loader2 className="h-5 w-5 animate-spin mx-auto" /> : 'Aktif Et'}
               </button>
             </div>
