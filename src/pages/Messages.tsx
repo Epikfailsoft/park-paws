@@ -209,7 +209,7 @@ export default function Messages() {
     <div className="min-h-screen safe-top safe-bottom" style={{ background: `linear-gradient(180deg, hsl(var(--page-social-light)) 0%, hsl(var(--background)) 30%)` }}>
       <header className="sticky top-0 z-40 glass border-b px-4 py-4">
         <div className="flex items-center gap-3">
-          <img src={dogiLogo} alt="DOGI" className="h-10 w-10 rounded-xl" />
+          <img src={dogiLogo} alt="DOGI" className="h-[50px] w-[50px] rounded-xl" />
           <div>
             <h1 className="font-display text-lg font-bold text-foreground">Sosyal</h1>
             <p className="text-xs text-muted-foreground">Mesajlar ve bildirimler</p>
