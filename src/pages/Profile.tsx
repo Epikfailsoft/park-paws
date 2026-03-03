@@ -301,6 +301,14 @@ export default function Profile() {
                 )}>{neutered ? "Evet" : "Hayır"}</button>
             </div>
 
+            <div className="flex items-center justify-between rounded-xl bg-secondary p-4">
+              <span className="text-sm font-medium text-foreground">🏠 Barınaktan mı?</span>
+              <button type="button" onClick={() => setIsShelter(!isShelter)}
+                className={cn("rounded-full px-4 py-1.5 text-sm font-medium transition-all",
+                  isShelter ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+                )}>{isShelter ? "Evet" : "Hayır"}</button>
+            </div>
+
             <button onClick={handleSave} disabled={loading}
               className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl py-3 font-semibold text-white transition-all hover:opacity-90 disabled:opacity-50 shadow-lg"
               style={{ background: 'var(--gradient-accent)', boxShadow: 'var(--shadow-glow-accent)' }}>
