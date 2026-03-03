@@ -41,6 +41,7 @@ export default function Profile() {
   const [likes, setLikes] = useState<string[]>((myDog as any)?.likes || []);
   const [dislikes, setDislikes] = useState<string[]>((myDog as any)?.dislikes || []);
   const [neutered, setNeutered] = useState(myDog?.neutered);
+  const [gender, setGender] = useState<string>(myDog?.gender || '');
   const [bio, setBio] = useState((myDog as any)?.bio || '');
   const [likeInput, setLikeInput] = useState('');
   const [dislikeInput, setDislikeInput] = useState('');
@@ -93,6 +94,7 @@ export default function Profile() {
         social_style: socialStyle || null as 'FRIENDLY' | 'NEUTRAL' | 'SELECTIVE' | null,
         likes: likes.length > 0 ? likes : null, dislikes: dislikes.length > 0 ? dislikes : null,
         neutered, bio: bio.trim() || null, breed_id: selectedBreedId || undefined,
+        gender: gender || null,
       } as any).eq('id', myDog.id);
       if (error) throw error;
       await refreshDogs();
@@ -269,6 +271,24 @@ export default function Profile() {
               <div className="mt-2 flex flex-wrap gap-1">
                 {DISLIKES_SUGGESTIONS.filter(s => !dislikes.includes(s)).slice(0, 6).map(s => (
                   <button key={s} type="button" onClick={() => setDislikes(prev => [...prev, s])} className="rounded-full border border-border px-2.5 py-0.5 text-xs text-muted-foreground hover:bg-secondary transition-all">{s}</button>
+                ))}
+              </div>
+            </div>
+
+            {/* Gender */}
+            <div>
+              <label className="mb-2 block text-sm font-medium text-foreground">Cinsiyet</label>
+              <div className="flex gap-2">
+                {[
+                  { value: 'female', label: '♀ Dişi', color: 'hsl(330, 60%, 50%)' },
+                  { value: 'male', label: '♂ Erkek', color: 'hsl(210, 60%, 50%)' },
+                ].map(g => (
+                  <button key={g.value} type="button" onClick={() => setGender(gender === g.value ? '' : g.value)}
+                    className={cn("flex-1 rounded-xl border-2 py-2.5 text-sm font-medium transition-all",
+                      gender === g.value ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card text-muted-foreground"
+                    )}>
+                    {g.label}
+                  </button>
                 ))}
               </div>
             </div>
