@@ -439,6 +439,84 @@ export type Database = {
           },
         ]
       }
+      group_wave_rsvps: {
+        Row: {
+          created_at: string | null
+          dog_id: string
+          group_wave_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          dog_id: string
+          group_wave_id: string
+        }
+        Update: {
+          created_at?: string | null
+          dog_id?: string
+          group_wave_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_wave_rsvps_dog_id_fkey"
+            columns: ["dog_id"]
+            isOneToOne: false
+            referencedRelation: "dogs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "group_wave_rsvps_group_wave_id_fkey"
+            columns: ["group_wave_id"]
+            isOneToOne: false
+            referencedRelation: "group_waves"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      group_waves: {
+        Row: {
+          created_at: string | null
+          creator_dog_id: string
+          expires_at: string
+          id: string
+          park_id: string
+          scheduled_time: string
+          template: string
+        }
+        Insert: {
+          created_at?: string | null
+          creator_dog_id: string
+          expires_at: string
+          id?: string
+          park_id: string
+          scheduled_time: string
+          template: string
+        }
+        Update: {
+          created_at?: string | null
+          creator_dog_id?: string
+          expires_at?: string
+          id?: string
+          park_id?: string
+          scheduled_time?: string
+          template?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_waves_creator_dog_id_fkey"
+            columns: ["creator_dog_id"]
+            isOneToOne: false
+            referencedRelation: "dogs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "group_waves_park_id_fkey"
+            columns: ["park_id"]
+            isOneToOne: false
+            referencedRelation: "parks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       harmonies: {
         Row: {
           created_at: string | null

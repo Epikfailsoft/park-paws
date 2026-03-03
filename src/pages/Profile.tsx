@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -11,6 +11,7 @@ import { Dog, LogOut, Settings, Loader2, ChevronRight, Camera, Phone, User, Edit
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { SOCIAL_STYLE_OPTIONS, LIKES_SUGGESTIONS, DISLIKES_SUGGESTIONS, formatOwnerName } from '@/types/dogspace';
+import { validateTurkishPhone } from '@/lib/upload-validation';
 import { Search } from 'lucide-react';
 
 export default function Profile() {
@@ -26,6 +27,11 @@ export default function Profile() {
   const [ownerName, setOwnerName] = useState(profile?.display_name || '');
   const [ownerLastName, setOwnerLastName] = useState(profile?.last_name || '');
   const [editingOwnerInfo, setEditingOwnerInfo] = useState(false);
+  
+  // Emergency phone state
+  const [emergencyPhone, setEmergencyPhone] = useState('');
+  const [editingPhone, setEditingPhone] = useState(false);
+  const [savingPhone, setSavingPhone] = useState(false);
 
   // Editable fields
   const [name, setName] = useState(myDog?.name || '');
@@ -51,40 +57,49 @@ export default function Profile() {
     });
   }, []);
 
-  const handleLogout = async () => {
-    await signOut();
-    navigate('/auth');
-  };
+  // Fetch emergency phone
+  const fetchEmergencyPhone = useCallback(async () => {
+    if (!myDog) return;
+    try {
+      const { data } = await supabase
+        .from('dog_private')
+        .select('emergency_phone')
+        .eq('dog_id', myDog.id)
+        .single();
+      if (data?.emergency_phone) setEmergencyPhone(data.emergency_phone);
+    } catch {
+      // Try dog_lost_profile
+      try {
+        const { data } = await supabase
+          .from('dog_lost_profile')
+          .select('emergency_phone')
+          .eq('dog_id', myDog.id)
+          .single();
+        if (data?.emergency_phone) setEmergencyPhone(data.emergency_phone);
+      } catch { /* no phone */ }
+    }
+  }, [myDog]);
+
+  useEffect(() => { fetchEmergencyPhone(); }, [fetchEmergencyPhone]);
+
+  const handleLogout = async () => { await signOut(); navigate('/auth'); };
 
   const handleSave = async () => {
     if (!myDog) return;
     setLoading(true);
     try {
-      const { error } = await supabase
-        .from('dogs')
-        .update({
-          name,
-          approximate_age: age,
-          energy_level: energyLevel,
-          social_style: socialStyle || null as 'FRIENDLY' | 'NEUTRAL' | 'SELECTIVE' | null,
-          likes: likes.length > 0 ? likes : null,
-          dislikes: dislikes.length > 0 ? dislikes : null,
-          neutered,
-          bio: bio.trim() || null,
-          breed_id: selectedBreedId || undefined,
-        } as any)
-        .eq('id', myDog.id);
-
+      const { error } = await supabase.from('dogs').update({
+        name, approximate_age: age, energy_level: energyLevel,
+        social_style: socialStyle || null as 'FRIENDLY' | 'NEUTRAL' | 'SELECTIVE' | null,
+        likes: likes.length > 0 ? likes : null, dislikes: dislikes.length > 0 ? dislikes : null,
+        neutered, bio: bio.trim() || null, breed_id: selectedBreedId || undefined,
+      } as any).eq('id', myDog.id);
       if (error) throw error;
       await refreshDogs();
       setEditing(false);
       toast.success('Profil güncellendi!');
-    } catch (error) {
-      console.error('Error updating profile:', error);
-      toast.error('Bir hata oluştu');
-    } finally {
-      setLoading(false);
-    }
+    } catch (error) { console.error('Error updating profile:', error); toast.error('Bir hata oluştu'); }
+    finally { setLoading(false); }
   };
 
   const handleOwnerPhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -107,30 +122,33 @@ export default function Profile() {
   const handleSaveOwnerInfo = async () => {
     if (!profile || !ownerName.trim()) return;
     try {
-      await supabase.from('profiles').update({ 
-        display_name: ownerName.trim(),
-        last_name: ownerLastName.trim() || null,
-      } as any).eq('id', profile.id);
+      await supabase.from('profiles').update({ display_name: ownerName.trim(), last_name: ownerLastName.trim() || null } as any).eq('id', profile.id);
       await refreshProfile();
       setEditingOwnerInfo(false);
       toast.success('Sahip bilgileri güncellendi!');
-    } catch (err) {
-      console.error(err);
-      toast.error('Hata oluştu');
-    }
+    } catch (err) { console.error(err); toast.error('Hata oluştu'); }
+  };
+
+  const handleSavePhone = async () => {
+    if (!myDog) return;
+    const validation = validateTurkishPhone(emergencyPhone);
+    if (!validation.valid) { toast.error(validation.error || 'Geçersiz telefon numarası'); return; }
+    setSavingPhone(true);
+    try {
+      await supabase.from('dog_private').upsert({ dog_id: myDog.id, emergency_phone: emergencyPhone } as any, { onConflict: 'dog_id' });
+      await supabase.from('dog_lost_profile').upsert({ dog_id: myDog.id, emergency_phone: emergencyPhone } as any, { onConflict: 'dog_id' });
+      setEditingPhone(false);
+      toast.success('Telefon numarası güncellendi!');
+    } catch (err) { console.error(err); toast.error('Hata oluştu'); }
+    finally { setSavingPhone(false); }
   };
 
   if (!myDog) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
+    return <div className="flex min-h-screen items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
   }
 
   return (
     <div className="min-h-screen safe-top safe-bottom" style={{ background: `linear-gradient(180deg, hsl(var(--page-profile-light)) 0%, hsl(var(--background)) 30%)` }}>
-      {/* Lost Mode Banner */}
       {myDog.is_lost && (
         <div className="bg-destructive text-destructive-foreground p-3 text-center">
           <p className="font-semibold">🆘 KAYIP MODU AKTİF</p>
@@ -138,19 +156,15 @@ export default function Profile() {
         </div>
       )}
 
-      {/* Header */}
       <header className="sticky top-0 z-40 glass border-b px-4 py-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl text-white shadow-md"
-              style={{ background: 'hsl(var(--page-profile))' }}>
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl text-white shadow-md" style={{ background: 'hsl(var(--page-profile))' }}>
               <Dog className="h-5 w-5" />
             </div>
             <div>
               <h1 className="font-display text-lg font-extrabold text-foreground">Köpeğim</h1>
-              <p className="text-xs text-muted-foreground font-medium">
-                {profile ? formatOwnerName(profile.display_name, profile.last_name) : ''}
-              </p>
+              <p className="text-xs text-muted-foreground font-medium">{profile ? formatOwnerName(profile.display_name, profile.last_name) : ''}</p>
             </div>
           </div>
           <button onClick={() => setEditing(!editing)} className="flex h-10 w-10 items-center justify-center rounded-xl bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-all">
@@ -159,19 +173,16 @@ export default function Profile() {
         </div>
       </header>
 
-      {/* 1️⃣ HERO & IDENTITY CARD */}
       <HeroIdentityCard dog={myDog} profile={profile!} onRefresh={refreshDogs} />
 
       <div className="px-4 pb-4 space-y-4">
         {editing ? (
-          /* EDIT MODE */
           <div className="section-card space-y-4">
             <div>
               <label className="mb-1.5 block text-sm font-medium text-foreground">Ad</label>
               <input type="text" value={name} onChange={(e) => setName(e.target.value)} className="dogspace-input w-full" />
             </div>
 
-            {/* Breed Selection */}
             <div className="relative">
               <label className="mb-1.5 block text-sm font-medium text-foreground">Irk</label>
               <button type="button" onClick={() => setShowBreedDropdown(!showBreedDropdown)} className="dogspace-input w-full text-left flex items-center justify-between">
@@ -206,7 +217,6 @@ export default function Profile() {
               <input type="text" value={age} onChange={(e) => setAge(e.target.value)} className="dogspace-input w-full" />
             </div>
 
-            {/* Energy Level */}
             <div>
               <label className="mb-2 block text-sm font-medium text-foreground">Enerji Seviyesi</label>
               <div className="flex justify-between gap-2">
@@ -214,14 +224,11 @@ export default function Profile() {
                   <button key={level} type="button" onClick={() => setEnergyLevel(level)}
                     className={cn("flex-1 rounded-xl border-2 py-2.5 text-sm font-medium transition-all",
                       energyLevel === level ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card text-muted-foreground"
-                    )}>
-                    {level === 1 ? '🐢 Sakin' : level === 2 ? '🐕 Normal' : '⚡ Enerjik'}
-                  </button>
+                    )}>{level === 1 ? '🐢 Sakin' : level === 2 ? '🐕 Normal' : '⚡ Enerjik'}</button>
                 ))}
               </div>
             </div>
 
-            {/* Social Style */}
             <div>
               <label className="mb-2 block text-sm font-medium text-foreground">Sosyal Tarz</label>
               <div className="flex flex-wrap gap-2">
@@ -234,13 +241,10 @@ export default function Profile() {
               </div>
             </div>
 
-            {/* Likes */}
             <div>
               <label className="mb-2 block text-sm font-medium text-foreground">💚 Sevdikleri</label>
               <div className="flex flex-wrap gap-1.5 mb-2">
-                {likes.map(tag => (
-                  <button key={tag} type="button" onClick={() => setLikes(prev => prev.filter(t => t !== tag))} className="rounded-full bg-primary/15 px-3 py-1 text-sm text-primary hover:bg-primary/25 transition-all">{tag} ✕</button>
-                ))}
+                {likes.map(tag => (<button key={tag} type="button" onClick={() => setLikes(prev => prev.filter(t => t !== tag))} className="rounded-full bg-primary/15 px-3 py-1 text-sm text-primary hover:bg-primary/25 transition-all">{tag} ✕</button>))}
               </div>
               <input type="text" value={likeInput}
                 onChange={(e) => setLikeInput(e.target.value.startsWith('#') ? e.target.value : `#${e.target.value}`)}
@@ -253,13 +257,10 @@ export default function Profile() {
               </div>
             </div>
 
-            {/* Dislikes */}
             <div>
               <label className="mb-2 block text-sm font-medium text-foreground">❌ Sevmedikleri</label>
               <div className="flex flex-wrap gap-1.5 mb-2">
-                {dislikes.map(tag => (
-                  <button key={tag} type="button" onClick={() => setDislikes(prev => prev.filter(t => t !== tag))} className="rounded-full bg-destructive/15 px-3 py-1 text-sm text-destructive hover:bg-destructive/25 transition-all">{tag} ✕</button>
-                ))}
+                {dislikes.map(tag => (<button key={tag} type="button" onClick={() => setDislikes(prev => prev.filter(t => t !== tag))} className="rounded-full bg-destructive/15 px-3 py-1 text-sm text-destructive hover:bg-destructive/25 transition-all">{tag} ✕</button>))}
               </div>
               <input type="text" value={dislikeInput}
                 onChange={(e) => setDislikeInput(e.target.value.startsWith('#') ? e.target.value : `#${e.target.value}`)}
@@ -272,7 +273,6 @@ export default function Profile() {
               </div>
             </div>
 
-            {/* Neutered */}
             <div className="flex items-center justify-between rounded-xl bg-secondary p-4">
               <span className="text-sm font-medium text-foreground">Kısırlaştırıldı mı?</span>
               <button type="button" onClick={() => setNeutered(!neutered)}
@@ -289,7 +289,6 @@ export default function Profile() {
           </div>
         ) : (
           <>
-            {/* Dog info cards */}
             <div className="space-y-3">
               {myDog.neutered !== undefined && (
                 <div className="flex justify-center">
@@ -310,62 +309,43 @@ export default function Profile() {
               {(myDog as any).likes?.length > 0 && (
                 <div className="section-card">
                   <span className="text-sm font-medium text-muted-foreground">💚 Sevdikleri</span>
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    {(myDog as any).likes.map((t: string) => (
-                      <span key={t} className="tag-like">{t}</span>
-                    ))}
-                  </div>
+                  <div className="mt-2 flex flex-wrap gap-2">{(myDog as any).likes.map((t: string) => (<span key={t} className="tag-like">{t}</span>))}</div>
                 </div>
               )}
 
               {(myDog as any).dislikes?.length > 0 && (
                 <div className="section-card">
                   <span className="text-sm font-medium text-muted-foreground">❌ Sevmedikleri</span>
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    {(myDog as any).dislikes.map((t: string) => (
-                      <span key={t} className="tag-dislike">{t}</span>
-                    ))}
-                  </div>
+                  <div className="mt-2 flex flex-wrap gap-2">{(myDog as any).dislikes.map((t: string) => (<span key={t} className="tag-dislike">{t}</span>))}</div>
                 </div>
               )}
             </div>
 
-            {/* 2️⃣ CARE CENTER */}
             <CareCenter dogId={myDog.id} parkActivityDays={parkActivityDays} />
-
-            {/* 3️⃣ ACTIVITY & BADGES */}
             <ActivityBadges dogId={myDog.id} profileId={profile!.id} onActivityDays={setParkActivityDays} />
-
-            {/* 4️⃣ SAFETY & DOCUMENT VAULT */}
             <CareVault dogId={myDog.id} profileId={profile!.id} />
 
-            {/* 5️⃣ OWNER PROFILE - Editable */}
+            {/* Owner Profile with Phone */}
             {profile && (
               <div className="section-card">
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="font-display text-sm font-bold text-foreground uppercase tracking-wide flex items-center gap-2">
-                    <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-secondary">
-                      <User className="h-3.5 w-3.5 text-muted-foreground" />
-                    </span>
+                    <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-secondary"><User className="h-3.5 w-3.5 text-muted-foreground" /></span>
                     Sahip Bilgileri
                   </h3>
                   {!editingOwnerInfo && (
                     <button onClick={() => { setOwnerName(profile.display_name); setOwnerLastName(profile.last_name || ''); setEditingOwnerInfo(true); }}
-                      className="flex items-center gap-1 text-xs text-primary font-medium">
-                      <Edit2 className="h-3 w-3" /> Düzenle
-                    </button>
+                      className="flex items-center gap-1 text-xs text-primary font-medium"><Edit2 className="h-3 w-3" /> Düzenle</button>
                   )}
                 </div>
                 
                 <div className="flex items-start gap-3">
-                  {/* Owner Photo */}
                   <div className="relative flex-shrink-0">
                     <input ref={ownerPhotoRef} type="file" accept="image/*" className="hidden" onChange={handleOwnerPhotoUpload} />
                     {profile.photo_url ? (
                       <img src={profile.photo_url} alt="" className="h-14 w-14 rounded-xl object-cover ring-2 ring-primary/20 shadow-md" />
                     ) : (
-                      <div className="flex h-14 w-14 items-center justify-center rounded-xl text-lg font-bold text-white shadow-md"
-                        style={{ background: 'var(--gradient-hero)' }}>
+                      <div className="flex h-14 w-14 items-center justify-center rounded-xl text-lg font-bold text-white shadow-md" style={{ background: 'var(--gradient-hero)' }}>
                         {profile.display_name?.[0]}
                       </div>
                     )}
@@ -375,25 +355,20 @@ export default function Profile() {
                     </button>
                   </div>
 
-                  {/* Owner Info */}
                   <div className="flex-1">
                     {editingOwnerInfo ? (
                       <div className="space-y-2">
                         <div>
                           <label className="text-xs text-muted-foreground mb-0.5 block">Ad</label>
-                          <input type="text" value={ownerName} onChange={(e) => setOwnerName(e.target.value)}
-                            className="dogspace-input w-full text-sm py-1.5" placeholder="Adınız" />
+                          <input type="text" value={ownerName} onChange={(e) => setOwnerName(e.target.value)} className="dogspace-input w-full text-sm py-1.5" placeholder="Adınız" />
                         </div>
                         <div>
                           <label className="text-xs text-muted-foreground mb-0.5 block">Soyad</label>
-                          <input type="text" value={ownerLastName} onChange={(e) => setOwnerLastName(e.target.value)}
-                            className="dogspace-input w-full text-sm py-1.5" placeholder="Soyadınız" />
+                          <input type="text" value={ownerLastName} onChange={(e) => setOwnerLastName(e.target.value)} className="dogspace-input w-full text-sm py-1.5" placeholder="Soyadınız" />
                         </div>
                         <div className="flex gap-2 pt-1">
-                          <button onClick={() => setEditingOwnerInfo(false)}
-                            className="rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground">İptal</button>
-                          <button onClick={handleSaveOwnerInfo}
-                            className="rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground">Kaydet</button>
+                          <button onClick={() => setEditingOwnerInfo(false)} className="rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground">İptal</button>
+                          <button onClick={handleSaveOwnerInfo} className="rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground">Kaydet</button>
                         </div>
                       </div>
                     ) : (
@@ -404,28 +379,48 @@ export default function Profile() {
                     )}
                   </div>
                 </div>
+
+                {/* Emergency Phone */}
+                <div className="mt-3 pt-3 border-t border-border">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Phone className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm text-muted-foreground">Acil Telefon</span>
+                    </div>
+                    {!editingPhone && (
+                      <button onClick={() => setEditingPhone(true)} className="text-xs text-primary font-medium">Düzenle</button>
+                    )}
+                  </div>
+                  {editingPhone ? (
+                    <div className="mt-2 flex gap-2">
+                      <input type="tel" value={emergencyPhone} onChange={(e) => setEmergencyPhone(e.target.value)}
+                        placeholder="+905XXXXXXXXX" className="dogspace-input flex-1 text-sm py-1.5" />
+                      <button onClick={() => setEditingPhone(false)} className="rounded-lg border border-border px-2 py-1.5 text-xs text-muted-foreground">İptal</button>
+                      <button onClick={handleSavePhone} disabled={savingPhone}
+                        className="rounded-lg bg-primary px-2 py-1.5 text-xs text-primary-foreground disabled:opacity-50">
+                        {savingPhone ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Kaydet'}
+                      </button>
+                    </div>
+                  ) : (
+                    <p className="mt-1 text-sm font-medium text-foreground">{emergencyPhone || 'Henüz eklenmedi'}</p>
+                  )}
+                </div>
               </div>
             )}
 
-            {/* 6️⃣ STATUS CONTROL - At Bottom */}
+            {/* Status Control - At Bottom */}
             <StatusPulse dog={myDog} selectedPark={selectedPark} onRefresh={refreshDogs} />
 
-            {/* 7️⃣ Settings & Logout */}
+            {/* Settings & Logout */}
             <div className="border-t border-border pt-4 space-y-2">
               <button onClick={() => setEditing(true)}
                 className="flex w-full items-center justify-between rounded-xl bg-secondary/50 p-4 text-left transition-all hover:bg-secondary">
-                <div className="flex items-center gap-3">
-                  <Settings className="h-5 w-5 text-muted-foreground" />
-                  <span className="text-sm font-medium text-foreground">Ayarlar</span>
-                </div>
+                <div className="flex items-center gap-3"><Settings className="h-5 w-5 text-muted-foreground" /><span className="text-sm font-medium text-foreground">Ayarlar</span></div>
                 <ChevronRight className="h-5 w-5 text-muted-foreground" />
               </button>
               <button onClick={handleLogout}
                 className="flex w-full items-center justify-between rounded-xl bg-destructive/10 p-4 text-left transition-all hover:bg-destructive/15">
-                <div className="flex items-center gap-3">
-                  <LogOut className="h-5 w-5 text-destructive" />
-                  <span className="text-sm font-medium text-destructive">Çıkış Yap</span>
-                </div>
+                <div className="flex items-center gap-3"><LogOut className="h-5 w-5 text-destructive" /><span className="text-sm font-medium text-destructive">Çıkış Yap</span></div>
                 <ChevronRight className="h-5 w-5 text-destructive/50" />
               </button>
             </div>
