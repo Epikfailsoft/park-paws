@@ -94,6 +94,7 @@ export default function Profile() {
         social_style: socialStyle || null as 'FRIENDLY' | 'NEUTRAL' | 'SELECTIVE' | null,
         likes: likes.length > 0 ? likes : null, dislikes: dislikes.length > 0 ? dislikes : null,
         neutered, bio: bio.trim() || null, breed_id: selectedBreedId || undefined,
+        gender: gender || null,
       } as any).eq('id', myDog.id);
       if (error) throw error;
       await refreshDogs();
