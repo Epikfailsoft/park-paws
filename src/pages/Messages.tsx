@@ -212,7 +212,7 @@ export default function Messages() {
             <MessageCircle className="h-5 w-5 text-white" />
           </div>
           <div>
-            <h1 className="font-display text-lg font-bold text-foreground">Inbox</h1>
+            <h1 className="font-display text-lg font-bold text-foreground">Sosyal</h1>
             <p className="text-xs text-muted-foreground">Mesajlar ve bildirimler</p>
           </div>
         </div>

@@ -4,7 +4,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { DogCard } from '@/components/cards/DogCard';
 import { ParkBulletinBoard } from '@/components/social/ParkBulletinBoard';
-import { MapPin, Loader2, Timer, AlertTriangle, ChevronDown, Clock, Users } from 'lucide-react';
+import { MapPin, Loader2, Timer, AlertTriangle, ChevronDown, Clock, Users, Megaphone } from 'lucide-react';
+import { GroupWaveSection } from '@/components/park/GroupWaveSection';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import type { Park as ParkType } from '@/types/dogspace';
@@ -283,6 +284,13 @@ export default function Park() {
           </div>
         )}
       </header>
+
+      {/* Group Waves - Top of park */}
+      {selectedPark && (
+        <div className="px-4 mt-3">
+          <GroupWaveSection parkId={selectedPark.id} />
+        </div>
+      )}
 
       {/* Bulletin Board - Above density */}
       {selectedPark && (
