@@ -5,6 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { DogCard } from '@/components/cards/DogCard';
 import { WaveLimitModal } from '@/components/discover/WaveLimitModal';
 import { Compass, Loader2, ToggleRight, ToggleLeft, AlertTriangle, Users, Zap, Filter, X } from 'lucide-react';
+import dogiLogo from '@/assets/dogi-logo.png';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { RATE_LIMITS, SOCIAL_STYLE_OPTIONS, getTimeContext, isPlaydateActive, getPlaydateRemainingHours } from '@/types/dogspace';
