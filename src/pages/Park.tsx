@@ -312,7 +312,7 @@ export default function Park() {
       {/* Who is here now? */}
       <div className="px-4 py-4">
         <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide" style={{ color: 'hsl(30 50% 35%)' }}>
-          🏞️ Şu an parkta kim var?
+          Şu an parkta kim var?
         </h2>
 
         {!selectedPark ? (
