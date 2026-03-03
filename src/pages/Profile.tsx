@@ -41,6 +41,7 @@ export default function Profile() {
   const [likes, setLikes] = useState<string[]>((myDog as any)?.likes || []);
   const [dislikes, setDislikes] = useState<string[]>((myDog as any)?.dislikes || []);
   const [neutered, setNeutered] = useState(myDog?.neutered);
+  const [gender, setGender] = useState<string>(myDog?.gender || '');
   const [bio, setBio] = useState((myDog as any)?.bio || '');
   const [likeInput, setLikeInput] = useState('');
   const [dislikeInput, setDislikeInput] = useState('');
