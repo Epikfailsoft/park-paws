@@ -11,6 +11,8 @@ import { cn } from '@/lib/utils';
 import type { Park as ParkType } from '@/types/dogspace';
 import type { ParkDog } from '@/types/dogspace';
 import { isParkCheckinActive, getParkCheckinRemainingMinutes, formatTimeRemaining, RATE_LIMITS } from '@/types/dogspace';
+import parkDogSilhouette from '@/assets/park-dog-silhouette.png';
+import dogspaceLogo from '@/assets/dogspace-logo.png';
 
 export default function Park() {
   const navigate = useNavigate();
@@ -224,10 +226,7 @@ export default function Park() {
       <header className="sticky top-0 z-40 glass border-b px-4 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl"
-              style={{ background: isCheckedIn ? 'hsl(var(--park-active))' : 'hsl(var(--page-park))' }}>
-              <MapPin className="h-5 w-5 text-white" />
-            </div>
+            <img src={dogspaceLogo} alt="DogSpace" className="h-10 w-10 rounded-xl" />
             <div>
               <h1 className="font-display text-lg font-bold text-foreground">Park</h1>
               {isCheckedIn && selectedPark && (
@@ -288,8 +287,8 @@ export default function Park() {
       {/* Live density indicator */}
       {selectedPark && (
         <div className="mx-4 mt-3 flex items-center gap-3 rounded-xl bg-card border p-3" style={{ boxShadow: 'var(--shadow-card)' }}>
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[hsl(var(--park-active))]/20">
-            <span className="text-lg">🐕</span>
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[hsl(var(--page-park))]/15">
+            <img src={parkDogSilhouette} alt="" className="h-7 w-7 object-contain opacity-70" />
           </div>
           <div className="flex-1">
             <p className="text-sm font-semibold text-foreground">Şu an {parkDogs.length} köpek parkta</p>
@@ -318,17 +317,13 @@ export default function Park() {
 
         {!selectedPark ? (
           <div className="flex flex-col items-center justify-center py-16 text-center">
-            <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-secondary">
-              <MapPin className="h-8 w-8 text-muted-foreground" />
-            </div>
+            <img src={parkDogSilhouette} alt="Park köpeği" className="mb-4 h-20 w-20 object-contain opacity-30" />
             <h2 className="mb-2 font-display text-lg font-semibold text-foreground">Park seçilmedi</h2>
             <p className="max-w-[280px] text-sm text-muted-foreground">Önce bir park seçmelisin.</p>
           </div>
         ) : parkDogs.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-center">
-            <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-secondary">
-              <MapPin className="h-8 w-8 text-muted-foreground" />
-            </div>
+            <img src={parkDogSilhouette} alt="Park köpeği" className="mb-4 h-20 w-20 object-contain opacity-30" />
             <h2 className="mb-2 font-display text-lg font-semibold text-foreground">Park şu an sakin</h2>
             <p className="max-w-[280px] text-sm text-muted-foreground mb-4">{myDog?.name}'in varlığını göstermek ister misin?</p>
             {myDog && !isCheckedIn && (
