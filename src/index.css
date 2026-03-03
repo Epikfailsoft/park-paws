@@ -41,8 +41,8 @@
     --harmony: 42 95% 55%;
     --harmony-foreground: 30 15% 12%;
 
-    /* Park status colors - more saturated */
-    --park-active: 152 60% 45%;
+    /* Park status colors - deep forest green */
+    --park-active: 152 65% 32%;
     --park-requested: 42 85% 55%;
     --park-closed: 220 10% 65%;
 
