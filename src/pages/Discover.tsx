@@ -230,9 +230,7 @@ export default function Discover() {
         {/* Row 1: Title + Playdate toggle */}
         <div className="flex items-center justify-between px-4 pt-3 pb-2">
           <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl" style={{ background: 'hsl(var(--page-discover))' }}>
-              <Compass className="h-4.5 w-4.5 text-white" />
-            </div>
+            <img src={dogiLogo} alt="DOGI" className="h-9 w-9 rounded-xl" />
             <div>
               <h1 className="font-display text-lg font-bold text-foreground leading-tight">Keşfet</h1>
               <p className="text-[11px] text-muted-foreground">{neighborhoodName ? `${neighborhoodName} · ` : ''}{getTimeContext()}</p>

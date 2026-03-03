@@ -104,7 +104,7 @@ export default function Auth() {
     <div className="flex min-h-screen flex-col bg-background safe-top">
       {/* Header */}
       <div className="flex flex-col items-center pt-12 pb-8">
-        <img src={dogspaceLogo} alt="Dogspace" className="h-28 w-28 rounded-2xl object-contain" />
+        <img src={dogiLogo} alt="DOGI" className="h-28 w-28 rounded-2xl object-contain" />
         <p className="mt-2 text-sm text-muted-foreground">
           Köpekler tanışır, sahipler buluşur
         </p>
