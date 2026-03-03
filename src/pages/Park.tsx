@@ -389,6 +389,20 @@ export default function Park() {
         )}
       </div>
 
+      {/* Group Waves */}
+      {selectedPark && (
+        <div className="px-4 mt-3">
+          <GroupWaveSection parkId={selectedPark.id} />
+        </div>
+      )}
+
+      {/* Bulletin Board */}
+      {selectedPark && (
+        <div className="px-4 mt-3">
+          <ParkBulletinBoard />
+        </div>
+      )}
+
       {/* Waitlist Parks */}
       {waitlistParks.length > 0 && (
         <div className="px-4 pb-6">
