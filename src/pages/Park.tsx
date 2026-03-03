@@ -287,8 +287,8 @@ export default function Park() {
       {/* Live density indicator */}
       {selectedPark && (
         <div className="mx-4 mt-3 flex items-center gap-3 rounded-xl bg-card border p-3" style={{ boxShadow: 'var(--shadow-card)' }}>
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[hsl(var(--park-active))]/20">
-            <span className="text-lg">🐕</span>
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[hsl(var(--page-park))]/15">
+            <img src={parkDogSilhouette} alt="" className="h-7 w-7 object-contain opacity-70" />
           </div>
           <div className="flex-1">
             <p className="text-sm font-semibold text-foreground">Şu an {parkDogs.length} köpek parkta</p>
