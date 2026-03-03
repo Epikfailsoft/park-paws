@@ -8,6 +8,7 @@ import { MapTeaser } from '@/components/discover/MapTeaser';
 import { WaveLimitModal } from '@/components/discover/WaveLimitModal';
 import { Compass, Loader2, ToggleRight, Filter, AlertTriangle, Users, Clock } from 'lucide-react';
 import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
 import { RATE_LIMITS, getTimeContext, isPlaydateActive, getPlaydateRemainingHours } from '@/types/dogspace';
 import type { DiscoverDog } from '@/types/dogspace';
 
