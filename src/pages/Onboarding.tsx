@@ -51,6 +51,7 @@ export default function Onboarding() {
   const [parks, setParks] = useState<{ id: string; name: string; status: string }[]>([]);
   const [selectedParkId, setSelectedParkId] = useState<string | null>(null);
 
+  const [isShelter, setIsShelter] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
