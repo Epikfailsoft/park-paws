@@ -285,20 +285,6 @@ export default function Park() {
         )}
       </header>
 
-      {/* Group Waves - Top of park */}
-      {selectedPark && (
-        <div className="px-4 mt-3">
-          <GroupWaveSection parkId={selectedPark.id} />
-        </div>
-      )}
-
-      {/* Bulletin Board - Above density */}
-      {selectedPark && (
-        <div className="px-4 mt-3">
-          <ParkBulletinBoard />
-        </div>
-      )}
-
       {/* Live density indicator */}
       {selectedPark && (
         <div className="mx-4 mt-3 flex items-center gap-3 rounded-xl bg-card border p-3" style={{ boxShadow: 'var(--shadow-card)' }}>
