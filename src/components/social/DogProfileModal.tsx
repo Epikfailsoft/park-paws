@@ -81,6 +81,13 @@ export function DogProfileModal({ dog, onClose }: DogProfileModalProps) {
             </div>
           )}
 
+          {(dog as any).is_shelter && (
+            <div className="flex items-center gap-3">
+              <span className="text-xs font-medium text-muted-foreground">Barınak</span>
+              <span className="text-xs text-primary font-medium">🏠 Barınaktan sahiplenildi</span>
+            </div>
+          )}
+
           {/* Likes/Dislikes */}
           {dog.likes && dog.likes.length > 0 && (
             <div>

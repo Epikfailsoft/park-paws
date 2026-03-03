@@ -51,6 +51,7 @@ export default function Onboarding() {
   const [parks, setParks] = useState<{ id: string; name: string; status: string }[]>([]);
   const [selectedParkId, setSelectedParkId] = useState<string | null>(null);
 
+  const [isShelter, setIsShelter] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -123,13 +124,15 @@ export default function Onboarding() {
         owner_id: profile.id, name, approximate_age: age, energy_level: energyLevel, neutered,
         breed_id: selectedBreed.id, breed_custom_text: selectedBreed.code === 'OTHER' ? customBreedText : null,
         photo_url: publicUrl, owner_name_stub: profile.display_name, owner_photo_stub: profile.photo_url || null,
-      }).select().single();
+        is_shelter: isShelter,
+      } as any).select().single();
       if (dogError) throw dogError;
 
       if (dogData) {
         await supabase.from('dog_lost_profile').insert({ dog_id: dogData.id, emergency_phone: emergencyPhone });
-        // Also save to dog_private for profile page access
         await supabase.from('dog_private').insert({ dog_id: dogData.id, emergency_phone: emergencyPhone });
+        // Auto-enable playdate
+        await supabase.rpc('toggle_playdate', { p_dog_id: dogData.id, p_activate: true });
       }
 
       await refreshDogs();
@@ -271,8 +274,14 @@ export default function Onboarding() {
             {ownerPhotoLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <>Devam Et <ArrowRight className="h-5 w-5" /></>}
           </button>
 
+          <button
+            onClick={() => navigate('/park')}
+            className="mt-3 w-full text-center text-sm text-muted-foreground hover:text-foreground transition-colors py-2">
+            Şimdilik atla →
+          </button>
+
           {!ownerPhotoPreview && (
-            <p className="mt-3 text-center text-xs text-muted-foreground">Fotoğraf eklersen parkta seni bulmak kolaylaşır</p>
+            <p className="mt-2 text-center text-xs text-muted-foreground">Fotoğraf eklersen parkta seni bulmak kolaylaşır</p>
           )}
         </div>
       </div>
@@ -381,6 +390,19 @@ export default function Onboarding() {
                   className={cn("flex-1 rounded-xl border-2 py-3 text-sm font-medium transition-all",
                     neutered === val ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card text-muted-foreground"
                   )}>{val ? 'Evet' : 'Hayır'}</button>
+              ))}
+            </div>
+          </div>
+
+          {/* Shelter Dog */}
+          <div className="mb-6">
+            <label className="mb-3 block text-sm font-medium text-foreground">Barınaktan mı sahiplenildi?</label>
+            <div className="flex gap-3">
+              {[true, false].map(val => (
+                <button key={String(val)} type="button" onClick={() => setIsShelter(val)}
+                  className={cn("flex-1 rounded-xl border-2 py-3 text-sm font-medium transition-all",
+                    isShelter === val ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card text-muted-foreground"
+                  )}>{val ? '🏠 Evet' : 'Hayır'}</button>
               ))}
             </div>
           </div>

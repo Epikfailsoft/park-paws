@@ -42,6 +42,7 @@ export default function Profile() {
   const [dislikes, setDislikes] = useState<string[]>((myDog as any)?.dislikes || []);
   const [neutered, setNeutered] = useState(myDog?.neutered);
   const [gender, setGender] = useState<string>(myDog?.gender || '');
+  const [isShelter, setIsShelter] = useState<boolean>((myDog as any)?.is_shelter || false);
   const [bio, setBio] = useState((myDog as any)?.bio || '');
   const [likeInput, setLikeInput] = useState('');
   const [dislikeInput, setDislikeInput] = useState('');
@@ -94,7 +95,7 @@ export default function Profile() {
         social_style: socialStyle || null as 'FRIENDLY' | 'NEUTRAL' | 'SELECTIVE' | null,
         likes: likes.length > 0 ? likes : null, dislikes: dislikes.length > 0 ? dislikes : null,
         neutered, bio: bio.trim() || null, breed_id: selectedBreedId || undefined,
-        gender: gender || null,
+        gender: gender || null, is_shelter: isShelter,
       } as any).eq('id', myDog.id);
       if (error) throw error;
       await refreshDogs();
@@ -299,6 +300,14 @@ export default function Profile() {
                 className={cn("rounded-full px-4 py-1.5 text-sm font-medium transition-all",
                   neutered ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
                 )}>{neutered ? "Evet" : "Hayır"}</button>
+            </div>
+
+            <div className="flex items-center justify-between rounded-xl bg-secondary p-4">
+              <span className="text-sm font-medium text-foreground">🏠 Barınaktan mı?</span>
+              <button type="button" onClick={() => setIsShelter(!isShelter)}
+                className={cn("rounded-full px-4 py-1.5 text-sm font-medium transition-all",
+                  isShelter ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+                )}>{isShelter ? "Evet" : "Hayır"}</button>
             </div>
 
             <button onClick={handleSave} disabled={loading}
