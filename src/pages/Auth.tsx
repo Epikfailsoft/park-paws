@@ -110,7 +110,7 @@ export default function Auth() {
           DOGSPACE
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Köpekler tanışır, sahipler buluşur
+          Mahallenin Dijital Parkı
         </p>
       </div>
 
