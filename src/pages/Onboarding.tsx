@@ -271,8 +271,14 @@ export default function Onboarding() {
             {ownerPhotoLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <>Devam Et <ArrowRight className="h-5 w-5" /></>}
           </button>
 
+          <button
+            onClick={() => navigate('/park')}
+            className="mt-3 w-full text-center text-sm text-muted-foreground hover:text-foreground transition-colors py-2">
+            Şimdilik atla →
+          </button>
+
           {!ownerPhotoPreview && (
-            <p className="mt-3 text-center text-xs text-muted-foreground">Fotoğraf eklersen parkta seni bulmak kolaylaşır</p>
+            <p className="mt-2 text-center text-xs text-muted-foreground">Fotoğraf eklersen parkta seni bulmak kolaylaşır</p>
           )}
         </div>
       </div>
