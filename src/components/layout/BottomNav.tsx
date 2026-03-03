@@ -6,7 +6,7 @@ import { useAuth } from '@/hooks/useAuth';
 const navItems = [
   { path: '/park', icon: MapPin, label: 'Park', cssVar: '--page-park' },
   { path: '/discover', icon: Compass, label: 'Keşfet', cssVar: '--page-discover' },
-  { path: '/inbox', icon: Inbox, label: 'Inbox', cssVar: '--page-social' },
+  { path: '/inbox', icon: Inbox, label: 'Sosyal', cssVar: '--page-social' },
   { path: '/mydog', icon: Dog, label: 'Köpeğim', cssVar: '--page-profile' },
 ];
 

@@ -320,7 +320,7 @@ export default function Discover() {
   return (
     <div className="min-h-screen safe-top safe-bottom" style={{ background: `linear-gradient(180deg, hsl(var(--page-discover-light)) 0%, hsl(var(--background)) 30%)` }}>
       {/* Header */}
-      <header className="sticky top-0 z-40 glass border-b px-4 py-4">
+      <header className="sticky top-0 z-40 glass border-b px-4 py-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl" style={{ background: 'hsl(var(--page-discover))' }}>
@@ -333,35 +333,59 @@ export default function Discover() {
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          {/* Playdate Toggle */}
+          {myDog && (
             <button
-              onClick={() => setShowFilters(!showFilters)}
-              className="flex h-9 w-9 items-center justify-center rounded-xl bg-secondary text-secondary-foreground"
+              onClick={togglePlaydateOn}
+              className="flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-all"
+              style={{ background: 'hsl(var(--page-discover))', color: 'white' }}
             >
-              <Filter className="h-4 w-4" />
-            </button>
-            <div className="rounded-full bg-secondary px-3 py-1.5">
-              <span className="text-sm font-medium text-secondary-foreground">
-                👋 {wavesRemaining}/{RATE_LIMITS.DAILY_WAVES}
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white opacity-75"></span>
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-white"></span>
               </span>
-            </div>
-            {myDog && (
-              <button
-                onClick={togglePlaydateOn}
-                className="flex items-center gap-1.5 rounded-full bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground"
-              >
-                <span className="relative flex h-2 w-2">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white opacity-75"></span>
-                  <span className="relative inline-flex h-2 w-2 rounded-full bg-white"></span>
-                </span>
-                Aktif
-              </button>
+              {(() => {
+                const hrs = getPlaydateRemainingHours(myDog);
+                if (hrs >= 1) return `${Math.floor(hrs)}s kaldı`;
+                return `${Math.round(hrs * 60)}dk kaldı`;
+              })()}
+            </button>
+          )}
+        </div>
+
+        {/* Second row: filters + wave counter (scrollable) */}
+        <div className="mt-2 flex items-center gap-2 overflow-x-auto no-scrollbar">
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            className={cn(
+              "flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium whitespace-nowrap border transition-all",
+              showFilters ? "border-[hsl(var(--page-discover))] text-[hsl(var(--page-discover))] bg-[hsl(var(--page-discover))]/10" : "border-border bg-card text-foreground"
             )}
+          >
+            <Filter className="h-3 w-3" /> Filtre
+          </button>
+          <div className="rounded-full bg-secondary px-3 py-1.5 whitespace-nowrap">
+            <span className="text-xs font-medium text-secondary-foreground">
+              👋 {wavesRemaining}/{RATE_LIMITS.DAILY_WAVES}
+            </span>
           </div>
+          {/* Inline distance chips */}
+          {[1, 2, 5, 10].map(km => (
+            <button
+              key={km}
+              onClick={() => { setDistance(km); setOffset(0); }}
+              className={cn(
+                "rounded-full px-3 py-1.5 text-xs font-medium whitespace-nowrap border transition-all",
+                distance === km ? "border-[hsl(var(--page-discover))] text-[hsl(var(--page-discover))] bg-[hsl(var(--page-discover))]/10" : "border-border bg-card text-muted-foreground"
+              )}
+            >
+              {km} km
+            </button>
+          ))}
         </div>
       </header>
 
-      {/* Filters */}
+      {/* Expanded Filters */}
       {showFilters && (
         <div className="border-b bg-card px-4 py-3">
           <DiscoverFilters

@@ -285,6 +285,13 @@ export default function Park() {
         )}
       </header>
 
+      {/* Group Waves - Top of park */}
+      {selectedPark && (
+        <div className="px-4 mt-3">
+          <GroupWaveSection parkId={selectedPark.id} />
+        </div>
+      )}
+
       {/* Bulletin Board - Above density */}
       {selectedPark && (
         <div className="px-4 mt-3">
