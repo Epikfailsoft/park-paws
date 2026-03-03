@@ -12,7 +12,7 @@ import type { Park as ParkType } from '@/types/dogspace';
 import type { ParkDog } from '@/types/dogspace';
 import { isParkCheckinActive, getParkCheckinRemainingMinutes, formatTimeRemaining, RATE_LIMITS } from '@/types/dogspace';
 import parkDogSilhouette from '@/assets/park-dog-silhouette.png';
-import dogspaceLogo from '@/assets/dogspace-logo.png';
+import dogiLogo from '@/assets/dogi-logo.png';
 
 export default function Park() {
   const navigate = useNavigate();
