@@ -191,7 +191,7 @@ export default function Discover() {
       <div className="min-h-screen bg-background safe-top safe-bottom">
         <header className="sticky top-0 z-40 glass border-b px-4 py-4">
           <div className="flex items-center gap-3">
-            <img src={dogiLogo} alt="DOGI" className="h-10 w-10 rounded-xl" />
+            <img src={dogiLogo} alt="DOGI" className="h-[50px] w-[50px] rounded-xl" />
             <div>
               <h1 className="font-display text-lg font-bold text-foreground">Keşfet</h1>
               <p className="text-xs text-muted-foreground">{neighborhoodName ? `${neighborhoodName} · ` : ''}{getTimeContext()}</p>
