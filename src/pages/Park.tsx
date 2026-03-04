@@ -348,6 +348,19 @@ export default function Park() {
                       <AlertTriangle className="h-5 w-5 text-destructive" /><span className="font-semibold text-destructive">KAYIP</span>
                     </div>
                   )}
+                  {/* Owner mini chip with photo */}
+                  {dog.owner_name_stub && !isOwnDog && (
+                    <div className="mb-2 flex items-center gap-2">
+                      {dog.owner_photo_stub ? (
+                        <img src={dog.owner_photo_stub} alt="" className="h-6 w-6 rounded-full object-cover ring-1 ring-border" />
+                      ) : (
+                        <div className="flex h-6 w-6 items-center justify-center rounded-full bg-muted text-[10px] font-medium text-muted-foreground ring-1 ring-border">
+                          {dog.owner_name_stub[0]}
+                        </div>
+                      )}
+                      <span className="text-xs text-muted-foreground">{dog.owner_name_stub}</span>
+                    </div>
+                  )}
                   <DogCard
                     dog={{
                       id: dog.dog_id, name: dog.dog_name, photo_url: dog.photo_url, approximate_age: dog.approximate_age,
@@ -357,7 +370,6 @@ export default function Park() {
                       breed: dog.breed_name ? { id: '', name: dog.breed_name, code: '', created_at: '' } : undefined,
                       park_checkin_active: true, is_lost: dog.is_lost, owner_id: dog.owner_id, breed_id: '', playdate_on: false,
                     } as any}
-                    owner={dog.owner_name_stub ? { id: '', user_id: '', display_name: dog.owner_name_stub, photo_url: dog.owner_photo_stub || undefined, created_at: '', updated_at: '' } : undefined}
                     showWaveButton={!isOwnDog && !dog.is_lost}
                     onWave={() => handleWave(dog.dog_id)}
                     hasWaved={wavedDogs.has(dog.dog_id)}
