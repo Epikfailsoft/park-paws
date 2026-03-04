@@ -375,8 +375,6 @@ export default function Discover() {
           </div>
         </div>
       </header>
-      )}
-
       {/* ─── ACTIVE STRIP ─── */}
       <div className="mx-4 mt-3 rounded-xl p-3" style={{ background: 'hsl(var(--page-discover) / 0.08)' }}>
         <div className="flex items-center gap-3 text-xs">
