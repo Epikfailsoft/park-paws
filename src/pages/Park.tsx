@@ -295,8 +295,8 @@ export default function Park() {
             <img alt="" className="h-7 w-7 object-contain opacity-70" src="/lovable-uploads/7e45b5f6-f37a-450d-92fb-ce8ed1a3372d.png" />
           </div>
           <div className="flex-1">
-            <p className="text-sm font-semibold text-secondary">Şu an {parkDogs.length} köpek parkta</p>
-            <p className="text-xs text-muted-foreground">{selectedPark.name} · Canlı veri</p>
+            <p className="text-sm font-semibold text-secondary">{parkDogs.length} köpek parkta</p>
+            <p className="text-xs text-muted-foreground">{selectedPark.name} · Canlı.</p>
           </div>
           {parkDogs.length > 0 &&
         <div className="flex -space-x-2">
@@ -316,7 +316,7 @@ export default function Park() {
       {/* Who is here now? */}
       <div className="px-4 py-4">
         <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide" style={{ color: 'hsl(30 50% 35%)' }}>
-          Şu an parkta kim var?
+          PARKTA KİM VAR?
         </h2>
 
         {!selectedPark ?
