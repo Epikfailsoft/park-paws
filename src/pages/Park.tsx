@@ -296,7 +296,7 @@ export default function Park() {
           </div>
           <div className="flex-1">
             <p className="text-sm font-semibold text-secondary">{parkDogs.length} köpek parkta</p>
-            <p className="text-xs text-muted-foreground">{selectedPark.name} · Canlı veri</p>
+            <p className="text-xs text-muted-foreground">{selectedPark.name} · Canlı.</p>
           </div>
           {parkDogs.length > 0 &&
         <div className="flex -space-x-2">
