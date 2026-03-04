@@ -242,7 +242,7 @@ export default function Park() {
                   <span className="text-[10px] font-semibold text-[hsl(var(--park-active))]">Prime Time</span>
                 </div>
               )}
-              <button onClick={() => setShowParkSelect(!showParkSelect)} className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground">
+              <button onClick={() => setShowParkSelect(!showParkSelect)} className="flex items-center gap-1 text-xs text-white/70 hover:text-white">
                 {selectedPark?.name || 'Park seç'} <ChevronDown className="h-3 w-3" />
               </button>
             </div>
