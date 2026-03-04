@@ -228,7 +228,7 @@ export default function Park() {
           <div className="flex items-center gap-3">
             <img src={dogiLogo} alt="DOGI" className="h-[50px] w-[50px] rounded-xl" />
             <div>
-              <h1 className="font-display text-lg font-bold text-foreground">Park</h1>
+              <h1 className="font-display text-lg font-bold text-white">Park</h1>
               {isCheckedIn && selectedPark && (
                 <div className="flex items-center gap-1.5">
                   <span className="relative flex h-2 w-2">
