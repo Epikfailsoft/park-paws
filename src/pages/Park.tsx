@@ -202,7 +202,11 @@ export default function Park() {
   }
 
   return (
-    <div className="min-h-screen safe-top safe-bottom" style={{ background: `linear-gradient(180deg, hsl(var(--page-park-light)) 0%, hsl(var(--background)) 30%)` }}>
+    <div className="relative min-h-screen safe-top safe-bottom" style={{ background: `linear-gradient(180deg, hsl(var(--page-park-light)) 0%, hsl(var(--background)) 30%)` }}>
+      {/* Background watermark logo */}
+      <div className="pointer-events-none fixed inset-0 z-0 flex items-center justify-center opacity-[0.04]">
+        <img src={dogiLogo} alt="" className="h-[70vh] w-[70vh] object-contain" />
+      </div>
       {/* Expiry Warning */}
       {showExpiryWarning && isCheckedIn && (
         <div className="bg-amber-100 border-b border-amber-300 p-3">
