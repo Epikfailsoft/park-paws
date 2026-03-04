@@ -223,7 +223,7 @@ export default function Park() {
       )}
 
       {/* Header */}
-      <header className="sticky top-0 z-40 glass border-b px-4 py-4">
+      <header className="sticky top-0 z-40 border-b px-4 py-4" style={{ background: 'hsl(var(--page-park))' }}>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <img src={dogiLogo} alt="DOGI" className="h-[50px] w-[50px] rounded-xl" />
