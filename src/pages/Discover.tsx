@@ -4,11 +4,12 @@ import { useLocation } from '@/hooks/useLocation';
 import { supabase } from '@/integrations/supabase/client';
 import { DogCard } from '@/components/cards/DogCard';
 import { WaveLimitModal } from '@/components/discover/WaveLimitModal';
-import { Compass, Loader2, ToggleRight, ToggleLeft, AlertTriangle, Users, Zap, Filter, X } from 'lucide-react';
+import { Compass, Loader2, ToggleRight, ToggleLeft, AlertTriangle, Users, Zap, SlidersHorizontal, X } from 'lucide-react';
 import dogiLogo from '@/assets/dogi-logo.png';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { RATE_LIMITS, SOCIAL_STYLE_OPTIONS, getTimeContext, isPlaydateActive, getPlaydateRemainingHours } from '@/types/dogspace';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import type { DiscoverDog } from '@/types/dogspace';
 
 const PAGE_SIZE = 30;
@@ -237,124 +238,143 @@ export default function Discover() {
             </div>
           </div>
           
-          {/* Playdate ON/OFF toggle */}
-          {myDog && (
-            <button onClick={togglePlaydateOn}
-              className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-all"
-              style={{ background: 'hsl(var(--page-discover))', color: 'white' }}>
-              <span className="relative flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white opacity-75"></span>
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-white"></span>
-              </span>
-              {(() => {
-                const hrs = getPlaydateRemainingHours(myDog);
-                if (hrs >= 1) return `${Math.floor(hrs)}s kaldı`;
-                return `${Math.round(hrs * 60)}dk kaldı`;
-              })()}
-            </button>
-          )}
-        </div>
+          <div className="flex items-center gap-2">
+            {/* Filter dropdown button */}
+            <Popover open={showFilters} onOpenChange={setShowFilters}>
+              <PopoverTrigger asChild>
+                <button
+                  className={cn(
+                    "relative flex items-center justify-center h-9 w-9 rounded-full border transition-all",
+                    showFilters || activeFilterCount > 0
+                      ? "border-[hsl(var(--page-discover))] bg-[hsl(var(--page-discover))]/10"
+                      : "border-border bg-card"
+                  )}>
+                  <SlidersHorizontal className="h-4 w-4" style={{ color: activeFilterCount > 0 ? 'hsl(var(--page-discover))' : undefined }} />
+                  {activeFilterCount > 0 && (
+                    <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full text-[9px] font-bold text-white"
+                      style={{ background: 'hsl(var(--page-discover))' }}>
+                      {activeFilterCount}
+                    </span>
+                  )}
+                </button>
+              </PopoverTrigger>
+              <PopoverContent align="end" className="w-72 p-4 space-y-4" sideOffset={8}>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-semibold text-foreground">Filtreler</span>
+                  {activeFilterCount > 0 && (
+                    <button onClick={clearAllFilters} className="text-xs font-medium" style={{ color: 'hsl(var(--page-discover))' }}>
+                      ⟲ Sıfırla
+                    </button>
+                  )}
+                </div>
 
-        {/* Row 2: Horizontal scrollable filter chips */}
-        <div className="flex items-center gap-1.5 px-4 pb-2.5 overflow-x-auto no-scrollbar">
-          {/* Filter toggle */}
-          <button onClick={() => setShowFilters(!showFilters)}
-            className={cn(
-              "flex items-center gap-1 rounded-full px-2.5 py-1.5 text-[11px] font-medium whitespace-nowrap border transition-all shrink-0",
-              showFilters || activeFilterCount > 0
-                ? "border-[hsl(var(--page-discover))] text-[hsl(var(--page-discover))] bg-[hsl(var(--page-discover))]/10"
-                : "border-border bg-card text-foreground"
-            )}>
-            <Filter className="h-3 w-3" />
-            {activeFilterCount > 0 ? `Filtre (${activeFilterCount})` : 'Filtre'}
-          </button>
+                {/* Distance */}
+                <div>
+                  <p className="text-[11px] font-medium text-muted-foreground mb-1.5">📍 Mesafe</p>
+                  <div className="flex gap-1.5">
+                    {[1, 2, 5, 10].map(km => (
+                      <button key={km} onClick={() => { setDistance(km); setOffset(0); }}
+                        className={cn(
+                          "flex-1 rounded-lg py-2 text-xs font-medium transition-all",
+                          distance === km
+                            ? "text-white"
+                            : "bg-secondary text-secondary-foreground"
+                        )}
+                        style={distance === km ? { background: 'hsl(var(--page-discover))' } : undefined}>
+                        {km} km
+                      </button>
+                    ))}
+                  </div>
+                </div>
 
-          {/* Wave counter */}
-          <div className="rounded-full bg-secondary px-2.5 py-1.5 whitespace-nowrap shrink-0">
-            <span className="text-[11px] font-medium text-secondary-foreground">👋 {wavesRemaining}/{RATE_LIMITS.DAILY_WAVES}</span>
-          </div>
+                {/* Gender */}
+                <div>
+                  <p className="text-[11px] font-medium text-muted-foreground mb-1.5">⚧ Cinsiyet</p>
+                  <div className="flex gap-1.5">
+                    {GENDER_FILTER_OPTIONS.map(g => (
+                      <button key={g.value}
+                        onClick={() => { setGenderFilter(genderFilter === g.value ? null : g.value); setOffset(0); }}
+                        className={cn(
+                          "flex-1 rounded-lg py-2 text-xs font-medium transition-all",
+                          genderFilter === g.value
+                            ? "text-white"
+                            : "bg-secondary text-secondary-foreground"
+                        )}
+                        style={genderFilter === g.value ? { background: 'hsl(var(--page-discover))' } : undefined}>
+                        {g.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
 
-          {/* Distance chips */}
-          {[1, 2, 5, 10].map(km => (
-            <button key={km} onClick={() => { setDistance(km); setOffset(0); }}
-              className={cn(
-                "rounded-full px-2.5 py-1.5 text-[11px] font-medium whitespace-nowrap border transition-all shrink-0",
-                distance === km
-                  ? "border-[hsl(var(--page-discover))] text-[hsl(var(--page-discover))] bg-[hsl(var(--page-discover))]/10"
-                  : "border-border bg-card text-muted-foreground"
-              )}>
-              {km} km
-            </button>
-          ))}
+                {/* Energy */}
+                <div>
+                  <p className="text-[11px] font-medium text-muted-foreground mb-1.5">⚡ Enerji Seviyesi</p>
+                  <div className="flex gap-1.5">
+                    {ENERGY_FILTER_OPTIONS.map(e => (
+                      <button key={e.value}
+                        onClick={() => { setEnergyFilter(energyFilter === e.level ? null : e.level); setOffset(0); }}
+                        className={cn(
+                          "flex-1 rounded-lg py-2 text-xs font-medium transition-all",
+                          energyFilter === e.level
+                            ? "text-white"
+                            : "bg-secondary text-secondary-foreground"
+                        )}
+                        style={energyFilter === e.level ? { background: 'hsl(var(--page-discover))' } : undefined}>
+                        {e.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
 
-          {/* Quick gender chips */}
-          {GENDER_FILTER_OPTIONS.map(g => (
-            <button key={g.value}
-              onClick={() => { setGenderFilter(genderFilter === g.value ? null : g.value); setOffset(0); }}
-              className={cn(
-                "rounded-full px-2.5 py-1.5 text-[11px] font-medium whitespace-nowrap border transition-all shrink-0",
-                genderFilter === g.value
-                  ? "border-[hsl(var(--page-discover))] text-[hsl(var(--page-discover))] bg-[hsl(var(--page-discover))]/10"
-                  : "border-border bg-card text-muted-foreground"
-              )}>
-              {g.label}
-            </button>
-          ))}
-        </div>
-      </header>
+                {/* Social Style */}
+                <div>
+                  <p className="text-[11px] font-medium text-muted-foreground mb-1.5">🎮 Oyun Tarzı</p>
+                  <div className="flex gap-1.5">
+                    {SOCIAL_STYLE_OPTIONS.map(s => (
+                      <button key={s.value}
+                        onClick={() => { setSocialStyleFilter(socialStyleFilter === s.value ? null : s.value); setOffset(0); }}
+                        className={cn(
+                          "flex-1 rounded-lg py-2 text-xs font-medium transition-all",
+                          socialStyleFilter === s.value
+                            ? "text-white"
+                            : "bg-secondary text-secondary-foreground"
+                        )}
+                        style={socialStyleFilter === s.value ? { background: 'hsl(var(--page-discover))' } : undefined}>
+                        {s.icon} {s.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
 
-      {/* ─── EXPANDED FILTERS ─── */}
-      {showFilters && (
-        <div className="border-b bg-card px-4 py-3 space-y-3 animate-in slide-in-from-top-2 duration-200">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-foreground">Filtreler</span>
-            {activeFilterCount > 0 && (
-              <button onClick={clearAllFilters} className="text-[11px] text-[hsl(var(--page-discover))] font-medium">
-                ⟲ Sıfırla
+            {/* Playdate ON/OFF toggle */}
+            {myDog && (
+              <button onClick={togglePlaydateOn}
+                className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-all"
+                style={{ background: 'hsl(var(--page-discover))', color: 'white' }}>
+                <span className="relative flex h-2 w-2">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white opacity-75"></span>
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-white"></span>
+                </span>
+                {(() => {
+                  const hrs = getPlaydateRemainingHours(myDog);
+                  if (hrs >= 1) return `${Math.floor(hrs)}s kaldı`;
+                  return `${Math.round(hrs * 60)}dk kaldı`;
+                })()}
               </button>
             )}
           </div>
-          
-          {/* Energy */}
-          <div>
-            <p className="text-[11px] font-medium text-muted-foreground mb-1.5">⚡ Enerji Seviyesi</p>
-            <div className="flex gap-1.5">
-              {ENERGY_FILTER_OPTIONS.map(e => (
-                <button key={e.value}
-                  onClick={() => { setEnergyFilter(energyFilter === e.level ? null : e.level); setOffset(0); }}
-                  className={cn(
-                    "flex-1 rounded-lg py-2 text-xs font-medium transition-all",
-                    energyFilter === e.level
-                      ? "bg-[hsl(var(--page-discover))] text-white"
-                      : "bg-secondary text-secondary-foreground"
-                  )}>
-                  {e.label}
-                </button>
-              ))}
-            </div>
-          </div>
+        </div>
 
-          {/* Social Style */}
-          <div>
-            <p className="text-[11px] font-medium text-muted-foreground mb-1.5">🎮 Oyun Tarzı</p>
-            <div className="flex gap-1.5">
-              {SOCIAL_STYLE_OPTIONS.map(s => (
-                <button key={s.value}
-                  onClick={() => { setSocialStyleFilter(socialStyleFilter === s.value ? null : s.value); setOffset(0); }}
-                  className={cn(
-                    "flex-1 rounded-lg py-2 text-xs font-medium transition-all",
-                    socialStyleFilter === s.value
-                      ? "bg-[hsl(var(--page-discover))] text-white"
-                      : "bg-secondary text-secondary-foreground"
-                  )}>
-                  {s.icon} {s.label}
-                </button>
-              ))}
-            </div>
+        {/* Row 2: Wave counter */}
+        <div className="flex items-center gap-1.5 px-4 pb-2.5 overflow-x-auto no-scrollbar">
+          <div className="rounded-full bg-secondary px-2.5 py-1.5 whitespace-nowrap shrink-0">
+            <span className="text-[11px] font-medium text-secondary-foreground">👋 {wavesRemaining}/{RATE_LIMITS.DAILY_WAVES}</span>
           </div>
         </div>
-      )}
-
+      </header>
       {/* ─── ACTIVE STRIP ─── */}
       <div className="mx-4 mt-3 rounded-xl p-3" style={{ background: 'hsl(var(--page-discover) / 0.08)' }}>
         <div className="flex items-center gap-3 text-xs">
