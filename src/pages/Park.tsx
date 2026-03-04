@@ -202,7 +202,11 @@ export default function Park() {
   }
 
   return (
-    <div className="min-h-screen safe-top safe-bottom" style={{ background: `linear-gradient(180deg, hsl(var(--page-park-light)) 0%, hsl(var(--background)) 30%)` }}>
+    <div className="relative min-h-screen safe-top safe-bottom" style={{ background: `linear-gradient(180deg, hsl(var(--page-park-light)) 0%, hsl(var(--background)) 30%)` }}>
+      {/* Background watermark logo */}
+      <div className="pointer-events-none fixed inset-0 z-0 flex items-center justify-center opacity-[0.04]">
+        <img src={dogiLogo} alt="" className="h-[70vh] w-[70vh] object-contain" />
+      </div>
       {/* Expiry Warning */}
       {showExpiryWarning && isCheckedIn && (
         <div className="bg-amber-100 border-b border-amber-300 p-3">
@@ -223,12 +227,12 @@ export default function Park() {
       )}
 
       {/* Header */}
-      <header className="sticky top-0 z-40 glass border-b px-4 py-4">
+      <header className="sticky top-0 z-40 border-b px-4 py-4" style={{ background: 'hsl(var(--page-park))' }}>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <img src={dogiLogo} alt="DOGI" className="h-[50px] w-[50px] rounded-xl" />
             <div>
-              <h1 className="font-display text-lg font-bold text-foreground">Park</h1>
+              <h1 className="font-display text-lg font-bold text-white">Park</h1>
               {isCheckedIn && selectedPark && (
                 <div className="flex items-center gap-1.5">
                   <span className="relative flex h-2 w-2">
@@ -238,7 +242,7 @@ export default function Park() {
                   <span className="text-[10px] font-semibold text-[hsl(var(--park-active))]">Prime Time</span>
                 </div>
               )}
-              <button onClick={() => setShowParkSelect(!showParkSelect)} className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground">
+              <button onClick={() => setShowParkSelect(!showParkSelect)} className="flex items-center gap-1 text-xs text-white/70 hover:text-white">
                 {selectedPark?.name || 'Park seç'} <ChevronDown className="h-3 w-3" />
               </button>
             </div>
@@ -344,6 +348,19 @@ export default function Park() {
                       <AlertTriangle className="h-5 w-5 text-destructive" /><span className="font-semibold text-destructive">KAYIP</span>
                     </div>
                   )}
+                  {/* Owner mini chip with photo */}
+                  {dog.owner_name_stub && !isOwnDog && (
+                    <div className="mb-2 flex items-center gap-2">
+                      {dog.owner_photo_stub ? (
+                        <img src={dog.owner_photo_stub} alt="" className="h-6 w-6 rounded-full object-cover ring-1 ring-border" />
+                      ) : (
+                        <div className="flex h-6 w-6 items-center justify-center rounded-full bg-muted text-[10px] font-medium text-muted-foreground ring-1 ring-border">
+                          {dog.owner_name_stub[0]}
+                        </div>
+                      )}
+                      <span className="text-xs text-muted-foreground">{dog.owner_name_stub}</span>
+                    </div>
+                  )}
                   <DogCard
                     dog={{
                       id: dog.dog_id, name: dog.dog_name, photo_url: dog.photo_url, approximate_age: dog.approximate_age,
@@ -353,7 +370,6 @@ export default function Park() {
                       breed: dog.breed_name ? { id: '', name: dog.breed_name, code: '', created_at: '' } : undefined,
                       park_checkin_active: true, is_lost: dog.is_lost, owner_id: dog.owner_id, breed_id: '', playdate_on: false,
                     } as any}
-                    owner={dog.owner_name_stub ? { id: '', user_id: '', display_name: dog.owner_name_stub, photo_url: dog.owner_photo_stub || undefined, created_at: '', updated_at: '' } : undefined}
                     showWaveButton={!isOwnDog && !dog.is_lost}
                     onWave={() => handleWave(dog.dog_id)}
                     hasWaved={wavedDogs.has(dog.dog_id)}
