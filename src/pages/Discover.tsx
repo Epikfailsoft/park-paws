@@ -250,13 +250,13 @@ export default function Discover() {
                   className={cn(
                     "relative flex items-center justify-center h-9 w-9 rounded-full border transition-all",
                     showFilters || activeFilterCount > 0
-                      ? "border-[hsl(var(--page-discover))] bg-[hsl(var(--page-discover))]/10"
-                      : "border-border bg-card"
+                      ? "border-white/50 bg-white/20"
+                      : "border-white/30 bg-white/10"
                   )}>
-                  <SlidersHorizontal className="h-4 w-4" style={{ color: activeFilterCount > 0 ? 'hsl(var(--page-discover))' : undefined }} />
+                  <SlidersHorizontal className="h-4 w-4 text-white" />
                   {activeFilterCount > 0 && (
-                    <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full text-[9px] font-bold text-white"
-                      style={{ background: 'hsl(var(--page-discover))' }}>
+                    <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-white text-[9px] font-bold"
+                      style={{ color: 'hsl(var(--page-discover))' }}>
                       {activeFilterCount}
                     </span>
                   )}
@@ -356,26 +356,36 @@ export default function Discover() {
             {/* Playdate ON/OFF toggle */}
             {myDog && (
               <button onClick={togglePlaydateOn}
-                className="flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-all text-white"
-                style={{ background: 'hsl(var(--page-discover))' }}>
-                <span className="relative flex h-2 w-2">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white opacity-75"></span>
-                  <span className="relative inline-flex h-2 w-2 rounded-full bg-white"></span>
-                </span>
-                {(() => {
-                  const hrs = getPlaydateRemainingHours(myDog);
-                  if (hrs >= 1) return `${Math.floor(hrs)}s kaldı`;
-                  return `${Math.round(hrs * 60)}dk kaldı`;
-                })()}
+                className={cn(
+                  "flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-all",
+                  playdateActive
+                    ? "bg-white text-[hsl(var(--page-discover))]"
+                    : "bg-[hsl(var(--page-social))] text-white"
+                )}>
+                {playdateActive ? (
+                  <>
+                    <span className="relative flex h-2 w-2">
+                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full opacity-75" style={{ background: 'hsl(var(--page-discover))' }}></span>
+                      <span className="relative inline-flex h-2 w-2 rounded-full" style={{ background: 'hsl(var(--page-discover))' }}></span>
+                    </span>
+                    {(() => {
+                      const hrs = getPlaydateRemainingHours(myDog);
+                      if (hrs >= 1) return `${Math.floor(hrs)}s kaldı`;
+                      return `${Math.round(hrs * 60)}dk kaldı`;
+                    })()}
+                  </>
+                ) : (
+                  'Playdate Aç'
+                )}
               </button>
             )}
           </div>
         </div>
 
         {/* Row 2: Wave counter */}
-        <div className="flex items-center gap-1.5 px-4 pb-2.5 overflow-x-auto no-scrollbar">
-          <div className="rounded-full bg-secondary px-2.5 py-1.5 whitespace-nowrap shrink-0">
-            <span className="text-[11px] font-medium text-secondary-foreground">👋 {wavesRemaining}/{RATE_LIMITS.DAILY_WAVES}</span>
+        <div className="flex items-center gap-1.5 mt-2 overflow-x-auto no-scrollbar">
+          <div className="rounded-full bg-white/15 px-2.5 py-1.5 whitespace-nowrap shrink-0">
+            <span className="text-[11px] font-medium text-white/90">👋 {wavesRemaining}/{RATE_LIMITS.DAILY_WAVES}</span>
           </div>
         </div>
       </header>
