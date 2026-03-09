@@ -352,8 +352,8 @@ export default function Discover() {
             {/* Playdate ON/OFF toggle */}
             {myDog && (
               <button onClick={togglePlaydateOn}
-                className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-all"
-                style={{ background: 'hsl(var(--page-discover))', color: 'white' }}>
+                className="flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-all text-white"
+                style={{ background: 'hsl(var(--page-discover))' }}>
                 <span className="relative flex h-2 w-2">
                   <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white opacity-75"></span>
                   <span className="relative inline-flex h-2 w-2 rounded-full bg-white"></span>
