@@ -225,7 +225,11 @@ export default function Discover() {
   }
 
   return (
-    <div className="min-h-screen safe-top safe-bottom" style={{ background: `linear-gradient(180deg, hsl(var(--page-discover-light)) 0%, hsl(var(--background)) 20%)` }}>
+    <div className="relative min-h-screen safe-top safe-bottom" style={{ background: `linear-gradient(180deg, hsl(var(--page-discover-light)) 0%, hsl(var(--background)) 20%)` }}>
+      {/* Background watermark logo */}
+      <div className="pointer-events-none fixed inset-0 z-0 flex items-center justify-center opacity-[0.04]">
+        <img src={dogiLogo} alt="" className="h-[70vh] w-[70vh] object-contain" />
+      </div>
       {/* ─── HEADER ─── */}
       <header className="sticky top-0 z-40 glass border-b">
         {/* Row 1: Title + Playdate toggle */}
