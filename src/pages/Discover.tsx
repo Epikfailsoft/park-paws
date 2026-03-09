@@ -190,13 +190,19 @@ export default function Discover() {
   if (myDog && !playdateActive) {
     return (
       <div className="min-h-screen bg-background safe-top safe-bottom">
-        <header className="sticky top-0 z-40 glass border-b px-4 py-4">
-          <div className="flex items-center gap-3">
-            <img src={dogiLogo} alt="DOGI" className="h-[50px] w-[50px] rounded-xl" />
-            <div>
-              <h1 className="font-display text-lg font-bold text-foreground">Keşfet</h1>
-              <p className="text-xs text-muted-foreground">{neighborhoodName ? `${neighborhoodName} · ` : ''}{getTimeContext()}</p>
+        <header className="sticky top-0 z-40 border-b px-4 py-4" style={{ background: 'hsl(var(--page-discover))' }}>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <img src={dogiLogo} alt="DOGI" className="h-[50px] w-[50px] rounded-xl" />
+              <div>
+                <h1 className="font-display text-lg font-bold text-white leading-tight">Keşfet</h1>
+                <p className="text-[11px] text-white/70">{neighborhoodName ? `${neighborhoodName} · ` : ''}{getTimeContext()}</p>
+              </div>
             </div>
+            <button onClick={togglePlaydateOn}
+              className="flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-all bg-white/20 text-white border border-white/30">
+              <ToggleRight className="h-4 w-4" /> Playdate Aç
+            </button>
           </div>
         </header>
 
