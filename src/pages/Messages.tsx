@@ -14,8 +14,8 @@ import { GroupWaveSection } from '@/components/park/GroupWaveSection';
 import { DogProfileModal } from '@/components/social/DogProfileModal';
 
 interface HarmonyWithDogs extends Harmony {
-  dog_a: Dog & { owner: Profile };
-  dog_b: Dog & { owner: Profile };
+  dog_a: Dog & {owner: Profile;};
+  dog_b: Dog & {owner: Profile;};
   messages: Message[];
 }
 
@@ -26,7 +26,7 @@ export default function Messages() {
   const [harmonies, setHarmonies] = useState<HarmonyWithDogs[]>([]);
   const [selectedHarmony, setSelectedHarmony] = useState<HarmonyWithDogs | null>(null);
   const [activeTab, setActiveTab] = useState<SocialTab>('waves');
-  const [profileModalDog, setProfileModalDog] = useState<(Dog & { owner: Profile }) | null>(null);
+  const [profileModalDog, setProfileModalDog] = useState<(Dog & {owner: Profile;}) | null>(null);
 
   useEffect(() => {
     if (selectedHarmony) {
@@ -48,24 +48,24 @@ export default function Messages() {
   const myDog = dogs[0];
 
   useEffect(() => {
-    if (myDog) fetchHarmonies();
-    else setLoading(false);
+    if (myDog) fetchHarmonies();else
+    setLoading(false);
   }, [myDog]);
 
   useEffect(() => {
     if (!selectedHarmony) return;
-    const channel = supabase
-      .channel(`harmony:${selectedHarmony.id}`)
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `harmony_id=eq.${selectedHarmony.id}` },
-        (payload) => {
-          const newMessage = payload.new as Message;
-          setMessages(prev => prev.some(m => m.id === newMessage.id) ? prev : [...prev, newMessage]);
-        })
-      .subscribe();
-    return () => { supabase.removeChannel(channel); };
+    const channel = supabase.
+    channel(`harmony:${selectedHarmony.id}`).
+    on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `harmony_id=eq.${selectedHarmony.id}` },
+    (payload) => {
+      const newMessage = payload.new as Message;
+      setMessages((prev) => prev.some((m) => m.id === newMessage.id) ? prev : [...prev, newMessage]);
+    }).
+    subscribe();
+    return () => {supabase.removeChannel(channel);};
   }, [selectedHarmony?.id]);
 
-  useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
+  useEffect(() => {messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });}, [messages]);
 
   useEffect(() => {
     if (selectedHarmony) {
@@ -76,18 +76,18 @@ export default function Messages() {
   const fetchHarmonies = async () => {
     if (!myDog) return;
     try {
-      const { data, error } = await supabase
-        .from('harmonies')
-        .select(`*, dog_a:dogs!harmonies_dog_a_id_fkey(*, owner:profiles(*), breed:breeds(*)), dog_b:dogs!harmonies_dog_b_id_fkey(*, owner:profiles(*), breed:breeds(*)), messages(*)`)
-        .or(`dog_a_id.eq.${myDog.id},dog_b_id.eq.${myDog.id}`)
-        .order('created_at', { ascending: false });
+      const { data, error } = await supabase.
+      from('harmonies').
+      select(`*, dog_a:dogs!harmonies_dog_a_id_fkey(*, owner:profiles(*), breed:breeds(*)), dog_b:dogs!harmonies_dog_b_id_fkey(*, owner:profiles(*), breed:breeds(*)), messages(*)`).
+      or(`dog_a_id.eq.${myDog.id},dog_b_id.eq.${myDog.id}`).
+      order('created_at', { ascending: false });
       if (error) throw error;
-      setHarmonies((data as unknown as HarmonyWithDogs[]) || []);
-    } catch (error) { console.error('Error fetching harmonies:', error); }
-    finally { setLoading(false); }
+      setHarmonies(data as unknown as HarmonyWithDogs[] || []);
+    } catch (error) {console.error('Error fetching harmonies:', error);} finally
+    {setLoading(false);}
   };
 
-  const getOtherDog = (harmony: HarmonyWithDogs): Dog & { owner: Profile } => {
+  const getOtherDog = (harmony: HarmonyWithDogs): Dog & {owner: Profile;} => {
     return harmony.dog_a.id === myDog?.id ? harmony.dog_b : harmony.dog_a;
   };
 
@@ -97,24 +97,24 @@ export default function Messages() {
     try {
       const { data, error } = await supabase.rpc('send_message', { p_harmony_id: selectedHarmony.id, p_content: content.trim() });
       if (error) throw error;
-      const result = data as { status: string; message: string; message_id?: string };
-      if (result.status === 'ERROR') { toast.error(result.message); return; }
+      const result = data as {status: string;message: string;message_id?: string;};
+      if (result.status === 'ERROR') {toast.error(result.message);return;}
       setMessageText('');
       if (result.message_id) {
-        setMessages(prev => [...prev, { id: result.message_id!, harmony_id: selectedHarmony.id, sender_id: profile.id, message_type: 'reply', content: content.trim(), created_at: new Date().toISOString() }]);
+        setMessages((prev) => [...prev, { id: result.message_id!, harmony_id: selectedHarmony.id, sender_id: profile.id, message_type: 'reply', content: content.trim(), created_at: new Date().toISOString() }]);
       }
       fetchHarmonies();
-    } catch (error) { console.error('Error sending message:', error); toast.error('Mesaj gönderilemedi'); }
-    finally { setSending(false); }
+    } catch (error) {console.error('Error sending message:', error);toast.error('Mesaj gönderilemedi');} finally
+    {setSending(false);}
   };
 
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const rawFile = e.target.files?.[0];
     if (!rawFile || !selectedHarmony || !profile) return;
     const validation = validatePhotoFile(rawFile);
-    if (!validation.valid) { toast.error(validation.error!); return; }
+    if (!validation.valid) {toast.error(validation.error!);return;}
     let file: File;
-    try { file = await compressImage(rawFile); } catch { toast.error('Fotoğraf işlenemedi'); return; }
+    try {file = await compressImage(rawFile);} catch {toast.error('Fotoğraf işlenemedi');return;}
     setUploadingPhoto(true);
     try {
       const fileExt = file.name.split('.').pop();
@@ -124,13 +124,13 @@ export default function Messages() {
       const { data: { publicUrl } } = supabase.storage.from('dog-photos').getPublicUrl(fileName);
       await handleSendMessage(`📷 ${publicUrl}`);
       toast.success('Fotoğraf gönderildi!');
-    } catch (error) { console.error('Error uploading photo:', error); toast.error('Fotoğraf gönderilemedi'); }
-    finally { setUploadingPhoto(false); if (fileInputRef.current) fileInputRef.current.value = ''; }
+    } catch (error) {console.error('Error uploading photo:', error);toast.error('Fotoğraf gönderilemedi');} finally
+    {setUploadingPhoto(false);if (fileInputRef.current) fileInputRef.current.value = '';}
   };
 
   const handleQuickAction = (actionId: string) => {
-    if (actionId === 'suggest_park') setMessageText('Hangi park size daha uygun?');
-    else if (actionId === 'suggest_time') setMessageText('Hangi zaman aralığı daha iyi olur?');
+    if (actionId === 'suggest_park') setMessageText('Hangi park size daha uygun?');else
+    if (actionId === 'suggest_time') setMessageText('Hangi zaman aralığı daha iyi olur?');
   };
 
   const renderMessageContent = (content: string) => {
@@ -163,22 +163,22 @@ export default function Messages() {
           </div>
         </header>
         <div className="p-3 bg-secondary/30 border-b flex gap-2 overflow-x-auto no-scrollbar">
-          {QUICK_ACTIONS.map(action => (
-            <button key={action.id} onClick={() => handleQuickAction(action.id)} className="flex items-center gap-1.5 rounded-full bg-card border border-border px-3 py-1.5 text-sm whitespace-nowrap">
+          {QUICK_ACTIONS.map((action) =>
+          <button key={action.id} onClick={() => handleQuickAction(action.id)} className="flex items-center gap-1.5 rounded-full bg-card border border-border px-3 py-1.5 text-sm whitespace-nowrap">
               <span>{action.icon}</span>{action.label}
             </button>
-          ))}
+          )}
         </div>
         <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
-          {messages.length === 0 ? (
-            <div className="text-center py-8"><p className="text-muted-foreground">Henüz mesaj yok. Sohbete başla!</p></div>
-          ) : messages.map(message => {
+          {messages.length === 0 ?
+          <div className="text-center py-8"><p className="text-muted-foreground">Henüz mesaj yok. Sohbete başla!</p></div> :
+          messages.map((message) => {
             const isMine = message.sender_id === profile?.id;
             return (
               <div key={message.id} className={cn("template-bubble", isMine ? "template-bubble-sent" : "template-bubble-received")}>
                 {renderMessageContent(message.content)}
-              </div>
-            );
+              </div>);
+
           })}
           <div ref={messagesEndRef} />
         </div>
@@ -188,22 +188,22 @@ export default function Messages() {
             <button onClick={() => fileInputRef.current?.click()} disabled={uploadingPhoto} className="flex h-11 w-11 items-center justify-center rounded-xl bg-secondary text-secondary-foreground">
               {uploadingPhoto ? <Loader2 className="h-5 w-5 animate-spin" /> : <Image className="h-5 w-5" />}
             </button>
-            <input type="text" placeholder="Mesaj yaz..." className="flex-1 rounded-xl border-2 border-border bg-background px-4 py-2.5 text-sm focus:border-primary focus:outline-none" value={messageText} onChange={e => setMessageText(e.target.value)} onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(messageText); } }} />
+            <input type="text" placeholder="Mesaj yaz..." className="flex-1 rounded-xl border-2 border-border bg-background px-4 py-2.5 text-sm focus:border-primary focus:outline-none" value={messageText} onChange={(e) => setMessageText(e.target.value)} onKeyDown={(e) => {if (e.key === 'Enter' && !e.shiftKey) {e.preventDefault();handleSendMessage(messageText);}}} />
             <button onClick={() => handleSendMessage(messageText)} disabled={!messageText.trim() || sending} className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary text-primary-foreground disabled:opacity-50">
               {sending ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
             </button>
           </div>
         </div>
         <DogProfileModal dog={profileModalDog} onClose={() => setProfileModalDog(null)} />
-      </div>
-    );
+      </div>);
+
   }
 
-  const tabs: { id: SocialTab; label: string; icon: React.ReactNode }[] = [
-    { id: 'waves', label: 'Aktivite', icon: <Users className="h-4 w-4" /> },
-    { id: 'chat', label: 'Mesajlar', icon: <MessageCircle className="h-4 w-4" /> },
-    { id: 'groupwave', label: 'Grup Wave', icon: <Megaphone className="h-4 w-4" /> },
-  ];
+  const tabs: {id: SocialTab;label: string;icon: React.ReactNode;}[] = [
+  { id: 'waves', label: 'Aktivite', icon: <Users className="h-4 w-4" /> },
+  { id: 'chat', label: 'Mesajlar', icon: <MessageCircle className="h-4 w-4" /> },
+  { id: 'groupwave', label: 'Grup Wave', icon: <Megaphone className="h-4 w-4" /> }];
+
 
   return (
     <div className="relative min-h-screen safe-top safe-bottom" style={{ background: `linear-gradient(180deg, hsl(var(--page-social-light)) 0%, hsl(var(--background)) 30%)` }}>
@@ -211,7 +211,7 @@ export default function Messages() {
       <div className="pointer-events-none fixed inset-0 z-0 flex items-center justify-center opacity-[0.04]">
         <img src={dogiLogo} alt="" className="h-[70vh] w-[70vh] object-contain" />
       </div>
-      <header className="sticky top-0 z-40 glass border-b px-4 py-4">
+      <header className="sticky top-0 z-40 glass border-b px-4 py-4 bg-primary">
         <div className="flex items-center gap-3">
           <img src={dogiLogo} alt="DOGI" className="h-[50px] w-[50px] rounded-xl" />
           <div>
@@ -222,43 +222,43 @@ export default function Messages() {
       </header>
 
       <div className="flex border-b bg-card px-2">
-        {tabs.map(tab => (
-          <button key={tab.id} onClick={() => setActiveTab(tab.id)}
-            className={cn("flex-1 flex items-center justify-center gap-1.5 py-3 text-xs font-semibold transition-colors border-b-2",
-              activeTab === tab.id ? "text-foreground border-primary" : "text-muted-foreground border-transparent"
-            )}>
+        {tabs.map((tab) =>
+        <button key={tab.id} onClick={() => setActiveTab(tab.id)}
+        className={cn("flex-1 flex items-center justify-center gap-1.5 py-3 text-xs font-semibold transition-colors border-b-2",
+        activeTab === tab.id ? "text-foreground border-primary" : "text-muted-foreground border-transparent"
+        )}>
             {tab.icon}{tab.label}
           </button>
-        ))}
+        )}
       </div>
 
       <div className="px-4 py-4">
-        {activeTab === 'chat' && (
-          <>
-            {harmonies.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-16 text-center">
+        {activeTab === 'chat' &&
+        <>
+            {harmonies.length === 0 ?
+          <div className="flex flex-col items-center justify-center py-16 text-center">
                 <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[hsl(var(--harmony))]/20"><span className="text-3xl">🐕</span></div>
                 <h2 className="mb-2 font-display text-lg font-semibold text-foreground">Henüz eşleşme yok</h2>
                 <p className="max-w-[280px] text-sm text-muted-foreground">Önce köpekler eşleşir. Keşfet'ten wave gönder, karşılıklı wave = Harmony!</p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {harmonies.map(harmony => {
-                  const otherDog = getOtherDog(harmony);
-                  const lastMessage = harmony.messages[harmony.messages.length - 1];
-                  const hasUnread = lastMessage && lastMessage.sender_id !== profile?.id;
-                  return (
-                    <button key={harmony.id} onClick={() => setSelectedHarmony(harmony)}
-                      className={cn("flex w-full items-center gap-3 rounded-2xl bg-card p-3 text-left transition-all", hasUnread && "ring-2 ring-[hsl(var(--harmony))]")}
-                      style={{ boxShadow: 'var(--shadow-card)' }}>
+              </div> :
+
+          <div className="space-y-3">
+                {harmonies.map((harmony) => {
+              const otherDog = getOtherDog(harmony);
+              const lastMessage = harmony.messages[harmony.messages.length - 1];
+              const hasUnread = lastMessage && lastMessage.sender_id !== profile?.id;
+              return (
+                <button key={harmony.id} onClick={() => setSelectedHarmony(harmony)}
+                className={cn("flex w-full items-center gap-3 rounded-2xl bg-card p-3 text-left transition-all", hasUnread && "ring-2 ring-[hsl(var(--harmony))]")}
+                style={{ boxShadow: 'var(--shadow-card)' }}>
                       <div className="relative">
                         <img src={otherDog.photo_url} alt={otherDog.name} className="h-14 w-14 rounded-xl object-cover" />
-                        {hasUnread && (
-                          <span className="absolute -right-1 -top-1 flex h-3 w-3">
+                        {hasUnread &&
+                    <span className="absolute -right-1 -top-1 flex h-3 w-3">
                             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[hsl(var(--harmony))] opacity-75" />
                             <span className="relative inline-flex h-3 w-3 rounded-full bg-[hsl(var(--harmony))]" />
                           </span>
-                        )}
+                    }
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
@@ -266,34 +266,34 @@ export default function Messages() {
                           <span className="text-xs text-[hsl(var(--harmony))]">✨ Harmony</span>
                         </div>
                         <p className="truncate text-sm text-muted-foreground">
-                          {lastMessage ? (lastMessage.content.startsWith('📷 ') ? '📷 Fotoğraf' : lastMessage.content) : "Mesajlaşmaya başla..."}
+                          {lastMessage ? lastMessage.content.startsWith('📷 ') ? '📷 Fotoğraf' : lastMessage.content : "Mesajlaşmaya başla..."}
                         </p>
                       </div>
-                    </button>
-                  );
-                })}
+                    </button>);
+
+            })}
               </div>
-            )}
+          }
           </>
-        )}
+        }
 
         {activeTab === 'waves' && <WavePendingList />}
         {activeTab === 'groupwave' && (
-          selectedPark ? (
-            <GroupWaveSection parkId={selectedPark.id} />
-          ) : (
-            <div className="flex flex-col items-center justify-center py-16 text-center">
+        selectedPark ?
+        <GroupWaveSection parkId={selectedPark.id} /> :
+
+        <div className="flex flex-col items-center justify-center py-16 text-center">
               <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-secondary">
                 <Megaphone className="h-8 w-8 text-muted-foreground" />
               </div>
               <h2 className="mb-2 font-display text-lg font-semibold text-foreground">Park seçilmedi</h2>
               <p className="max-w-[280px] text-sm text-muted-foreground">Grup Wave oluşturmak için önce bir park seçmelisin.</p>
-            </div>
-          )
-        )}
+            </div>)
+
+        }
       </div>
 
       <DogProfileModal dog={profileModalDog} onClose={() => setProfileModalDog(null)} />
-    </div>
-  );
+    </div>);
+
 }
