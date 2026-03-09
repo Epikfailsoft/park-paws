@@ -225,7 +225,11 @@ export default function Discover() {
   }
 
   return (
-    <div className="min-h-screen safe-top safe-bottom" style={{ background: `linear-gradient(180deg, hsl(var(--page-discover-light)) 0%, hsl(var(--background)) 20%)` }}>
+    <div className="relative min-h-screen safe-top safe-bottom" style={{ background: `linear-gradient(180deg, hsl(var(--page-discover-light)) 0%, hsl(var(--background)) 20%)` }}>
+      {/* Background watermark logo */}
+      <div className="pointer-events-none fixed inset-0 z-0 flex items-center justify-center opacity-[0.04]">
+        <img src={dogiLogo} alt="" className="h-[70vh] w-[70vh] object-contain" />
+      </div>
       {/* ─── HEADER ─── */}
       <header className="sticky top-0 z-40 glass border-b">
         {/* Row 1: Title + Playdate toggle */}
@@ -352,8 +356,8 @@ export default function Discover() {
             {/* Playdate ON/OFF toggle */}
             {myDog && (
               <button onClick={togglePlaydateOn}
-                className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-all"
-                style={{ background: 'hsl(var(--page-discover))', color: 'white' }}>
+                className="flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-all text-white"
+                style={{ background: 'hsl(var(--page-discover))' }}>
                 <span className="relative flex h-2 w-2">
                   <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white opacity-75"></span>
                   <span className="relative inline-flex h-2 w-2 rounded-full bg-white"></span>

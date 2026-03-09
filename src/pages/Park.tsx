@@ -254,7 +254,7 @@ export default function Park() {
               disabled={!hasPhoto && !myDog.photo_url}
               className={cn(
                 "flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-all",
-                isCheckedIn ? "bg-[hsl(var(--park-active))] text-white" : "bg-secondary text-secondary-foreground",
+                isCheckedIn ? "bg-[hsl(var(--park-active))] text-white" : "bg-[hsl(var(--page-social))] text-white",
                 !hasPhoto && !myDog.photo_url && "opacity-50"
               )}>
               
