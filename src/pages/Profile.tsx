@@ -13,6 +13,7 @@ import { toast } from 'sonner';
 import { SOCIAL_STYLE_OPTIONS, LIKES_SUGGESTIONS, DISLIKES_SUGGESTIONS, formatOwnerName } from '@/types/dogspace';
 import { validateTurkishPhone } from '@/lib/upload-validation';
 import { Search } from 'lucide-react';
+import dogiLogo from '@/assets/dogi-logo.png';
 
 export default function Profile() {
   const { profile, dogs, selectedPark, signOut, refreshDogs, refreshProfile } = useAuth();
