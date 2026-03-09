@@ -231,14 +231,14 @@ export default function Discover() {
         <img src={dogiLogo} alt="" className="h-[70vh] w-[70vh] object-contain" />
       </div>
       {/* ─── HEADER ─── */}
-      <header className="sticky top-0 z-40 glass border-b">
+      <header className="sticky top-0 z-40 border-b px-4 py-4" style={{ background: 'hsl(var(--page-discover))' }}>
         {/* Row 1: Title + Playdate toggle */}
-        <div className="flex items-center justify-between px-4 pt-3 pb-2">
+        <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <img src={dogiLogo} alt="DOGI" className="h-[45px] w-[45px] rounded-xl" />
+            <img src={dogiLogo} alt="DOGI" className="h-[50px] w-[50px] rounded-xl" />
             <div>
-              <h1 className="font-display text-lg font-bold text-foreground leading-tight">Keşfet</h1>
-              <p className="text-[11px] text-muted-foreground">{neighborhoodName ? `${neighborhoodName} · ` : ''}{getTimeContext()}</p>
+              <h1 className="font-display text-lg font-bold text-white leading-tight">Keşfet</h1>
+              <p className="text-[11px] text-white/70">{neighborhoodName ? `${neighborhoodName} · ` : ''}{getTimeContext()}</p>
             </div>
           </div>
           
