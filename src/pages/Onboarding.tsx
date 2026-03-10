@@ -333,7 +333,8 @@ export default function Onboarding() {
     );
   }
 
-  // Step 3: Park Selection
+  // Step 2: Park Selection
+  if (step === 2) {
   return (
     <div className="flex min-h-screen flex-col bg-background safe-top">
       <div className="px-6 pt-8 pb-4">
