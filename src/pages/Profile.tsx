@@ -472,7 +472,9 @@ export default function Profile() {
             )}
 
             {/* Status Control - At Bottom */}
-            <StatusPulse dog={myDog} selectedPark={selectedPark} onRefresh={refreshDogs} />
+            <div id="status-pulse-section">
+              <StatusPulse dog={myDog} selectedPark={selectedPark} onRefresh={refreshDogs} />
+            </div>
 
             {/* Settings & Logout */}
             <div className="border-t border-border pt-4 space-y-2">
