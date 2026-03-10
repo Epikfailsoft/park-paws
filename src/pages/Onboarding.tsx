@@ -137,7 +137,7 @@ export default function Onboarding() {
 
       await refreshDogs();
       toast.success(`${name} eklendi! 🐕`);
-      setStep(3);
+      setStep(2);
     } catch (error) { console.error('Error creating dog:', error); toast.error('Bir hata oluştu. Tekrar deneyin.'); }
     finally { setLoading(false); }
   };
