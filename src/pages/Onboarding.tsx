@@ -148,7 +148,7 @@ export default function Onboarding() {
     try {
       await selectPark(selectedParkId);
       toast.success('Parkın seçildi!');
-      navigate('/park');
+      setStep(3);
     } catch (error) { console.error('Error selecting park:', error); toast.error('Bir hata oluştu'); }
     finally { setLoading(false); }
   };
