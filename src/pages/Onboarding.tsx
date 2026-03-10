@@ -23,7 +23,7 @@ export default function Onboarding() {
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const [step, setStep] = useState<1 | 2 | 3>(1);
+  const [step, setStep] = useState<1 | 2 | 3>(1); // 1=dog, 2=park, 3=owner
 
   // Owner name editing
   const [ownerDisplayName, setOwnerDisplayName] = useState(profile?.display_name || '');
