@@ -185,7 +185,7 @@ export default function Onboarding() {
       const { data: { publicUrl } } = supabase.storage.from('dog-photos').getPublicUrl(fileName);
       await supabase.from('profiles').update({ photo_url: publicUrl }).eq('id', profile.id);
       toast.success('Fotoğrafın eklendi!');
-      setStep(2);
+      navigate('/discover');
     } catch (error) { console.error('Error uploading owner photo:', error); toast.error('Bir hata oluştu'); }
     finally { setOwnerPhotoLoading(false); }
   };
