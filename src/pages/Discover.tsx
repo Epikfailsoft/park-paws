@@ -436,7 +436,7 @@ export default function Discover() {
             {regularDogs.length > 0 &&
           <>
                 <p className="mb-3 text-xs text-muted-foreground font-medium">
-                  🔍 Playdate'e açık köpekler ({regularDogs.length})
+                  🐾 Tüm köpekler ({regularDogs.length})
                 </p>
                 <div className="grid grid-cols-2 gap-3">
                   {regularDogs.map((dog) =>

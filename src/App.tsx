@@ -58,7 +58,7 @@ function AppRoutes() {
           element={
             user 
               ? hasDog 
-                ? <Navigate to="/park" replace /> 
+                ? <Navigate to="/discover" replace /> 
                 : <Navigate to="/onboarding" replace />
               : <Navigate to="/auth" replace />
           } 

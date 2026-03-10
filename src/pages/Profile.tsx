@@ -7,7 +7,7 @@ import { HeroIdentityCard } from '@/components/profile/HeroIdentityCard';
 import { CareCenter } from '@/components/profile/CareCenter';
 import { ActivityBadges } from '@/components/profile/ActivityBadges';
 import { CareVault } from '@/components/profile/CareVault';
-import { Dog, LogOut, Settings, Loader2, ChevronRight, Camera, Phone, User, Edit2 } from 'lucide-react';
+import { Dog, LogOut, Settings, Loader2, ChevronRight, Camera, Phone, User, Edit2, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { SOCIAL_STYLE_OPTIONS, LIKES_SUGGESTIONS, DISLIKES_SUGGESTIONS, formatOwnerName } from '@/types/dogspace';
@@ -164,20 +164,49 @@ export default function Profile() {
         </div>
       )}
 
-      <header className="sticky top-0 z-40 glass border-b px-4 py-3">
+      <header className="sticky top-0 z-40 border-b px-4 py-4" style={{ background: 'hsl(var(--page-profile))' }}>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl text-white shadow-md" style={{ background: 'hsl(var(--page-profile))' }}>
-              <Dog className="h-5 w-5" />
-            </div>
+            <img src={dogiLogo} alt="DOGI" className="h-[50px] w-[50px] rounded-xl" />
             <div>
-              <h1 className="font-display text-lg font-extrabold text-foreground">Köpeğim</h1>
-              <p className="text-xs text-muted-foreground font-medium">{profile ? formatOwnerName(profile.display_name, profile.last_name) : ''}</p>
+              <h1 className="font-display text-lg font-extrabold text-white">Köpeğim</h1>
+              <p className="text-xs text-white/70 font-medium">{profile ? formatOwnerName(profile.display_name, profile.last_name) : ''}</p>
             </div>
           </div>
-          <button onClick={() => setEditing(!editing)} className="flex h-10 w-10 items-center justify-center rounded-xl bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-all">
-            <Settings className="h-5 w-5" />
-          </button>
+          <div className="flex items-center gap-2">
+            {/* Lost Mode Toggle */}
+            <button
+              onClick={() => {
+                // Trigger lost mode toggle via StatusPulse - we'll scroll to it
+                const el = document.getElementById('status-pulse-section');
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
+              }}
+              className={cn(
+                "flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-all",
+                myDog.is_lost
+                  ? "bg-white text-purple-600"
+                  : "bg-purple-500 text-white border border-purple-400"
+              )}
+            >
+              {myDog.is_lost ? (
+                <>
+                  <span className="relative flex h-2 w-2">
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-purple-500 opacity-75"></span>
+                    <span className="relative inline-flex h-2 w-2 rounded-full bg-purple-500"></span>
+                  </span>
+                  Kayıp ON
+                </>
+              ) : (
+                <>
+                  <AlertTriangle className="h-4 w-4" />
+                  Kayıp Modu
+                </>
+              )}
+            </button>
+            <button onClick={() => setEditing(!editing)} className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/20 text-white hover:bg-white/30 transition-all">
+              <Settings className="h-5 w-5" />
+            </button>
+          </div>
         </div>
       </header>
 
@@ -443,7 +472,9 @@ export default function Profile() {
             )}
 
             {/* Status Control - At Bottom */}
-            <StatusPulse dog={myDog} selectedPark={selectedPark} onRefresh={refreshDogs} />
+            <div id="status-pulse-section">
+              <StatusPulse dog={myDog} selectedPark={selectedPark} onRefresh={refreshDogs} />
+            </div>
 
             {/* Settings & Logout */}
             <div className="border-t border-border pt-4 space-y-2">
