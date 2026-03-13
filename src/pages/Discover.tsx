@@ -162,7 +162,13 @@ export default function Discover() {
 
   const handleSwipeLeft = () => {
     if (currentDog) {
-      setPassedDogs(prev => [...prev, currentDog.dog_id]);
+      const id = currentDog.dog_id;
+      setPassedDogs(prev => new Set([...prev, id]));
+      try {
+        const stored = JSON.parse(localStorage.getItem('dogspace_passed_dogs') || '{}');
+        stored[id] = Date.now();
+        localStorage.setItem('dogspace_passed_dogs', JSON.stringify(stored));
+      } catch {}
       setCurrentIndex(prev => prev + 1);
     }
   };
