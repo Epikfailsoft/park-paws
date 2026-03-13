@@ -4,7 +4,7 @@ import { useLocation } from '@/hooks/useLocation';
 import { supabase } from '@/integrations/supabase/client';
 import { SwipeCard } from '@/components/discover/SwipeCard';
 import { WaveLimitModal } from '@/components/discover/WaveLimitModal';
-import { Compass, Loader2, ToggleRight, AlertTriangle, SlidersHorizontal, Heart, X, RotateCcw } from 'lucide-react';
+import { Compass, Loader2, ToggleRight, SlidersHorizontal, Heart, X, RotateCcw } from 'lucide-react';
 import dogiLogo from '@/assets/dogi-logo.png';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
