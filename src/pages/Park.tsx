@@ -313,6 +313,29 @@ export default function Park() {
         </div>
       }
 
+      {/* ─── LOST DOGS BANNER ─── */}
+      {selectedPark && parkDogs.filter(d => d.is_lost).length > 0 && (
+        <div className="mx-4 mt-3">
+          <div className="rounded-2xl border-2 border-destructive bg-destructive/5 p-3">
+            <div className="flex items-center gap-2 mb-2">
+              <AlertTriangle className="h-4 w-4 text-destructive" />
+              <h3 className="font-display text-sm font-bold text-destructive">Kayıp ({parkDogs.filter(d => d.is_lost).length})</h3>
+            </div>
+            <div className="flex gap-2 overflow-x-auto no-scrollbar">
+              {parkDogs.filter(d => d.is_lost).map(dog => (
+                <div key={dog.dog_id} className="flex items-center gap-2 rounded-xl bg-card p-2 shrink-0">
+                  <img src={dog.photo_url} alt={dog.dog_name} className="h-10 w-10 rounded-lg object-cover ring-2 ring-destructive" />
+                  <div>
+                    <h4 className="text-xs font-semibold text-foreground">{dog.dog_name}</h4>
+                    <p className="text-[10px] text-muted-foreground">{dog.breed_name || 'Karışık'}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Who is here now? */}
       <div className="px-4 py-4">
         <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide" style={{ color: 'hsl(30 50% 35%)' }}>
