@@ -1110,75 +1110,40 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      get_discover_dogs:
-        | {
-            Args: {
-              p_limit?: number
-              p_max_distance_km?: number
-              p_offset?: number
-              p_user_lat?: number
-              p_user_lng?: number
-            }
-            Returns: {
-              already_waved: boolean
-              approximate_age: string
-              bio: string
-              breed_name: string
-              current_park_id: string
-              current_park_name: string
-              daily_energy: number
-              distance_km: number
-              dog_id: string
-              dog_name: string
-              energy_level: number
-              gender: string
-              is_lost: boolean
-              is_neutered: boolean
-              owner_name_stub: string
-              owner_photo_stub: string
-              park_checkin_active: boolean
-              photo_url: string
-              playdate_expires_at: string
-              playdate_on: boolean
-              social_style: string
-              triggers: string[]
-              weight_kg: number
-            }[]
-          }
-        | {
-            Args: {
-              p_limit?: number
-              p_max_distance_km?: number
-              p_offset?: number
-              p_user_lat?: number
-              p_user_lng?: number
-            }
-            Returns: {
-              already_waved: boolean
-              approximate_age: string
-              bio: string
-              breed_name: string
-              current_park_id: string
-              current_park_name: string
-              daily_energy: number
-              distance_km: number
-              dog_id: string
-              dog_name: string
-              energy_level: number
-              gender: string
-              is_lost: boolean
-              is_neutered: boolean
-              owner_name_stub: string
-              owner_photo_stub: string
-              park_checkin_active: boolean
-              photo_url: string
-              playdate_expires_at: string
-              playdate_on: boolean
-              social_style: string
-              triggers: string[]
-              weight_kg: number
-            }[]
-          }
+      get_discover_dogs: {
+        Args: {
+          p_limit?: number
+          p_max_distance_km?: number
+          p_offset?: number
+          p_user_lat?: number
+          p_user_lng?: number
+        }
+        Returns: {
+          already_waved: boolean
+          approximate_age: string
+          bio: string
+          breed_name: string
+          current_park_id: string
+          current_park_name: string
+          daily_energy: number
+          distance_km: number
+          dog_id: string
+          dog_name: string
+          energy_level: number
+          gender: string
+          is_lost: boolean
+          is_neutered: boolean
+          owner_name_stub: string
+          owner_photo_stub: string
+          park_checkin_active: boolean
+          photo_url: string
+          playdate_expires_at: string
+          playdate_on: boolean
+          social_style: string
+          triggers: string[]
+          weight_kg: number
+        }[]
+      }
       get_last_active: { Args: { p_dog_id: string }; Returns: string }
       get_park_dogs: {
         Args: { p_limit?: number; p_park_id: string }
