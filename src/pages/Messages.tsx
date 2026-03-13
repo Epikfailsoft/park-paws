@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { OwnerChip } from '@/components/ui/OwnerChip';
-import { MessageCircle, Loader2, Send, Image, X, Users, Megaphone } from 'lucide-react';
+import { MessageCircle, Loader2, Send, Image, X, Users } from 'lucide-react';
 import dogiLogo from '@/assets/dogi-logo.png';
 import { cn } from '@/lib/utils';
 import { validatePhotoFile, compressImage } from '@/lib/upload-validation';
@@ -10,7 +10,7 @@ import { toast } from 'sonner';
 import type { Harmony, Dog, Profile, Message } from '@/types/dogspace';
 import { formatOwnerName, QUICK_ACTIONS } from '@/types/dogspace';
 import { WavePendingList } from '@/components/social/WavePendingList';
-import { GroupWaveSection } from '@/components/park/GroupWaveSection';
+
 import { DogProfileModal } from '@/components/social/DogProfileModal';
 
 interface HarmonyWithDogs extends Harmony {
@@ -19,7 +19,7 @@ interface HarmonyWithDogs extends Harmony {
   messages: Message[];
 }
 
-type SocialTab = 'chat' | 'waves' | 'groupwave';
+type SocialTab = 'chat' | 'waves';
 
 export default function Messages() {
   const { profile, dogs, selectedPark } = useAuth();
@@ -201,8 +201,7 @@ export default function Messages() {
 
   const tabs: {id: SocialTab;label: string;icon: React.ReactNode;}[] = [
   { id: 'waves', label: 'Aktivite', icon: <Users className="h-4 w-4" /> },
-  { id: 'chat', label: 'Mesajlar', icon: <MessageCircle className="h-4 w-4" /> },
-  { id: 'groupwave', label: 'Grup Wave', icon: <Megaphone className="h-4 w-4" /> }];
+  { id: 'chat', label: 'Mesajlar', icon: <MessageCircle className="h-4 w-4" /> }];
 
 
   return (
@@ -278,19 +277,6 @@ export default function Messages() {
         }
 
         {activeTab === 'waves' && <WavePendingList />}
-        {activeTab === 'groupwave' && (
-        selectedPark ?
-        <GroupWaveSection parkId={selectedPark.id} /> :
-
-        <div className="flex flex-col items-center justify-center py-16 text-center">
-              <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-secondary">
-                <Megaphone className="h-8 w-8 text-muted-foreground" />
-              </div>
-              <h2 className="mb-2 font-display text-lg font-semibold text-foreground">Park seçilmedi</h2>
-              <p className="max-w-[280px] text-sm text-muted-foreground">Grup Wave oluşturmak için önce bir park seçmelisin.</p>
-            </div>)
-
-        }
       </div>
 
       <DogProfileModal dog={profileModalDog} onClose={() => setProfileModalDog(null)} />

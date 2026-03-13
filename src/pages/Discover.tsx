@@ -4,7 +4,7 @@ import { useLocation } from '@/hooks/useLocation';
 import { supabase } from '@/integrations/supabase/client';
 import { SwipeCard } from '@/components/discover/SwipeCard';
 import { WaveLimitModal } from '@/components/discover/WaveLimitModal';
-import { Compass, Loader2, ToggleRight, AlertTriangle, SlidersHorizontal, Heart, X, RotateCcw } from 'lucide-react';
+import { Compass, Loader2, ToggleRight, SlidersHorizontal, Heart, X, RotateCcw } from 'lucide-react';
 import dogiLogo from '@/assets/dogi-logo.png';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -32,7 +32,18 @@ export default function Discover() {
   const [allDogs, setAllDogs] = useState<DiscoverDog[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [wavedDogs, setWavedDogs] = useState<Set<string>>(new Set());
-  const [passedDogs, setPassedDogs] = useState<string[]>([]);
+  const [passedDogs, setPassedDogs] = useState<Set<string>>(() => {
+    try {
+      const stored = JSON.parse(localStorage.getItem('dogspace_passed_dogs') || '{}');
+      const now = Date.now();
+      const valid: Record<string, number> = {};
+      for (const [id, ts] of Object.entries(stored)) {
+        if (now - (ts as number) < 24 * 60 * 60 * 1000) valid[id] = ts as number;
+      }
+      localStorage.setItem('dogspace_passed_dogs', JSON.stringify(valid));
+      return new Set(Object.keys(valid));
+    } catch { return new Set(); }
+  });
   const [wavesRemaining, setWavesRemaining] = useState<number>(RATE_LIMITS.DAILY_WAVES);
   const [loading, setLoading] = useState(true);
 
@@ -55,14 +66,15 @@ export default function Discover() {
 
   // Filtered dogs for swipe
   const filteredDogs = allDogs.filter(d => {
+    if (d.is_lost) return false;
+    if (passedDogs.has(d.dog_id)) return false;
     if (genderFilter && d.gender !== genderFilter) return false;
     if (socialStyleFilter && d.social_style !== socialStyleFilter) return false;
     if (energyFilter && d.energy_level !== energyFilter) return false;
     return true;
   });
 
-  const lostDogs = filteredDogs.filter(d => d.is_lost);
-  const swipeDogs = filteredDogs.filter(d => !d.is_lost);
+  const swipeDogs = filteredDogs;
   const currentDog = swipeDogs[currentIndex];
   const nextDog = swipeDogs[currentIndex + 1];
 
@@ -150,7 +162,13 @@ export default function Discover() {
 
   const handleSwipeLeft = () => {
     if (currentDog) {
-      setPassedDogs(prev => [...prev, currentDog.dog_id]);
+      const id = currentDog.dog_id;
+      setPassedDogs(prev => new Set([...prev, id]));
+      try {
+        const stored = JSON.parse(localStorage.getItem('dogspace_passed_dogs') || '{}');
+        stored[id] = Date.now();
+        localStorage.setItem('dogspace_passed_dogs', JSON.stringify(stored));
+      } catch {}
       setCurrentIndex(prev => prev + 1);
     }
   };
@@ -158,7 +176,6 @@ export default function Discover() {
   const handleUndo = () => {
     if (currentIndex > 0) {
       setCurrentIndex(prev => prev - 1);
-      setPassedDogs(prev => prev.slice(0, -1));
     }
   };
 
@@ -329,29 +346,6 @@ export default function Discover() {
           </div>
         </div>
       </header>
-
-      {/* ─── LOST DOGS BANNER ─── */}
-      {lostDogs.length > 0 && (
-        <div className="mx-4 mt-3">
-          <div className="rounded-2xl border-2 border-destructive bg-destructive/5 p-3">
-            <div className="flex items-center gap-2 mb-2">
-              <AlertTriangle className="h-4 w-4 text-destructive" />
-              <h3 className="font-display text-sm font-bold text-destructive">Kayıp ({lostDogs.length})</h3>
-            </div>
-            <div className="flex gap-2 overflow-x-auto no-scrollbar">
-              {lostDogs.map(dog => (
-                <div key={dog.dog_id} className="flex items-center gap-2 rounded-xl bg-card p-2 shrink-0">
-                  <img src={dog.photo_url} alt={dog.dog_name} className="h-10 w-10 rounded-lg object-cover ring-2 ring-destructive" />
-                  <div>
-                    <h4 className="text-xs font-semibold text-foreground">{dog.dog_name}</h4>
-                    <p className="text-[10px] text-muted-foreground">{dog.breed_name || 'Karışık'}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* ─── SWIPE CARD STACK ─── */}
       <div className="flex-1 flex flex-col items-center justify-center px-4 py-4">
