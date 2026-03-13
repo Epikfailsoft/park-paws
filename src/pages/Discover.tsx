@@ -32,7 +32,18 @@ export default function Discover() {
   const [allDogs, setAllDogs] = useState<DiscoverDog[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [wavedDogs, setWavedDogs] = useState<Set<string>>(new Set());
-  const [passedDogs, setPassedDogs] = useState<string[]>([]);
+  const [passedDogs, setPassedDogs] = useState<Set<string>>(() => {
+    try {
+      const stored = JSON.parse(localStorage.getItem('dogspace_passed_dogs') || '{}');
+      const now = Date.now();
+      const valid: Record<string, number> = {};
+      for (const [id, ts] of Object.entries(stored)) {
+        if (now - (ts as number) < 24 * 60 * 60 * 1000) valid[id] = ts as number;
+      }
+      localStorage.setItem('dogspace_passed_dogs', JSON.stringify(valid));
+      return new Set(Object.keys(valid));
+    } catch { return new Set(); }
+  });
   const [wavesRemaining, setWavesRemaining] = useState<number>(RATE_LIMITS.DAILY_WAVES);
   const [loading, setLoading] = useState(true);
 
