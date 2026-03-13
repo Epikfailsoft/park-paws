@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { OwnerChip } from '@/components/ui/OwnerChip';
-import { MessageCircle, Loader2, Send, Image, X, Users, Megaphone } from 'lucide-react';
+import { MessageCircle, Loader2, Send, Image, X, Users } from 'lucide-react';
 import dogiLogo from '@/assets/dogi-logo.png';
 import { cn } from '@/lib/utils';
 import { validatePhotoFile, compressImage } from '@/lib/upload-validation';
