@@ -19,7 +19,7 @@ interface HarmonyWithDogs extends Harmony {
   messages: Message[];
 }
 
-type SocialTab = 'chat' | 'waves' | 'groupwave';
+type SocialTab = 'chat' | 'waves';
 
 export default function Messages() {
   const { profile, dogs, selectedPark } = useAuth();
