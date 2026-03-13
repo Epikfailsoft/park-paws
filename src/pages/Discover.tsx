@@ -66,14 +66,15 @@ export default function Discover() {
 
   // Filtered dogs for swipe
   const filteredDogs = allDogs.filter(d => {
+    if (d.is_lost) return false;
+    if (passedDogs.has(d.dog_id)) return false;
     if (genderFilter && d.gender !== genderFilter) return false;
     if (socialStyleFilter && d.social_style !== socialStyleFilter) return false;
     if (energyFilter && d.energy_level !== energyFilter) return false;
     return true;
   });
 
-  const lostDogs = filteredDogs.filter(d => d.is_lost);
-  const swipeDogs = filteredDogs.filter(d => !d.is_lost);
+  const swipeDogs = filteredDogs;
   const currentDog = swipeDogs[currentIndex];
   const nextDog = swipeDogs[currentIndex + 1];
 
