@@ -10,7 +10,7 @@ import { toast } from 'sonner';
 import type { Harmony, Dog, Profile, Message } from '@/types/dogspace';
 import { formatOwnerName, QUICK_ACTIONS } from '@/types/dogspace';
 import { WavePendingList } from '@/components/social/WavePendingList';
-import { GroupWaveSection } from '@/components/park/GroupWaveSection';
+
 import { DogProfileModal } from '@/components/social/DogProfileModal';
 
 interface HarmonyWithDogs extends Harmony {
