@@ -176,7 +176,6 @@ export default function Discover() {
   const handleUndo = () => {
     if (currentIndex > 0) {
       setCurrentIndex(prev => prev - 1);
-      setPassedDogs(prev => prev.slice(0, -1));
     }
   };
 
