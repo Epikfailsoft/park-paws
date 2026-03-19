@@ -145,7 +145,7 @@ export default function Discover() {
       setWavedDogs(prev => new Set([...prev, toDogId]));
       setWavesRemaining(prev => prev - 1);
       if (result.status === 'HARMONY_CREATED') toast.success('🎉 Eşleştiniz! Artık mesajlaşabilirsiniz', { duration: 5000 });
-      else toast.success('Wave gönderildi! 👋');
+      else toast.success('Woof gönderildi! 🐕');
     } catch (error) {
       console.error('Error waving:', error);
       toast.error('Bir hata oluştu');
