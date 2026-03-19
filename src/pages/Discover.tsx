@@ -4,11 +4,11 @@ import { useLocation } from '@/hooks/useLocation';
 import { supabase } from '@/integrations/supabase/client';
 import { SwipeCard } from '@/components/discover/SwipeCard';
 import { WaveLimitModal } from '@/components/discover/WaveLimitModal';
-import { Compass, Loader2, ToggleRight, SlidersHorizontal, Heart, X, RotateCcw } from 'lucide-react';
+import { Compass, Loader2, SlidersHorizontal, Heart, X, RotateCcw } from 'lucide-react';
 import dogiLogo from '@/assets/dogi-logo.png';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
-import { RATE_LIMITS, SOCIAL_STYLE_OPTIONS, getTimeContext, isPlaydateActive, getPlaydateRemainingHours } from '@/types/dogspace';
+import { RATE_LIMITS, SOCIAL_STYLE_OPTIONS, getTimeContext } from '@/types/dogspace';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import type { DiscoverDog } from '@/types/dogspace';
 
@@ -26,7 +26,7 @@ const GENDER_FILTER_OPTIONS = [
 ];
 
 export default function Discover() {
-  const { dogs, profile, selectedPark, refreshDogs } = useAuth();
+  const { dogs, profile, selectedPark } = useAuth();
   const { lat, lng } = useLocation();
 
   const [allDogs, setAllDogs] = useState<DiscoverDog[]>([]);
@@ -61,7 +61,6 @@ export default function Discover() {
   const [totalMembers, setTotalMembers] = useState(0);
 
   const myDog = dogs[0];
-  const playdateActive = myDog && isPlaydateActive(myDog);
   const activeFilterCount = [genderFilter, socialStyleFilter, energyFilter].filter(Boolean).length;
 
   // Filtered dogs for swipe
@@ -146,7 +145,7 @@ export default function Discover() {
       setWavedDogs(prev => new Set([...prev, toDogId]));
       setWavesRemaining(prev => prev - 1);
       if (result.status === 'HARMONY_CREATED') toast.success('🎉 Eşleştiniz! Artık mesajlaşabilirsiniz', { duration: 5000 });
-      else toast.success('Wave gönderildi! 👋');
+      else toast.success('Woof gönderildi! 🐕');
     } catch (error) {
       console.error('Error waving:', error);
       toast.error('Bir hata oluştu');
@@ -179,21 +178,6 @@ export default function Discover() {
     }
   };
 
-  const togglePlaydateOn = async () => {
-    if (!myDog) return;
-    try {
-      const newValue = !isPlaydateActive(myDog);
-      const { data, error } = await supabase.rpc('toggle_playdate', { p_dog_id: myDog.id, p_activate: newValue });
-      if (error) throw error;
-      const result = data as { status: string; message: string };
-      if (result.status === 'ERROR') { toast.error(result.message); return; }
-      await refreshDogs();
-      toast.success(newValue ? 'Playdate açık! 24 saat görünür olacaksın.' : 'Playdate kapatıldı');
-    } catch (error) {
-      console.error(error);
-      toast.error('Bir hata oluştu');
-    }
-  };
 
   const clearAllFilters = () => {
     setGenderFilter(null);
@@ -319,30 +303,6 @@ export default function Discover() {
               </PopoverContent>
             </Popover>
 
-            {/* Playdate toggle */}
-            {myDog && (
-              <button onClick={togglePlaydateOn}
-                className={cn(
-                  "flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-medium transition-all",
-                  playdateActive ? "bg-white text-[hsl(var(--page-discover))]" : "bg-white/20 text-white border border-white/30"
-                )}>
-                {playdateActive ? (
-                  <>
-                    <span className="relative flex h-2 w-2">
-                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full opacity-75" style={{ background: 'hsl(var(--page-discover))' }} />
-                      <span className="relative inline-flex h-2 w-2 rounded-full" style={{ background: 'hsl(var(--page-discover))' }} />
-                    </span>
-                    {(() => {
-                      const hrs = getPlaydateRemainingHours(myDog);
-                      if (hrs >= 1) return `${Math.floor(hrs)}s`;
-                      return `${Math.round(hrs * 60)}dk`;
-                    })()}
-                  </>
-                ) : (
-                  <><ToggleRight className="h-3.5 w-3.5" /> Playdate</>
-                )}
-              </button>
-            )}
           </div>
         </div>
       </header>
@@ -404,7 +364,7 @@ export default function Discover() {
 
             {/* Counter */}
             <p className="mt-3 text-xs text-muted-foreground">
-              {currentIndex + 1} / {swipeDogs.length} · {wavesRemaining} wave kaldı
+              {currentIndex + 1} / {swipeDogs.length} · {wavesRemaining} woof kaldı
             </p>
           </>
         ) : (

@@ -238,7 +238,7 @@ export default function Messages() {
           <div className="flex flex-col items-center justify-center py-16 text-center">
                 <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[hsl(var(--harmony))]/20"><span className="text-3xl">🐕</span></div>
                 <h2 className="mb-2 font-display text-lg font-semibold text-foreground">Henüz eşleşme yok</h2>
-                <p className="max-w-[280px] text-sm text-muted-foreground">Önce köpekler eşleşir. Keşfet'ten wave gönder, karşılıklı wave = Harmony!</p>
+                <p className="max-w-[280px] text-sm text-muted-foreground">Önce köpekler eşleşir. Keşfet'ten woof gönder, karşılıklı woof = Harmony!</p>
               </div> :
 
           <div className="space-y-3">

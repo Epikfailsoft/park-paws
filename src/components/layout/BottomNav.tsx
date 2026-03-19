@@ -5,9 +5,9 @@ import { useAuth } from '@/hooks/useAuth';
 
 const navItems = [
   { path: '/discover', icon: Compass, label: 'Keşfet', cssVar: '--page-discover' },
+  { path: '/park', icon: MapPin, label: 'Park', cssVar: '--page-park' },
   { path: '/mydog', icon: Dog, label: 'Köpeğim', cssVar: '--page-profile' },
   { path: '/inbox', icon: Inbox, label: 'Sosyal', cssVar: '--page-social' },
-  { path: '/park', icon: MapPin, label: 'Park', cssVar: '--page-park' },
 ];
 
 export function BottomNav() {
