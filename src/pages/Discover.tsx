@@ -379,7 +379,7 @@ export default function Discover() {
 
             {/* Counter */}
             <p className="mt-3 text-xs text-muted-foreground">
-              {currentIndex + 1} / {swipeDogs.length} · {wavesRemaining} wave kaldı
+              {currentIndex + 1} / {swipeDogs.length} · {wavesRemaining} woof kaldı
             </p>
           </>
         ) : (
