@@ -199,7 +199,6 @@ export default function Profile() {
                 </>
               )}
             </button>
-            </button>
             <button onClick={() => setEditing(!editing)} className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/20 text-white hover:bg-white/30 transition-all">
               <Settings className="h-5 w-5" />
             </button>
