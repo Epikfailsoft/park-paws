@@ -174,10 +174,9 @@ export default function Profile() {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            {/* Lost Mode Toggle */}
+            {/* Lost Mode Switch */}
             <button
               onClick={() => {
-                // Trigger lost mode toggle via StatusPulse - we'll scroll to it
                 const el = document.getElementById('status-pulse-section');
                 if (el) el.scrollIntoView({ behavior: 'smooth' });
               }}
@@ -190,18 +189,16 @@ export default function Profile() {
             >
               {myDog.is_lost ? (
                 <>
-                  <span className="relative flex h-2 w-2">
-                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-purple-500 opacity-75"></span>
-                    <span className="relative inline-flex h-2 w-2 rounded-full bg-purple-500"></span>
-                  </span>
+                  <ToggleRight className="h-5 w-5" />
                   Kayıp ON
                 </>
               ) : (
                 <>
-                  <AlertTriangle className="h-4 w-4" />
+                  <ToggleLeft className="h-5 w-5" />
                   Kayıp Modu
                 </>
               )}
+            </button>
             </button>
             <button onClick={() => setEditing(!editing)} className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/20 text-white hover:bg-white/30 transition-all">
               <Settings className="h-5 w-5" />
