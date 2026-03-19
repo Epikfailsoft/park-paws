@@ -26,7 +26,7 @@ const GENDER_FILTER_OPTIONS = [
 ];
 
 export default function Discover() {
-  const { dogs, profile, selectedPark, refreshDogs } = useAuth();
+  const { dogs, profile, selectedPark } = useAuth();
   const { lat, lng } = useLocation();
 
   const [allDogs, setAllDogs] = useState<DiscoverDog[]>([]);
