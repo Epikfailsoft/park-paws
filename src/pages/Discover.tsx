@@ -318,30 +318,6 @@ export default function Discover() {
               </PopoverContent>
             </Popover>
 
-            {/* Playdate toggle */}
-            {myDog && (
-              <button onClick={togglePlaydateOn}
-                className={cn(
-                  "flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-medium transition-all",
-                  playdateActive ? "bg-white text-[hsl(var(--page-discover))]" : "bg-white/20 text-white border border-white/30"
-                )}>
-                {playdateActive ? (
-                  <>
-                    <span className="relative flex h-2 w-2">
-                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full opacity-75" style={{ background: 'hsl(var(--page-discover))' }} />
-                      <span className="relative inline-flex h-2 w-2 rounded-full" style={{ background: 'hsl(var(--page-discover))' }} />
-                    </span>
-                    {(() => {
-                      const hrs = getPlaydateRemainingHours(myDog);
-                      if (hrs >= 1) return `${Math.floor(hrs)}s`;
-                      return `${Math.round(hrs * 60)}dk`;
-                    })()}
-                  </>
-                ) : (
-                  <><ToggleRight className="h-3.5 w-3.5" /> Playdate</>
-                )}
-              </button>
-            )}
           </div>
         </div>
       </header>
