@@ -178,21 +178,6 @@ export default function Discover() {
     }
   };
 
-  const togglePlaydateOn = async () => {
-    if (!myDog) return;
-    try {
-      const newValue = !isPlaydateActive(myDog);
-      const { data, error } = await supabase.rpc('toggle_playdate', { p_dog_id: myDog.id, p_activate: newValue });
-      if (error) throw error;
-      const result = data as { status: string; message: string };
-      if (result.status === 'ERROR') { toast.error(result.message); return; }
-      await refreshDogs();
-      toast.success(newValue ? 'Playdate açık! 24 saat görünür olacaksın.' : 'Playdate kapatıldı');
-    } catch (error) {
-      console.error(error);
-      toast.error('Bir hata oluştu');
-    }
-  };
 
   const clearAllFilters = () => {
     setGenderFilter(null);
