@@ -72,18 +72,13 @@ export function DogCard({
         )}
       </div>
 
-      {/* Dog Info - flex-1 to push wave button to bottom */}
+      {/* Dog Info - flex-1 to push woof button to bottom */}
       <div className="p-3 flex flex-col flex-1">
         <div className="flex-1 space-y-1">
-          {/* Line 1: Name */}
           <h3 className="truncate font-display text-base font-bold text-foreground">{dog.name}</h3>
-          
-          {/* Line 2: Breed */}
           <p className="text-xs text-muted-foreground truncate">
             {dog.breed?.name || 'Karışık'}
           </p>
-
-          {/* Line 3: Age + Gender */}
           <p className="text-xs text-muted-foreground">
             {dog.approximate_age}
             {dog.gender && (
@@ -92,8 +87,6 @@ export function DogCard({
               </span>
             )}
           </p>
-
-          {/* Line 4: Social style */}
           {dog.social_style && (
             <div>
               <span className="rounded-full bg-secondary px-2 py-0.5 text-[10px] font-semibold text-secondary-foreground">
@@ -101,8 +94,6 @@ export function DogCard({
               </span>
             </div>
           )}
-
-          {/* Line 5: Distance + Last park */}
           <div className="flex items-center gap-1.5 text-[10px] flex-wrap">
             {distanceKm != null && (
               <span className="text-muted-foreground font-medium">
@@ -118,7 +109,7 @@ export function DogCard({
 
         {isLost && owner && <div className="mt-2"><OwnerChip owner={owner} /></div>}
 
-        {/* Wave button - always at bottom, aligned */}
+        {/* Woof button - always at bottom, aligned */}
         {showWaveButton && onWave && (
           <div className="mt-3 pt-2">
             {hasWaved && canUndo && onUnwave ? (
@@ -135,7 +126,7 @@ export function DogCard({
                     : "text-white hover:opacity-90 active:scale-[0.97] shadow-md"
                 )}
                 style={!hasWaved ? { background: 'var(--gradient-accent)', boxShadow: 'var(--shadow-glow-accent)' } : {}}>
-                {hasWaved ? "El salladın 👋" : "El salla 👋"}
+                {hasWaved ? "Havladın 🐕" : "Havla 🐕"}
               </button>
             )}
           </div>

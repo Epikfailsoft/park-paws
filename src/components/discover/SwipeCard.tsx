@@ -1,9 +1,7 @@
 import { useState, useRef } from 'react';
 import { cn } from '@/lib/utils';
-import { EnergyIndicator } from '@/components/ui/EnergyIndicator';
 import { SOCIAL_STYLE_OPTIONS } from '@/types/dogspace';
 import type { DiscoverDog } from '@/types/dogspace';
-import { Heart, X, MapPin } from 'lucide-react';
 
 interface SwipeCardProps {
   dog: DiscoverDog;
@@ -95,12 +93,12 @@ export function SwipeCard({ dog, onSwipeLeft, onSwipeRight, isTop, hasWaved }: S
       {/* Gradient overlay */}
       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
 
-      {/* LIKE stamp */}
+      {/* WOOF stamp */}
       <div
         className="absolute top-8 left-6 z-20 rounded-lg border-4 border-green-500 px-4 py-2 rotate-[-15deg]"
         style={{ opacity: likeOpacity }}
       >
-        <span className="text-3xl font-extrabold text-green-500 tracking-wide">LIKE</span>
+        <span className="text-3xl font-extrabold text-green-500 tracking-wide">WOOF!</span>
       </div>
 
       {/* NOPE stamp */}
@@ -111,10 +109,10 @@ export function SwipeCard({ dog, onSwipeLeft, onSwipeRight, isTop, hasWaved }: S
         <span className="text-3xl font-extrabold text-red-500 tracking-wide">NOPE</span>
       </div>
 
-      {/* Already waved badge */}
+      {/* Already woofed badge */}
       {hasWaved && (
         <div className="absolute top-4 left-4 z-20 rounded-full bg-green-500/90 px-3 py-1">
-          <span className="text-xs font-bold text-white">👋 El salladın</span>
+          <span className="text-xs font-bold text-white">🐕 Havladın</span>
         </div>
       )}
 
@@ -149,7 +147,16 @@ export function SwipeCard({ dog, onSwipeLeft, onSwipeRight, isTop, hasWaved }: S
               )}
             </div>
             {dog.owner_name_stub && (
-              <p className="text-xs text-white/60 mt-1">👤 {dog.owner_name_stub}</p>
+              <div className="flex items-center gap-1.5 mt-1.5">
+                {dog.owner_photo_stub ? (
+                  <img src={dog.owner_photo_stub} alt="" className="h-5 w-5 rounded-full object-cover ring-1 ring-white/30" />
+                ) : (
+                  <div className="flex h-5 w-5 items-center justify-center rounded-full bg-white/20 text-[9px] font-medium">
+                    {dog.owner_name_stub[0]}
+                  </div>
+                )}
+                <span className="text-xs text-white/60">{dog.owner_name_stub}</span>
+              </div>
             )}
           </div>
         </div>

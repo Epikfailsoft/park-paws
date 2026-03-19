@@ -13,7 +13,6 @@ interface PendingWave {
   photo_url: string;
   breed_name: string;
   wave_date: string;
-  // Extra fields for modal
   dog_id: string;
   approximate_age: string;
   energy_level: number;
@@ -156,9 +155,9 @@ export function WavePendingList() {
   if (incomingWaves.length === 0 && outgoingWaves.length === 0) {
     return (
       <div className="text-center py-8">
-        <p className="text-3xl mb-2">👋</p>
+        <p className="text-3xl mb-2">🐕</p>
         <p className="text-sm text-muted-foreground">
-          Henüz bekleyen wave yok. Keşfet'ten yeni köpeklere wave gönder!
+          Henüz bekleyen woof yok. Keşfet'ten yeni köpeklere woof gönder!
         </p>
       </div>
     );
@@ -169,7 +168,7 @@ export function WavePendingList() {
       {incomingWaves.length > 0 && (
         <div>
           <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
-            📥 Sana wave atan ({incomingWaves.length})
+            📥 Sana havlayan ({incomingWaves.length})
           </h3>
           <div className="space-y-2">
             {incomingWaves.map(w => (
@@ -193,7 +192,7 @@ export function WavePendingList() {
       {outgoingWaves.length > 0 && (
         <div>
           <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
-            📤 Senin wave'lerin ({outgoingWaves.length})
+            📤 Senin woof'ların ({outgoingWaves.length})
           </h3>
           <div className="space-y-2">
             {outgoingWaves.map(w => (
