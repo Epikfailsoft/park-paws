@@ -643,6 +643,7 @@ export type Database = {
           id: string
           park_id: string
           pinned: boolean | null
+          report_count: number | null
           title: string
         }
         Insert: {
@@ -654,6 +655,7 @@ export type Database = {
           id?: string
           park_id: string
           pinned?: boolean | null
+          report_count?: number | null
           title: string
         }
         Update: {
@@ -665,6 +667,7 @@ export type Database = {
           id?: string
           park_id?: string
           pinned?: boolean | null
+          report_count?: number | null
           title?: string
         }
         Relationships: [
@@ -953,6 +956,7 @@ export type Database = {
           display_name: string
           id: string
           last_name: string | null
+          observer_mode: boolean | null
           photo_url: string | null
           updated_at: string | null
           user_id: string
@@ -963,6 +967,7 @@ export type Database = {
           display_name: string
           id?: string
           last_name?: string | null
+          observer_mode?: boolean | null
           photo_url?: string | null
           updated_at?: string | null
           user_id: string
@@ -973,6 +978,7 @@ export type Database = {
           display_name?: string
           id?: string
           last_name?: string | null
+          observer_mode?: boolean | null
           photo_url?: string | null
           updated_at?: string | null
           user_id?: string
