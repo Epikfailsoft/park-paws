@@ -28,6 +28,7 @@ export default function Park() {
   const [joiningPark, setJoiningPark] = useState<string | null>(null);
   const [userApprovals, setUserApprovals] = useState<Set<string>>(new Set());
   const [totalParkDogCount, setTotalParkDogCount] = useState(0);
+  const [selectedDogProfile, setSelectedDogProfile] = useState<any>(null);
 
   const myDog = dogs[0];
   const isCheckedIn = myDog && isParkCheckinActive(myDog);
