@@ -12,12 +12,14 @@ interface AuthContextType {
   loading: boolean;
   hasDog: boolean;
   hasPhoto: boolean;
+  isObserver: boolean;
   signUp: (email: string, password: string, displayName: string) => Promise<{ error: Error | null }>;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
   refreshDogs: () => Promise<void>;
   selectPark: (parkId: string) => Promise<void>;
+  setObserverMode: (val: boolean) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -42,7 +44,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return data as Profile;
     }
 
-    // For social login users, create a profile if none exists
     const fullName = (userMetadata?.full_name as string) || (userMetadata?.name as string) || '';
     const nameParts = fullName.trim().split(' ');
     const displayName = nameParts[0] || 'Kullanıcı';
@@ -124,15 +125,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await fetchSelectedPark(profile.id);
   };
 
+  const setObserverMode = async (val: boolean) => {
+    if (!profile) return;
+    await supabase.from('profiles').update({ observer_mode: val } as any).eq('id', profile.id);
+    setProfile({ ...profile, observer_mode: val } as any);
+  };
+
   useEffect(() => {
-    // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
 
         if (session?.user) {
-          // Defer profile fetch with user metadata for social login users
           setTimeout(() => {
             fetchProfile(session.user.id, session.user.user_metadata).then((profileData) => {
               if (profileData) {
@@ -149,7 +154,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     );
 
-    // THEN check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
@@ -183,7 +187,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     if (error) return { error };
 
-    // Create profile
     if (data.user) {
       const nameParts = displayName.trim().split(' ');
       const firstName = nameParts[0];
@@ -219,6 +222,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setSelectedPark(null);
   };
 
+  const isObserver = !!(profile as any)?.observer_mode;
+
   return (
     <AuthContext.Provider
       value={{
@@ -230,12 +235,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         loading,
         hasDog: dogs.length > 0,
         hasPhoto: !!profile?.photo_url,
+        isObserver,
         signUp,
         signIn,
         signOut,
         refreshProfile,
         refreshDogs,
         selectPark,
+        setObserverMode,
       }}
     >
       {children}

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { Loader2, Plus, Megaphone, AlertTriangle, Calendar, Building2 } from 'lucide-react';
+import { Loader2, Plus, Megaphone, AlertTriangle, Calendar, Building2, Trash2, Flag } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
@@ -14,6 +14,7 @@ interface Announcement {
   body: string | null;
   pinned: boolean;
   created_at: string;
+  author?: { display_name: string; photo_url: string | null } | null;
 }
 
 const TYPE_CONFIG: Record<string, { icon: React.ReactNode; label: string; color: string }> = {
@@ -32,6 +33,7 @@ export function ParkBulletinBoard() {
   const [newBody, setNewBody] = useState('');
   const [newType, setNewType] = useState('general');
   const [submitting, setSubmitting] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
     if (selectedPark) fetchAnnouncements();
@@ -43,7 +45,7 @@ export function ParkBulletinBoard() {
     try {
       const { data } = await supabase
         .from('park_announcements')
-        .select('*')
+        .select('*, author:profiles!park_announcements_author_id_fkey(display_name, photo_url)')
         .eq('park_id', selectedPark.id)
         .order('pinned', { ascending: false })
         .order('created_at', { ascending: false })
@@ -78,6 +80,30 @@ export function ParkBulletinBoard() {
       toast.error('Bir hata oluştu');
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    setDeletingId(id);
+    try {
+      const { error } = await supabase.from('park_announcements').delete().eq('id', id);
+      if (error) throw error;
+      toast.success('Duyuru silindi');
+      setAnnouncements(prev => prev.filter(a => a.id !== id));
+    } catch (error) {
+      console.error('Error deleting:', error);
+      toast.error('Silinemedi');
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  const handleReport = async (id: string) => {
+    try {
+      await supabase.from('park_announcements').update({ report_count: 1 } as any).eq('id', id);
+      toast.success('Bildirim gönderildi. Teşekkürler!');
+    } catch {
+      toast.error('Bildirilemedi');
     }
   };
 
@@ -172,6 +198,7 @@ export function ParkBulletinBoard() {
         <div className="space-y-2">
           {announcements.map(a => {
             const config = TYPE_CONFIG[a.announcement_type] || TYPE_CONFIG.general;
+            const isAuthor = profile && a.author_id === profile.id;
             return (
               <div
                 key={a.id}
@@ -190,6 +217,40 @@ export function ParkBulletinBoard() {
                 </div>
                 <h4 className="font-semibold text-sm text-foreground">{a.title}</h4>
                 {a.body && <p className="text-xs text-muted-foreground mt-1">{a.body}</p>}
+                
+                {/* Author info + actions */}
+                <div className="mt-2 pt-2 border-t border-border/50 flex items-center justify-between">
+                  <div className="flex items-center gap-1.5">
+                    {(a.author as any)?.photo_url ? (
+                      <img src={(a.author as any).photo_url} alt="" className="h-4 w-4 rounded-full object-cover" />
+                    ) : (
+                      <div className="flex h-4 w-4 items-center justify-center rounded-full bg-muted text-[8px] font-medium text-muted-foreground">
+                        {(a.author as any)?.display_name?.[0] || '?'}
+                      </div>
+                    )}
+                    <span className="text-[10px] text-muted-foreground">{(a.author as any)?.display_name || 'Anonim'}</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    {isAuthor && (
+                      <button
+                        onClick={() => handleDelete(a.id)}
+                        disabled={deletingId === a.id}
+                        className="flex h-6 w-6 items-center justify-center rounded-md hover:bg-destructive/10 transition-colors"
+                      >
+                        {deletingId === a.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Trash2 className="h-3 w-3 text-destructive/70" />}
+                      </button>
+                    )}
+                    {!isAuthor && (
+                      <button
+                        onClick={() => handleReport(a.id)}
+                        className="flex h-6 w-6 items-center justify-center rounded-md hover:bg-amber-100 transition-colors"
+                        title="Bildir"
+                      >
+                        <Flag className="h-3 w-3 text-muted-foreground" />
+                      </button>
+                    )}
+                  </div>
+                </div>
               </div>
             );
           })}
