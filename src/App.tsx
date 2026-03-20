@@ -18,7 +18,7 @@ import { Loader2 } from "lucide-react";
 const queryClient = new QueryClient();
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { user, loading, hasDog } = useAuth();
+  const { user, loading, hasDog, isObserver } = useAuth();
 
   if (loading) {
     return (
@@ -32,7 +32,8 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
     return <Navigate to="/auth" replace />;
   }
 
-  if (!hasDog) {
+  // Allow access if user has a dog OR is in observer mode
+  if (!hasDog && !isObserver) {
     return <Navigate to="/onboarding" replace />;
   }
 
@@ -40,7 +41,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 }
 
 function AppRoutes() {
-  const { user, loading, hasDog } = useAuth();
+  const { user, loading, hasDog, isObserver } = useAuth();
 
   if (loading) {
     return (
@@ -57,7 +58,7 @@ function AppRoutes() {
           path="/" 
           element={
             user 
-              ? hasDog 
+              ? (hasDog || isObserver)
                 ? <Navigate to="/discover" replace /> 
                 : <Navigate to="/onboarding" replace />
               : <Navigate to="/auth" replace />
@@ -65,11 +66,10 @@ function AppRoutes() {
         />
         <Route path="/auth" element={user ? <Navigate to="/" replace /> : <Auth />} />
         <Route path="/onboarding" element={user ? <Onboarding /> : <Navigate to="/auth" replace />} />
-        {/* V1.24: 4 main tabs - PARK first */}
-        <Route path="/park" element={<ProtectedRoute><Park /></ProtectedRoute>} />
         <Route path="/discover" element={<ProtectedRoute><Discover /></ProtectedRoute>} />
-        <Route path="/inbox" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
+        <Route path="/park" element={<ProtectedRoute><Park /></ProtectedRoute>} />
         <Route path="/mydog" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+        <Route path="/inbox" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
         {/* Legacy redirects */}
         <Route path="/messages" element={<Navigate to="/inbox" replace />} />
         <Route path="/profile" element={<Navigate to="/mydog" replace />} />

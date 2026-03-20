@@ -1,7 +1,15 @@
-import { X } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { X, Award } from 'lucide-react';
 import { EnergyIndicator } from '@/components/ui/EnergyIndicator';
 import { SOCIAL_STYLE_OPTIONS } from '@/types/dogspace';
+import { supabase } from '@/integrations/supabase/client';
 import type { Dog, Profile } from '@/types/dogspace';
+
+interface DogBadge {
+  id: string;
+  earned_at: string;
+  badge: { code: string; name: string; description: string; icon: string };
+}
 
 interface DogProfileModalProps {
   dog: (Dog & { owner: Profile }) | null;
@@ -9,6 +17,19 @@ interface DogProfileModalProps {
 }
 
 export function DogProfileModal({ dog, onClose }: DogProfileModalProps) {
+  const [badges, setBadges] = useState<DogBadge[]>([]);
+
+  useEffect(() => {
+    if (!dog) { setBadges([]); return; }
+    supabase
+      .from('dog_badges')
+      .select('id, earned_at, badge:badges(code, name, description, icon)')
+      .eq('dog_id', dog.id)
+      .then(({ data }) => {
+        if (data) setBadges(data as unknown as DogBadge[]);
+      });
+  }, [dog?.id]);
+
   if (!dog) return null;
 
   const genderIcon = dog.gender === 'male' ? '♂' : dog.gender === 'female' ? '♀' : '◻';
@@ -51,6 +72,24 @@ export function DogProfileModal({ dog, onClose }: DogProfileModalProps) {
             </span>
           </div>
         </div>
+
+        {/* Badges */}
+        {badges.length > 0 && (
+          <div className="mt-5">
+            <div className="flex items-center gap-1.5 mb-2">
+              <Award className="h-4 w-4 text-primary" />
+              <span className="text-xs font-semibold text-foreground">Rozetler</span>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {badges.map(b => (
+                <div key={b.id} className="flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1.5">
+                  <span className="text-sm">{b.badge.icon}</span>
+                  <span className="text-xs font-medium text-primary">{b.badge.name}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Details */}
         <div className="mt-6 space-y-4">

@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
-import { Camera, Dog, ArrowRight, Loader2, Plus, Search, Edit2 } from 'lucide-react';
+import { Camera, Dog, ArrowRight, Loader2, Plus, Search, Edit2, Eye } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { validatePhotoFile, compressImage } from '@/lib/upload-validation';
 import { toast } from 'sonner';
@@ -19,9 +19,16 @@ const dogSchema = z.object({
 });
 
 export default function Onboarding() {
-  const { profile, refreshDogs, selectPark, refreshProfile } = useAuth();
+  const { profile, dogs, refreshDogs, selectPark, refreshProfile, setObserverMode } = useAuth();
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // If user already has a dog, skip onboarding
+  useEffect(() => {
+    if (dogs.length > 0) {
+      navigate('/discover', { replace: true });
+    }
+  }, [dogs, navigate]);
 
   const [step, setStep] = useState<1 | 2 | 3>(1); // 1=dog, 2=park, 3=owner
 
@@ -99,6 +106,12 @@ export default function Onboarding() {
     finally { setSavingName(false); }
   };
 
+  const handleObserverMode = async () => {
+    await setObserverMode(true);
+    toast.success('Gözlemci modunda devam ediyorsun 👀');
+    navigate('/discover');
+  };
+
   const handleDogSubmit = async () => {
     const result = dogSchema.safeParse({ name, approximate_age: age, energy_level: energyLevel, neutered: neutered ?? false, emergency_phone: emergencyPhone });
     if (!result.success) {
@@ -131,10 +144,11 @@ export default function Onboarding() {
       if (dogData) {
         await supabase.from('dog_lost_profile').insert({ dog_id: dogData.id, emergency_phone: emergencyPhone });
         await supabase.from('dog_private').insert({ dog_id: dogData.id, emergency_phone: emergencyPhone });
-        // Auto-enable playdate
         await supabase.rpc('toggle_playdate', { p_dog_id: dogData.id, p_activate: true });
       }
 
+      // Clear observer mode if it was set
+      await setObserverMode(false);
       await refreshDogs();
       toast.success(`${name} eklendi! 🐕`);
       setStep(2);
@@ -205,6 +219,21 @@ export default function Onboarding() {
         </div>
 
         <div className="flex-1 overflow-y-auto px-6 pb-24">
+          {/* Observer Mode Option */}
+          <button
+            onClick={handleObserverMode}
+            className="mb-6 flex w-full items-center gap-3 rounded-2xl border-2 border-dashed border-border bg-secondary/30 p-4 text-left transition-all hover:border-primary/50"
+          >
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-secondary">
+              <Eye className="h-5 w-5 text-muted-foreground" />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-foreground">Köpeğim yok</p>
+              <p className="text-xs text-muted-foreground">Gözlemci olarak uygulamayı keşfet</p>
+            </div>
+            <ArrowRight className="h-4 w-4 text-muted-foreground" />
+          </button>
+
           {/* Photo Upload */}
           <div className="mb-6">
             <input ref={fileInputRef} type="file" accept="image/*" onChange={handlePhotoSelect} className="hidden" />
