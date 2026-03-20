@@ -408,21 +408,37 @@ export default function Park() {
                       <span className="text-xs text-muted-foreground">{dog.owner_name_stub}</span>
                     </div>
                   )}
-                  <DogCard
-                    dog={{
-                      id: dog.dog_id, name: dog.dog_name, photo_url: dog.photo_url, approximate_age: dog.approximate_age,
-                      energy_level: dog.energy_level as 1 | 2 | 3 | 4 | 5, daily_energy: dog.daily_energy as 1 | 2 | 3 | 4 | 5 | undefined,
-                      neutered: dog.is_neutered, social_style: dog.social_style as any, triggers: dog.triggers, bio: dog.bio,
-                      gender: dog.gender as any,
-                      breed: dog.breed_name ? { id: '', name: dog.breed_name, code: '', created_at: '' } : undefined,
-                      park_checkin_active: true, is_lost: dog.is_lost, owner_id: dog.owner_id, breed_id: '', playdate_on: false
-                    } as any}
-                    showWaveButton={!isOwnDog && !dog.is_lost}
-                    onWave={() => handleWave(dog.dog_id)}
-                    hasWaved={wavedDogs.has(dog.dog_id)}
-                    isOwnDog={isOwnDog}
-                    showFullInfo
-                    isLost={dog.is_lost} />
+                  <button
+                    className="w-full text-left"
+                    onClick={() => {
+                      if (!isOwnDog) {
+                        setSelectedDogProfile({
+                          id: dog.dog_id, name: dog.dog_name, photo_url: dog.photo_url, approximate_age: dog.approximate_age,
+                          energy_level: dog.energy_level, neutered: dog.is_neutered, social_style: dog.social_style,
+                          triggers: dog.triggers, bio: dog.bio, gender: dog.gender, weight_kg: null,
+                          breed: dog.breed_name ? { id: '', name: dog.breed_name, code: '', created_at: '' } : undefined,
+                          likes: [], dislikes: [], is_shelter: false,
+                          owner: { display_name: dog.owner_name_stub || '', photo_url: dog.owner_photo_stub || null },
+                        });
+                      }
+                    }}
+                  >
+                    <DogCard
+                      dog={{
+                        id: dog.dog_id, name: dog.dog_name, photo_url: dog.photo_url, approximate_age: dog.approximate_age,
+                        energy_level: dog.energy_level as 1 | 2 | 3 | 4 | 5, daily_energy: dog.daily_energy as 1 | 2 | 3 | 4 | 5 | undefined,
+                        neutered: dog.is_neutered, social_style: dog.social_style as any, triggers: dog.triggers, bio: dog.bio,
+                        gender: dog.gender as any,
+                        breed: dog.breed_name ? { id: '', name: dog.breed_name, code: '', created_at: '' } : undefined,
+                        park_checkin_active: true, is_lost: dog.is_lost, owner_id: dog.owner_id, breed_id: '', playdate_on: false
+                      } as any}
+                      showWaveButton={!isOwnDog && !dog.is_lost}
+                      onWave={() => handleWave(dog.dog_id)}
+                      hasWaved={wavedDogs.has(dog.dog_id)}
+                      isOwnDog={isOwnDog}
+                      showFullInfo
+                      isLost={dog.is_lost} />
+                  </button>
                 
                   {isOwnDog && (
                     <div className="mt-3 pt-3 border-t border-border">
