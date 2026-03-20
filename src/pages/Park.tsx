@@ -4,6 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { DogCard } from '@/components/cards/DogCard';
 import { ParkBulletinBoard } from '@/components/social/ParkBulletinBoard';
+import { DogProfileModal } from '@/components/social/DogProfileModal';
 import { MapPin, Loader2, Timer, AlertTriangle, ChevronDown, Clock, Users, Megaphone } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
