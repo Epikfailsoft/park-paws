@@ -523,6 +523,7 @@ export default function Park() {
           </div>
         </div>
       )}
+      <DogProfileModal dog={selectedDogProfile} onClose={() => setSelectedDogProfile(null)} />
     </div>
   );
 }
