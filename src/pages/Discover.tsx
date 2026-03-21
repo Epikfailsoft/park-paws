@@ -63,7 +63,7 @@ export default function Discover() {
   const [totalMembers, setTotalMembers] = useState(0);
 
   const myDog = dogs[0];
-  const activeFilterCount = [genderFilter, socialStyleFilter, energyFilter].filter(Boolean).length;
+  const activeFilterCount = [genderFilter, socialStyleFilter, energyFilter, neuteredFilter, shelterFilter || null].filter(Boolean).length;
 
   // Filtered dogs for swipe
   const filteredDogs = allDogs.filter(d => {
