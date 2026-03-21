@@ -376,7 +376,7 @@ export default function Profile() {
               {/* Social Style */}
               {myDog.social_style && (
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-medium text-muted-foreground">Sosyal Tarz</span>
+                  <span className="text-xs font-medium text-muted-foreground">Oyun Tarzı</span>
                   <span className="rounded-full bg-accent/10 px-3 py-1.5 text-xs font-semibold text-accent-foreground">
                     {SOCIAL_STYLE_OPTIONS.find(o => o.value === myDog.social_style)?.icon} {SOCIAL_STYLE_OPTIONS.find(o => o.value === myDog.social_style)?.label}
                   </span>
