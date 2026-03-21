@@ -263,7 +263,7 @@ export default function Profile() {
             </div>
 
             <div>
-              <label className="mb-2 block text-sm font-medium text-foreground">Sosyal Tarz</label>
+              <label className="mb-2 block text-sm font-medium text-foreground">Oyun Tarzı</label>
               <div className="flex flex-wrap gap-2">
                 {SOCIAL_STYLE_OPTIONS.map((opt) => (
                   <button key={opt.value} type="button" onClick={() => setSocialStyle(socialStyle === opt.value ? '' : opt.value)}
