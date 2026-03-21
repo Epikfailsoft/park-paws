@@ -300,6 +300,39 @@ export default function Discover() {
                     ))}
                   </div>
                 </div>
+                {/* Neutered */}
+                <div>
+                  <p className="text-[11px] font-medium text-muted-foreground mb-1.5">✂️ Kısırlaştırma</p>
+                  <div className="flex gap-1.5">
+                    {[
+                      { value: 'yes', label: '✓ Kısır' },
+                      { value: 'no', label: '✗ Değil' },
+                    ].map(n => (
+                      <button key={n.value}
+                        onClick={() => setNeuteredFilter(neuteredFilter === n.value ? null : n.value)}
+                        className={cn("flex-1 rounded-lg py-2 text-xs font-medium transition-all",
+                          neuteredFilter === n.value ? "text-white" : "bg-secondary text-secondary-foreground"
+                        )}
+                        style={neuteredFilter === n.value ? { background: 'hsl(var(--page-discover))' } : undefined}>
+                        {n.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                {/* Shelter */}
+                <div>
+                  <p className="text-[11px] font-medium text-muted-foreground mb-1.5">🏠 Barınak</p>
+                  <div className="flex gap-1.5">
+                    <button
+                      onClick={() => setShelterFilter(!shelterFilter)}
+                      className={cn("flex-1 rounded-lg py-2 text-xs font-medium transition-all",
+                        shelterFilter ? "text-white" : "bg-secondary text-secondary-foreground"
+                      )}
+                      style={shelterFilter ? { background: 'hsl(var(--page-discover))' } : undefined}>
+                      🏠 Barınaktan
+                    </button>
+                  </div>
+                </div>
               </PopoverContent>
             </Popover>
 
