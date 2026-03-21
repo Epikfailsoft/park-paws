@@ -53,6 +53,8 @@ export default function Discover() {
   const [genderFilter, setGenderFilter] = useState<string | null>(null);
   const [socialStyleFilter, setSocialStyleFilter] = useState<string | null>(null);
   const [energyFilter, setEnergyFilter] = useState<number | null>(null);
+  const [neuteredFilter, setNeuteredFilter] = useState<string | null>(null);
+  const [shelterFilter, setShelterFilter] = useState(false);
 
   // Wave limit modal
   const [showWaveLimitModal, setShowWaveLimitModal] = useState(false);
