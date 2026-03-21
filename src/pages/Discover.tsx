@@ -53,6 +53,8 @@ export default function Discover() {
   const [genderFilter, setGenderFilter] = useState<string | null>(null);
   const [socialStyleFilter, setSocialStyleFilter] = useState<string | null>(null);
   const [energyFilter, setEnergyFilter] = useState<number | null>(null);
+  const [neuteredFilter, setNeuteredFilter] = useState<string | null>(null);
+  const [shelterFilter, setShelterFilter] = useState(false);
 
   // Wave limit modal
   const [showWaveLimitModal, setShowWaveLimitModal] = useState(false);
@@ -61,7 +63,7 @@ export default function Discover() {
   const [totalMembers, setTotalMembers] = useState(0);
 
   const myDog = dogs[0];
-  const activeFilterCount = [genderFilter, socialStyleFilter, energyFilter].filter(Boolean).length;
+  const activeFilterCount = [genderFilter, socialStyleFilter, energyFilter, neuteredFilter, shelterFilter || null].filter(Boolean).length;
 
   // Filtered dogs for swipe
   const filteredDogs = allDogs.filter(d => {
@@ -70,6 +72,9 @@ export default function Discover() {
     if (genderFilter && d.gender !== genderFilter) return false;
     if (socialStyleFilter && d.social_style !== socialStyleFilter) return false;
     if (energyFilter && d.energy_level !== energyFilter) return false;
+    if (neuteredFilter === 'yes' && !d.is_neutered) return false;
+    if (neuteredFilter === 'no' && d.is_neutered) return false;
+    if (shelterFilter && !(d as any).is_shelter) return false;
     return true;
   });
 
@@ -183,6 +188,8 @@ export default function Discover() {
     setGenderFilter(null);
     setSocialStyleFilter(null);
     setEnergyFilter(null);
+    setNeuteredFilter(null);
+    setShelterFilter(false);
     setDistance(10);
   };
 
@@ -298,6 +305,39 @@ export default function Discover() {
                         {s.icon} {s.label}
                       </button>
                     ))}
+                  </div>
+                </div>
+                {/* Neutered */}
+                <div>
+                  <p className="text-[11px] font-medium text-muted-foreground mb-1.5">✂️ Kısırlaştırma</p>
+                  <div className="flex gap-1.5">
+                    {[
+                      { value: 'yes', label: '✓ Kısır' },
+                      { value: 'no', label: '✗ Değil' },
+                    ].map(n => (
+                      <button key={n.value}
+                        onClick={() => setNeuteredFilter(neuteredFilter === n.value ? null : n.value)}
+                        className={cn("flex-1 rounded-lg py-2 text-xs font-medium transition-all",
+                          neuteredFilter === n.value ? "text-white" : "bg-secondary text-secondary-foreground"
+                        )}
+                        style={neuteredFilter === n.value ? { background: 'hsl(var(--page-discover))' } : undefined}>
+                        {n.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                {/* Shelter */}
+                <div>
+                  <p className="text-[11px] font-medium text-muted-foreground mb-1.5">🏠 Barınak</p>
+                  <div className="flex gap-1.5">
+                    <button
+                      onClick={() => setShelterFilter(!shelterFilter)}
+                      className={cn("flex-1 rounded-lg py-2 text-xs font-medium transition-all",
+                        shelterFilter ? "text-white" : "bg-secondary text-secondary-foreground"
+                      )}
+                      style={shelterFilter ? { background: 'hsl(var(--page-discover))' } : undefined}>
+                      🏠 Barınaktan
+                    </button>
                   </div>
                 </div>
               </PopoverContent>

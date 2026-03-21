@@ -348,37 +348,74 @@ export default function Profile() {
           </div>
         ) : (
           <>
-            <div className="space-y-3">
-              {myDog.neutered !== undefined && (
-                <div className="flex justify-center">
-                  <span className={cn("rounded-full px-4 py-2 text-sm font-semibold", myDog.neutered ? "text-white shadow-md" : "bg-muted text-muted-foreground")}
-                    style={myDog.neutered ? { background: 'var(--gradient-hero)' } : {}}>
-                    {myDog.neutered ? '✓ Kısırlaştırıldı' : 'Kısırlaştırılmadı'}
+            {/* ─── Dog Info Summary ─── */}
+            <div className="section-card space-y-3">
+              <h3 className="font-display text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+                <span className="flex h-5 w-5 items-center justify-center rounded-md bg-secondary"><Dog className="h-3 w-3 text-muted-foreground" /></span>
+                Köpek Bilgileri
+              </h3>
+
+              {/* Quick badges row */}
+              <div className="flex flex-wrap gap-2">
+                {myDog.gender && (
+                  <span className="rounded-full bg-secondary px-3 py-1.5 text-xs font-semibold text-secondary-foreground">
+                    {myDog.gender === 'male' ? '♂ Erkek' : '♀ Dişi'}
+                  </span>
+                )}
+                <span className={cn("rounded-full px-3 py-1.5 text-xs font-semibold", myDog.neutered ? "bg-primary/15 text-primary" : "bg-muted text-muted-foreground")}>
+                  {myDog.neutered ? '✓ Kısır' : '✗ Kısır değil'}
+                </span>
+                {(myDog as any)?.is_shelter && (
+                  <span className="rounded-full bg-amber-500/15 px-3 py-1.5 text-xs font-semibold text-amber-600">🏠 Barınak</span>
+                )}
+                {myDog.weight_kg && (
+                  <span className="rounded-full bg-secondary px-3 py-1.5 text-xs font-semibold text-secondary-foreground">{myDog.weight_kg} kg</span>
+                )}
+              </div>
+
+              {/* Social Style */}
+              {myDog.social_style && (
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-medium text-muted-foreground">Sosyal Tarz</span>
+                  <span className="rounded-full bg-accent/10 px-3 py-1.5 text-xs font-semibold text-accent-foreground">
+                    {SOCIAL_STYLE_OPTIONS.find(o => o.value === myDog.social_style)?.icon} {SOCIAL_STYLE_OPTIONS.find(o => o.value === myDog.social_style)?.label}
                   </span>
                 </div>
               )}
 
-              {myDog.social_style && (
-                <div className="section-card flex items-center justify-between">
-                  <span className="text-sm font-medium text-muted-foreground">Sosyal Tarz</span>
-                  <span className="rounded-full bg-secondary px-3 py-1 text-sm font-semibold text-secondary-foreground">{SOCIAL_STYLE_OPTIONS.find(o => o.value === myDog.social_style)?.label}</span>
-                </div>
-              )}
-
-              {(myDog as any).likes?.length > 0 && (
-                <div className="section-card">
-                  <span className="text-sm font-medium text-muted-foreground">💚 Sevdikleri</span>
-                  <div className="mt-2 flex flex-wrap gap-2">{(myDog as any).likes.map((t: string) => (<span key={t} className="tag-like">{t}</span>))}</div>
-                </div>
-              )}
-
-              {(myDog as any).dislikes?.length > 0 && (
-                <div className="section-card">
-                  <span className="text-sm font-medium text-muted-foreground">❌ Sevmedikleri</span>
-                  <div className="mt-2 flex flex-wrap gap-2">{(myDog as any).dislikes.map((t: string) => (<span key={t} className="tag-dislike">{t}</span>))}</div>
-                </div>
-              )}
+              {/* Energy */}
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-medium text-muted-foreground">Enerji</span>
+                <span className="rounded-full bg-secondary px-3 py-1.5 text-xs font-semibold text-secondary-foreground">
+                  {myDog.energy_level === 1 ? '🐢 Sakin' : myDog.energy_level === 2 ? '🐕 Normal' : '⚡ Enerjik'}
+                </span>
+              </div>
             </div>
+
+            {/* ─── Likes & Dislikes ─── */}
+            {((myDog as any).likes?.length > 0 || (myDog as any).dislikes?.length > 0 || (myDog as any).triggers?.length > 0) && (
+              <div className="section-card space-y-3">
+                <h3 className="font-display text-xs font-bold text-muted-foreground uppercase tracking-wider">Karakter</h3>
+                {(myDog as any).likes?.length > 0 && (
+                  <div>
+                    <span className="text-xs font-medium text-muted-foreground mb-1.5 block">💚 Sevdikleri</span>
+                    <div className="flex flex-wrap gap-1.5">{(myDog as any).likes.map((t: string) => (<span key={t} className="tag-like">{t}</span>))}</div>
+                  </div>
+                )}
+                {(myDog as any).dislikes?.length > 0 && (
+                  <div>
+                    <span className="text-xs font-medium text-muted-foreground mb-1.5 block">❌ Sevmedikleri</span>
+                    <div className="flex flex-wrap gap-1.5">{(myDog as any).dislikes.map((t: string) => (<span key={t} className="tag-dislike">{t}</span>))}</div>
+                  </div>
+                )}
+                {(myDog as any).triggers?.length > 0 && (
+                  <div>
+                    <span className="text-xs font-medium text-muted-foreground mb-1.5 block">⚠️ Tetikleyiciler</span>
+                    <div className="flex flex-wrap gap-1.5">{(myDog as any).triggers.map((t: string) => (<span key={t} className="rounded-full bg-destructive/10 px-3 py-1 text-xs font-medium text-destructive">{t}</span>))}</div>
+                  </div>
+                )}
+              </div>
+            )}
 
             <CareCenter dogId={myDog.id} parkActivityDays={parkActivityDays} />
             <ActivityBadges dogId={myDog.id} profileId={profile!.id} onActivityDays={setParkActivityDays} />
