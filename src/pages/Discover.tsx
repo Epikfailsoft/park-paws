@@ -72,6 +72,9 @@ export default function Discover() {
     if (genderFilter && d.gender !== genderFilter) return false;
     if (socialStyleFilter && d.social_style !== socialStyleFilter) return false;
     if (energyFilter && d.energy_level !== energyFilter) return false;
+    if (neuteredFilter === 'yes' && !d.is_neutered) return false;
+    if (neuteredFilter === 'no' && d.is_neutered) return false;
+    if (shelterFilter && !(d as any).is_shelter) return false;
     return true;
   });
 
