@@ -188,6 +188,8 @@ export default function Discover() {
     setGenderFilter(null);
     setSocialStyleFilter(null);
     setEnergyFilter(null);
+    setNeuteredFilter(null);
+    setShelterFilter(false);
     setDistance(10);
   };
 
