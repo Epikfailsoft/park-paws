@@ -282,10 +282,15 @@ export type Database = {
       }
       dogs: {
         Row: {
+          active_hours: string[] | null
+          aggression_risk: string | null
+          allergy_notes: string | null
           approximate_age: string
+          big_dog_tolerance: string | null
           bio: string | null
           breed_custom_text: string | null
           breed_id: string
+          cat_compat: string | null
           created_at: string | null
           current_park_id: string | null
           daily_energy: number | null
@@ -301,6 +306,7 @@ export type Database = {
           location_updated_at: string | null
           name: string
           neutered: boolean
+          offleash_compat: string | null
           owner_id: string
           owner_name_stub: string | null
           owner_photo_stub: string | null
@@ -308,19 +314,30 @@ export type Database = {
           park_checkin_expires_at: string | null
           park_checkin_started_at: string | null
           photo_url: string
+          play_styles: string[] | null
           playdate_expires_at: string | null
           playdate_on: boolean | null
           playdate_started_at: string | null
+          puppy_tolerance: string | null
+          size_label: string | null
           social_style: Database["public"]["Enums"]["social_style_type"] | null
+          sociality: string | null
+          toy_guarding: string | null
           triggers: string[] | null
           updated_at: string | null
+          walk_duration: string | null
           weight_kg: number | null
         }
         Insert: {
+          active_hours?: string[] | null
+          aggression_risk?: string | null
+          allergy_notes?: string | null
           approximate_age: string
+          big_dog_tolerance?: string | null
           bio?: string | null
           breed_custom_text?: string | null
           breed_id: string
+          cat_compat?: string | null
           created_at?: string | null
           current_park_id?: string | null
           daily_energy?: number | null
@@ -336,6 +353,7 @@ export type Database = {
           location_updated_at?: string | null
           name: string
           neutered: boolean
+          offleash_compat?: string | null
           owner_id: string
           owner_name_stub?: string | null
           owner_photo_stub?: string | null
@@ -343,19 +361,30 @@ export type Database = {
           park_checkin_expires_at?: string | null
           park_checkin_started_at?: string | null
           photo_url: string
+          play_styles?: string[] | null
           playdate_expires_at?: string | null
           playdate_on?: boolean | null
           playdate_started_at?: string | null
+          puppy_tolerance?: string | null
+          size_label?: string | null
           social_style?: Database["public"]["Enums"]["social_style_type"] | null
+          sociality?: string | null
+          toy_guarding?: string | null
           triggers?: string[] | null
           updated_at?: string | null
+          walk_duration?: string | null
           weight_kg?: number | null
         }
         Update: {
+          active_hours?: string[] | null
+          aggression_risk?: string | null
+          allergy_notes?: string | null
           approximate_age?: string
+          big_dog_tolerance?: string | null
           bio?: string | null
           breed_custom_text?: string | null
           breed_id?: string
+          cat_compat?: string | null
           created_at?: string | null
           current_park_id?: string | null
           daily_energy?: number | null
@@ -371,6 +400,7 @@ export type Database = {
           location_updated_at?: string | null
           name?: string
           neutered?: boolean
+          offleash_compat?: string | null
           owner_id?: string
           owner_name_stub?: string | null
           owner_photo_stub?: string | null
@@ -378,12 +408,18 @@ export type Database = {
           park_checkin_expires_at?: string | null
           park_checkin_started_at?: string | null
           photo_url?: string
+          play_styles?: string[] | null
           playdate_expires_at?: string | null
           playdate_on?: boolean | null
           playdate_started_at?: string | null
+          puppy_tolerance?: string | null
+          size_label?: string | null
           social_style?: Database["public"]["Enums"]["social_style_type"] | null
+          sociality?: string | null
+          toy_guarding?: string | null
           triggers?: string[] | null
           updated_at?: string | null
+          walk_duration?: string | null
           weight_kg?: number | null
         }
         Relationships: [
