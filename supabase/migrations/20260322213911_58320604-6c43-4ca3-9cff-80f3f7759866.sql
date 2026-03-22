@@ -1,0 +1,14 @@
+
+ALTER TABLE public.dogs
+  ADD COLUMN IF NOT EXISTS play_styles text[] DEFAULT '{}',
+  ADD COLUMN IF NOT EXISTS sociality text DEFAULT NULL,
+  ADD COLUMN IF NOT EXISTS aggression_risk text DEFAULT NULL,
+  ADD COLUMN IF NOT EXISTS offleash_compat text DEFAULT NULL,
+  ADD COLUMN IF NOT EXISTS active_hours text[] DEFAULT '{}',
+  ADD COLUMN IF NOT EXISTS walk_duration text DEFAULT NULL,
+  ADD COLUMN IF NOT EXISTS size_label text DEFAULT NULL,
+  ADD COLUMN IF NOT EXISTS puppy_tolerance text DEFAULT NULL,
+  ADD COLUMN IF NOT EXISTS big_dog_tolerance text DEFAULT NULL,
+  ADD COLUMN IF NOT EXISTS toy_guarding text DEFAULT NULL,
+  ADD COLUMN IF NOT EXISTS cat_compat text DEFAULT NULL,
+  ADD COLUMN IF NOT EXISTS allergy_notes text DEFAULT NULL;
