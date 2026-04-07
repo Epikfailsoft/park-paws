@@ -126,8 +126,8 @@ export function MapView({ hasAccess }: MapViewProps) {
             <Popup>
               <div className="text-center">
                 <p className="font-bold text-sm">{park.name}</p>
-                <p className="text-xs text-gray-600">🐕 {park.dogCount} köpek aktif</p>
-                <p className="text-xs text-gray-600">🎾 {park.playdateCount} playdate açık</p>
+                <p className="text-xs">🐕 {park.dogCount} köpek aktif</p>
+                <p className="text-xs">🎾 {park.playdateCount} playdate açık</p>
               </div>
             </Popup>
           </Marker>
