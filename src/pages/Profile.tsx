@@ -2,13 +2,15 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
-import { Dog as DogIcon, LogOut, Loader2, Camera, Phone, User, Edit2, AlertTriangle, ToggleLeft, ToggleRight, Shield, ChevronDown, ChevronUp, Award, Clock, MapPin, Heart, Stethoscope, Share2 } from 'lucide-react';
+import { Dog as DogIcon, LogOut, Loader2, Camera, Phone, User, Edit2, AlertTriangle, ToggleLeft, ToggleRight, Shield, ChevronDown, ChevronUp, Award, Clock, MapPin, Heart, Stethoscope, Share2, Plus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { SOCIAL_STYLE_OPTIONS, formatOwnerName } from '@/types/dogspace';
 import { validateTurkishPhone } from '@/lib/upload-validation';
 import { Search } from 'lucide-react';
 import dogiLogo from '@/assets/dogi-logo.png';
+import { DogSelector } from '@/components/profile/DogSelector';
+import { DogPhotoGallery } from '@/components/profile/DogPhotoGallery';
 
 // ── Constants ──
 const PLAY_STYLE_OPTIONS = [
