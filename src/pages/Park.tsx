@@ -5,7 +5,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { DogCard } from '@/components/cards/DogCard';
 import { ParkBulletinBoard } from '@/components/social/ParkBulletinBoard';
 import { DogProfileModal } from '@/components/social/DogProfileModal';
-import { MapPin, Loader2, Timer, AlertTriangle, ChevronDown, Clock, Users, Megaphone } from 'lucide-react';
+import { GroupWaveSection } from '@/components/park/GroupWaveSection';
+import { MapPin, Loader2, Timer, AlertTriangle, ChevronDown, ChevronRight, Clock, Users, ArrowLeft, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import type { Park as ParkType } from '@/types/dogspace';
@@ -14,14 +15,30 @@ import { isParkCheckinActive, getParkCheckinRemainingMinutes, formatTimeRemainin
 import parkDogSilhouette from '@/assets/park-dog-silhouette.png';
 import dogiLogo from '@/assets/dogi-logo.png';
 
+// City definitions with display order
+const CITY_ORDER = ['İstanbul', 'Muğla', 'Ankara', 'İzmir'];
+
+interface CityGroup {
+  city: string;
+  parks: ParkType[];
+  activeCount: number;
+  totalDogs: number;
+}
+
+type ViewState = 'city-select' | 'park-select' | 'park-view';
+
 export default function Park() {
   const navigate = useNavigate();
   const { profile, dogs, selectedPark, hasPhoto, selectPark, refreshDogs } = useAuth();
+
+  // View state
+  const [viewState, setViewState] = useState<ViewState>('city-select');
+  const [selectedCity, setSelectedCity] = useState<string | null>(null);
+
+  // Park data
+  const [allParks, setAllParks] = useState<ParkType[]>([]);
   const [parkDogs, setParkDogs] = useState<ParkDog[]>([]);
-  const [parks, setParks] = useState<ParkType[]>([]);
-  const [waitlistParks, setWaitlistParks] = useState<ParkType[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showParkSelect, setShowParkSelect] = useState(false);
   const [remainingMinutes, setRemainingMinutes] = useState(0);
   const [showExpiryWarning, setShowExpiryWarning] = useState(false);
   const [wavedDogs, setWavedDogs] = useState<Set<string>>(new Set());
@@ -33,6 +50,15 @@ export default function Park() {
   const myDog = dogs[0];
   const isCheckedIn = myDog && isParkCheckinActive(myDog);
   const playdateActive = myDog && isPlaydateActive(myDog);
+
+  // If user already has a selected park, jump to park-view
+  useEffect(() => {
+    if (selectedPark && viewState === 'city-select') {
+      const city = (selectedPark as any).location?.city;
+      if (city) setSelectedCity(city);
+      setViewState('park-view');
+    }
+  }, [selectedPark]);
 
   // Timer for expiry countdown
   useEffect(() => {
@@ -50,12 +76,9 @@ export default function Park() {
   }, [myDog, isCheckedIn]);
 
   const fetchParks = useCallback(async () => {
-    const [activeRes, waitlistRes] = await Promise.all([
-      supabase.from('parks').select('*').eq('status', 'ACTIVE').order('name'),
-      supabase.from('parks').select('*').eq('status', 'REQUESTED').order('name')
-    ]);
-    if (activeRes.data) setParks(activeRes.data as unknown as ParkType[]);
-    if (waitlistRes.data) setWaitlistParks(waitlistRes.data as unknown as ParkType[]);
+    const { data } = await supabase.from('parks').select('*').order('name');
+    if (data) setAllParks(data as unknown as ParkType[]);
+    setLoading(false);
   }, []);
 
   const fetchUserApprovals = useCallback(async () => {
@@ -77,8 +100,6 @@ export default function Park() {
       setTotalParkDogCount(dogs.length);
     } catch (error) {
       console.error('Error fetching park dogs:', error);
-    } finally {
-      setLoading(false);
     }
   }, [selectedPark]);
 
@@ -95,13 +116,52 @@ export default function Park() {
   useEffect(() => {
     fetchParks();
     fetchUserApprovals();
-    if (selectedPark) {
-      fetchParkDogs();
-    } else {
-      setLoading(false);
-    }
+  }, []);
+
+  useEffect(() => {
+    if (selectedPark) fetchParkDogs();
     if (myDog) fetchWaveStatus();
   }, [selectedPark, myDog]);
+
+  // Group parks by city
+  const cityGroups: CityGroup[] = CITY_ORDER.map(city => {
+    const cityParks = allParks.filter(p => (p as any).location?.city === city);
+    return {
+      city,
+      parks: cityParks,
+      activeCount: cityParks.filter(p => p.status === 'ACTIVE').length,
+      totalDogs: 0 // Would need real-time data
+    };
+  }).filter(g => g.parks.length > 0);
+
+  const currentCityParks = allParks.filter(p => (p as any).location?.city === selectedCity);
+  const activeCityParks = currentCityParks.filter(p => p.status === 'ACTIVE');
+  const waitlistCityParks = currentCityParks.filter(p => p.status === 'REQUESTED');
+
+  // Handle park selection with auto check-in
+  const handleSelectPark = async (parkId: string) => {
+    await selectPark(parkId);
+    setViewState('park-view');
+
+    // Auto check-in if user has a dog with photo
+    if (myDog && (hasPhoto || myDog.photo_url) && !isCheckedIn) {
+      try {
+        const { error: pdError } = await supabase.rpc('toggle_playdate', {
+          p_dog_id: myDog.id, p_activate: true
+        });
+        if (!pdError) {
+          await supabase.rpc('toggle_park_checkin', {
+            p_dog_id: myDog.id, p_park_id: parkId, p_activate: true
+          });
+          await refreshDogs();
+          toast.success('Parka giriş yapıldı! 🎾');
+        }
+      } catch (err) {
+        console.error('Auto check-in failed:', err);
+      }
+    }
+    fetchParkDogs();
+  };
 
   const togglePlaydate = async () => {
     if (!myDog || !profile || !selectedPark) return;
@@ -110,41 +170,29 @@ export default function Park() {
       return;
     }
     try {
-      // If playdate is off, turn it on and also check in
       if (!playdateActive) {
-        // Turn on playdate
         const { data: pdData, error: pdError } = await supabase.rpc('toggle_playdate', {
           p_dog_id: myDog.id, p_activate: true
         });
         if (pdError) throw pdError;
         const pdResult = pdData as { status: string; message: string };
         if (pdResult.status === 'ERROR') { toast.error(pdResult.message); return; }
-        
-        // Also check in to park
         if (!isCheckedIn) {
-          const { data, error } = await supabase.rpc('toggle_park_checkin', {
+          await supabase.rpc('toggle_park_checkin', {
             p_dog_id: myDog.id, p_park_id: selectedPark.id, p_activate: true
           });
-          if (error) throw error;
         }
-        
         await refreshDogs();
         setShowExpiryWarning(false);
-        toast.success('Playdate ON! Parkta görünür oldun 🎾');
+        toast.success('Playdate ON! 🎾');
         fetchParkDogs();
       } else {
-        // Turn off playdate and check out
-        const { data: pdData, error: pdError } = await supabase.rpc('toggle_playdate', {
-          p_dog_id: myDog.id, p_activate: false
-        });
-        if (pdError) throw pdError;
-        
+        await supabase.rpc('toggle_playdate', { p_dog_id: myDog.id, p_activate: false });
         if (isCheckedIn) {
           await supabase.rpc('toggle_park_checkin', {
             p_dog_id: myDog.id, p_park_id: selectedPark.id, p_activate: false
           });
         }
-        
         await refreshDogs();
         toast.success('Playdate kapatıldı, parktan çıkış yapıldı.');
         fetchParkDogs();
@@ -176,11 +224,6 @@ export default function Park() {
     }
   };
 
-  const handleSelectPark = async (parkId: string) => {
-    await selectPark(parkId);
-    setShowParkSelect(false);
-  };
-
   const handleJoinWaitlist = async (parkId: string) => {
     if (!profile) return;
     if (userApprovals.has(parkId)) {
@@ -190,12 +233,10 @@ export default function Park() {
     setJoiningPark(parkId);
     try {
       const { error } = await supabase.from('park_approvals').insert({
-        park_id: parkId,
-        user_id: profile.id
+        park_id: parkId, user_id: profile.id
       });
       if (error) throw error;
-
-      const park = waitlistParks.find((p) => p.id === parkId);
+      const park = allParks.find((p) => p.id === parkId);
       if (park) {
         const newCount = (park.approval_count || 0) + 1;
         await supabase.from('parks').update({ approval_count: newCount } as any).eq('id', parkId);
@@ -206,7 +247,6 @@ export default function Park() {
           toast.success('Desteğin kaydedildi! 🐕');
         }
       }
-
       setUserApprovals((prev) => new Set([...prev, parkId]));
       fetchParks();
     } catch (error) {
@@ -217,6 +257,15 @@ export default function Park() {
     }
   };
 
+  const handleBackToCity = () => {
+    setViewState('city-select');
+    setSelectedCity(null);
+  };
+
+  const handleBackToParks = () => {
+    setViewState('park-select');
+  };
+
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -225,12 +274,200 @@ export default function Park() {
     );
   }
 
+  // ═══════════════════════════════════════════
+  // VIEW: City Selection
+  // ═══════════════════════════════════════════
+  if (viewState === 'city-select') {
+    return (
+      <div className="relative min-h-screen safe-top safe-bottom" style={{ background: `linear-gradient(180deg, hsl(var(--page-park-light)) 0%, hsl(var(--background)) 30%)` }}>
+        <div className="pointer-events-none fixed inset-0 z-0 flex items-center justify-center opacity-[0.04]">
+          <img src={dogiLogo} alt="" className="h-[70vh] w-[70vh] object-contain" />
+        </div>
+
+        <header className="sticky top-0 z-40 border-b px-4 py-4" style={{ background: 'hsl(var(--page-park))' }}>
+          <div className="flex items-center gap-3">
+            <img src={dogiLogo} alt="DOGI" className="h-[50px] w-[50px] rounded-xl" />
+            <div>
+              <h1 className="font-display text-lg font-bold text-white">Park</h1>
+              <p className="text-xs text-white/60">Şehrini seç, parkını bul</p>
+            </div>
+          </div>
+        </header>
+
+        <div className="px-4 py-6 space-y-4 relative z-10">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">📍 Şehir Seç</h2>
+
+          {cityGroups.map((group) => {
+            const cityEmoji = group.city === 'İstanbul' ? '🌉' : group.city === 'Muğla' ? '🏖️' : group.city === 'Ankara' ? '🏛️' : '🌊';
+            return (
+              <button
+                key={group.city}
+                onClick={() => {
+                  setSelectedCity(group.city);
+                  setViewState('park-select');
+                }}
+                className="w-full rounded-2xl border bg-card p-5 text-left transition-all hover:shadow-md active:scale-[0.98]"
+                style={{ boxShadow: 'var(--shadow-card)' }}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <span className="text-3xl">{cityEmoji}</span>
+                    <div>
+                      <h3 className="font-display text-lg font-bold text-foreground">{group.city}</h3>
+                      <p className="text-sm text-muted-foreground">
+                        {group.activeCount} aktif park · {group.parks.length - group.activeCount > 0 ? `${group.parks.length - group.activeCount} beklemede` : 'Tümü aktif'}
+                      </p>
+                    </div>
+                  </div>
+                  <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                </div>
+              </button>
+            );
+          })}
+
+          {/* Request new park/city */}
+          <div className="mt-6 rounded-2xl border-2 border-dashed border-muted-foreground/20 p-5 text-center">
+            <Plus className="mx-auto mb-2 h-6 w-6 text-muted-foreground/50" />
+            <p className="text-sm font-medium text-muted-foreground">Park / Rota eklemek istiyorum</p>
+            <p className="mt-1 text-xs text-muted-foreground/60">Yakında daha fazla şehir ve park eklenecek</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ═══════════════════════════════════════════
+  // VIEW: Park Selection (within a city)
+  // ═══════════════════════════════════════════
+  if (viewState === 'park-select' && selectedCity) {
+    return (
+      <div className="relative min-h-screen safe-top safe-bottom" style={{ background: `linear-gradient(180deg, hsl(var(--page-park-light)) 0%, hsl(var(--background)) 30%)` }}>
+        <div className="pointer-events-none fixed inset-0 z-0 flex items-center justify-center opacity-[0.04]">
+          <img src={dogiLogo} alt="" className="h-[70vh] w-[70vh] object-contain" />
+        </div>
+
+        <header className="sticky top-0 z-40 border-b px-4 py-4" style={{ background: 'hsl(var(--page-park))' }}>
+          <div className="flex items-center gap-3">
+            <button onClick={handleBackToCity} className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-white">
+              <ArrowLeft className="h-5 w-5" />
+            </button>
+            <div>
+              <h1 className="font-display text-lg font-bold text-white">{selectedCity}</h1>
+              <p className="text-xs text-white/60">{currentCityParks.length} park</p>
+            </div>
+          </div>
+        </header>
+
+        <div className="px-4 py-6 space-y-4 relative z-10">
+          {/* Active parks */}
+          {activeCityParks.length > 0 && (
+            <>
+              <h2 className="text-sm font-semibold uppercase tracking-wide" style={{ color: 'hsl(var(--park-active))' }}>
+                🟢 Aktif Parklar
+              </h2>
+              {activeCityParks.map((park) => (
+                <button
+                  key={park.id}
+                  onClick={() => handleSelectPark(park.id)}
+                  className={cn(
+                    "w-full rounded-2xl border-2 bg-card p-5 text-left transition-all hover:shadow-md active:scale-[0.98]",
+                    selectedPark?.id === park.id ? "border-primary ring-2 ring-primary/20" : "border-[hsl(var(--park-active))]/30"
+                  )}
+                  style={{ boxShadow: 'var(--shadow-card)' }}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[hsl(var(--page-park))]/10">
+                        <MapPin className="h-6 w-6" style={{ color: 'hsl(var(--page-park))' }} />
+                      </div>
+                      <div>
+                        <h3 className="font-display text-base font-bold text-foreground">{park.name}</h3>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <span className="relative flex h-2 w-2">
+                            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[hsl(var(--park-active))] opacity-75"></span>
+                            <span className="relative inline-flex h-2 w-2 rounded-full bg-[hsl(var(--park-active))]"></span>
+                          </span>
+                          <span className="text-xs text-[hsl(var(--park-active))] font-medium">Aktif</span>
+                        </div>
+                      </div>
+                    </div>
+                    <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                  </div>
+                  {selectedPark?.id === park.id && (
+                    <div className="mt-2 rounded-lg bg-primary/10 px-3 py-1.5">
+                      <p className="text-xs font-medium text-primary">✓ Şu an bu parktasın</p>
+                    </div>
+                  )}
+                </button>
+              ))}
+            </>
+          )}
+
+          {/* Waitlist parks */}
+          {waitlistCityParks.length > 0 && (
+            <>
+              <h2 className="mt-4 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                🏗️ Sıradaki Parklar
+              </h2>
+              {waitlistCityParks.map((park) => {
+                const progress = Math.round((park.approval_count || 0) / (park.required_approvals || 10) * 100);
+                const hasApproved = userApprovals.has(park.id);
+                return (
+                  <div key={park.id} className="rounded-2xl border bg-card p-4" style={{ boxShadow: 'var(--shadow-card)' }}>
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <MapPin className="h-4 w-4 text-muted-foreground" />
+                        <span className="font-semibold text-foreground">{park.name}</span>
+                      </div>
+                      <span className="text-xs text-muted-foreground">
+                        <Clock className="inline h-3 w-3 mr-1" />Beklemede
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="flex-1 h-2 rounded-full bg-secondary overflow-hidden">
+                        <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${progress}%` }} />
+                      </div>
+                      <div className="flex items-center gap-1 text-xs font-medium text-muted-foreground">
+                        <Users className="h-3 w-3" />{park.approval_count || 0}/{park.required_approvals || 10}
+                      </div>
+                    </div>
+                    <p className="mt-2 text-xs text-muted-foreground">
+                      {(park.required_approvals || 10) - (park.approval_count || 0)} kişi daha katılırsa aktif olacak
+                    </p>
+                    <button
+                      onClick={() => handleJoinWaitlist(park.id)}
+                      disabled={hasApproved || joiningPark === park.id}
+                      className={cn(
+                        "mt-3 flex w-full items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-semibold transition-all",
+                        hasApproved ? "bg-primary/10 text-primary" : "bg-primary text-primary-foreground hover:opacity-90"
+                      )}>
+                      {joiningPark === park.id ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : hasApproved ? (
+                        '✓ Destek Verildi'
+                      ) : (
+                        <><Users className="h-4 w-4" /> Ben de İstiyorum!</>
+                      )}
+                    </button>
+                  </div>
+                );
+              })}
+            </>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // ═══════════════════════════════════════════
+  // VIEW: Park Detail (active park view)
+  // ═══════════════════════════════════════════
   return (
     <div className="relative min-h-screen safe-top safe-bottom" style={{ background: `linear-gradient(180deg, hsl(var(--page-park-light)) 0%, hsl(var(--background)) 30%)` }}>
-      {/* Background watermark logo */}
       <div className="pointer-events-none fixed inset-0 z-0 flex items-center justify-center opacity-[0.04]">
         <img src={dogiLogo} alt="" className="h-[70vh] w-[70vh] object-contain" />
       </div>
+
       {/* Expiry Warning */}
       {showExpiryWarning && isCheckedIn && (
         <div className="bg-amber-100 border-b border-amber-300 p-3">
@@ -254,10 +491,12 @@ export default function Park() {
       <header className="sticky top-0 z-40 border-b px-4 py-4" style={{ background: 'hsl(var(--page-park))' }}>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <img src={dogiLogo} alt="DOGI" className="h-[50px] w-[50px] rounded-xl" />
+            <button onClick={handleBackToParks} className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-white">
+              <ArrowLeft className="h-5 w-5" />
+            </button>
             <div>
-              <h1 className="font-display text-lg font-bold text-white">Park</h1>
-              {(isCheckedIn || playdateActive) && selectedPark && (
+              <h1 className="font-display text-lg font-bold text-white">{selectedPark?.name || 'Park'}</h1>
+              {(isCheckedIn || playdateActive) && (
                 <div className="flex items-center gap-1.5">
                   <span className="relative flex h-2 w-2">
                     <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[hsl(var(--park-active))] opacity-75"></span>
@@ -266,9 +505,9 @@ export default function Park() {
                   <span className="text-[10px] font-semibold text-[hsl(var(--park-active))]">Playdate ON</span>
                 </div>
               )}
-              <button onClick={() => setShowParkSelect(!showParkSelect)} className="flex items-center gap-1 text-xs text-white/70 hover:text-white">
-                {selectedPark?.name || 'Park seç'} <ChevronDown className="h-3 w-3" />
-              </button>
+              {selectedCity && (
+                <p className="text-xs text-white/50">{selectedCity}</p>
+              )}
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -294,21 +533,6 @@ export default function Park() {
             )}
           </div>
         </div>
-
-        {/* Park Dropdown */}
-        {showParkSelect && (
-          <div className="absolute left-4 right-4 top-full mt-2 rounded-xl border bg-card shadow-lg z-50">
-            {parks.map((park) => (
-              <button key={park.id} onClick={() => handleSelectPark(park.id)}
-                className={cn("w-full px-4 py-3 text-left text-sm hover:bg-secondary first:rounded-t-xl last:rounded-b-xl",
-                  selectedPark?.id === park.id && "bg-primary/10 text-primary font-medium"
-                )}>{park.name}</button>
-            ))}
-            {parks.length === 0 && (
-              <div className="px-4 py-3 text-sm text-muted-foreground">Henüz aktif park yok</div>
-            )}
-          </div>
-        )}
       </header>
 
       {/* Live density indicator */}
@@ -336,7 +560,7 @@ export default function Park() {
         </div>
       )}
 
-      {/* ─── LOST DOGS BANNER ─── */}
+      {/* Lost Dogs Banner */}
       {selectedPark && parkDogs.filter(d => d.is_lost).length > 0 && (
         <div className="mx-4 mt-3">
           <div className="rounded-2xl border-2 border-destructive bg-destructive/5 p-3">
@@ -395,7 +619,6 @@ export default function Park() {
                       <AlertTriangle className="h-5 w-5 text-destructive" /><span className="font-semibold text-destructive">KAYIP</span>
                     </div>
                   )}
-                  {/* Owner mini chip with photo */}
                   {dog.owner_name_stub && !isOwnDog && (
                     <div className="mb-2 flex items-center gap-2">
                       {dog.owner_photo_stub ? (
@@ -439,7 +662,6 @@ export default function Park() {
                       showFullInfo
                       isLost={dog.is_lost} />
                   </button>
-                
                   {isOwnDog && (
                     <div className="mt-3 pt-3 border-t border-border">
                       <div className="flex items-center justify-between">
@@ -463,66 +685,20 @@ export default function Park() {
         )}
       </div>
 
-      {/* Bulletin Board */}
+      {/* Group Wave Section */}
       {selectedPark && (
         <div className="px-4 mt-3">
+          <GroupWaveSection parkId={selectedPark.id} />
+        </div>
+      )}
+
+      {/* Bulletin Board */}
+      {selectedPark && (
+        <div className="px-4 mt-3 pb-6">
           <ParkBulletinBoard />
         </div>
       )}
 
-      {/* Waitlist Parks */}
-      {waitlistParks.length > 0 && (
-        <div className="px-4 pb-6">
-          <h2 className="mb-3 text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-            🏗️ Sıradaki Parklar
-          </h2>
-          <div className="space-y-3">
-            {waitlistParks.map((park) => {
-              const progress = Math.round((park.approval_count || 0) / (park.required_approvals || 10) * 100);
-              const hasApproved = userApprovals.has(park.id);
-              return (
-                <div key={park.id} className="rounded-2xl border bg-card p-4" style={{ boxShadow: 'var(--shadow-card)' }}>
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <MapPin className="h-4 w-4 text-muted-foreground" />
-                      <span className="font-semibold text-foreground">{park.name}</span>
-                    </div>
-                    <span className="text-xs text-muted-foreground">
-                      <Clock className="inline h-3 w-3 mr-1" />Beklemede
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="flex-1 h-2 rounded-full bg-secondary overflow-hidden">
-                      <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${progress}%` }} />
-                    </div>
-                    <div className="flex items-center gap-1 text-xs font-medium text-muted-foreground">
-                      <Users className="h-3 w-3" />{park.approval_count || 0}/{park.required_approvals || 10}
-                    </div>
-                  </div>
-                  <p className="mt-2 text-xs text-muted-foreground">
-                    {(park.required_approvals || 10) - (park.approval_count || 0)} kişi daha katılırsa aktif olacak
-                  </p>
-                  <button
-                    onClick={() => handleJoinWaitlist(park.id)}
-                    disabled={hasApproved || joiningPark === park.id}
-                    className={cn(
-                      "mt-3 flex w-full items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-semibold transition-all",
-                      hasApproved ? "bg-primary/10 text-primary" : "bg-primary text-primary-foreground hover:opacity-90"
-                    )}>
-                    {joiningPark === park.id ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : hasApproved ? (
-                      '✓ Destek Verildi'
-                    ) : (
-                      <><Users className="h-4 w-4" /> Ben de İstiyorum!</>
-                    )}
-                  </button>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
       <DogProfileModal dog={selectedDogProfile} onClose={() => setSelectedDogProfile(null)} />
     </div>
   );
