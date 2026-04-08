@@ -433,45 +433,39 @@ export default function Profile() {
 
           {/* ── 1. KÖPEK KİMLİĞİ ── */}
           <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
-            <div className="flex items-start gap-4">
-              {/* Photo */}
-              <div className="relative flex-shrink-0">
-                <input ref={dogPhotoRef} type="file" accept="image/*" className="hidden" onChange={handleDogPhotoUpload} />
-                <img src={myDog.photo_url} alt={myDog.name}
-                  className={cn("h-24 w-24 rounded-full object-cover ring-4 shadow-lg",
-                    myDog.is_lost ? "ring-red-500" : "ring-primary/20"
-                  )} />
-                <button onClick={() => dogPhotoRef.current?.click()} disabled={dogPhotoLoading}
-                  className="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full bg-primary text-white shadow-md">
-                  {dogPhotoLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Camera className="h-3.5 w-3.5" />}
-                </button>
-              </div>
+            {/* Photo Gallery */}
+            <DogPhotoGallery
+              dogId={myDog.id}
+              mainPhotoUrl={myDog.photo_url}
+              onMainPhotoChange={async (url) => {
+                await refreshDogs();
+              }}
+            />
 
-              {/* Info */}
-              <div className="flex-1 min-w-0">
-                <h2 className="text-xl font-bold text-foreground">{myDog.name}</h2>
-                <p className="text-sm text-muted-foreground mt-0.5">
-                  {myDog.approximate_age} • {myDog.gender === 'male' ? '♂ Erkek' : myDog.gender === 'female' ? '♀ Dişi' : ''} {myDog.neutered ? '• ✂️' : ''}
-                </p>
-                <p className="text-sm text-muted-foreground">{breedName} {(myDog as any).is_shelter ? '• 🏠 Barınak' : ''}</p>
+            {/* Info */}
+            <div className="mt-4 text-center">
+              <h2 className="text-xl font-bold text-foreground">{myDog.name}</h2>
+              <p className="text-sm text-muted-foreground mt-0.5">
+                {myDog.approximate_age} • {myDog.gender === 'male' ? '♂ Erkek' : myDog.gender === 'female' ? '♀ Dişi' : ''} {myDog.neutered ? '• ✂️' : ''}
+              </p>
+              <p className="text-sm text-muted-foreground">{breedName} {(myDog as any).is_shelter ? '• 🏠 Barınak' : ''}</p>
 
-                {/* Size & Energy chips */}
-                <div className="flex flex-wrap gap-1.5 mt-2">
-                  {(myDog as any).size_label && (
-                    <span className="rounded-full bg-secondary px-2.5 py-1 text-xs font-medium text-secondary-foreground">
-                      {SIZE_OPTIONS.find(o => o.value === (myDog as any).size_label)?.icon} {SIZE_OPTIONS.find(o => o.value === (myDog as any).size_label)?.label}
-                    </span>
-                  )}
+              {/* Size & Energy chips */}
+              <div className="flex flex-wrap justify-center gap-1.5 mt-2">
+                {(myDog as any).size_label && (
                   <span className="rounded-full bg-secondary px-2.5 py-1 text-xs font-medium text-secondary-foreground">
-                    {ENERGY_OPTIONS.find(o => o.value === myDog.energy_level)?.icon} {ENERGY_OPTIONS.find(o => o.value === myDog.energy_level)?.label}
+                    {SIZE_OPTIONS.find(o => o.value === (myDog as any).size_label)?.icon} {SIZE_OPTIONS.find(o => o.value === (myDog as any).size_label)?.label}
                   </span>
-                </div>
+                )}
+                <span className="rounded-full bg-secondary px-2.5 py-1 text-xs font-medium text-secondary-foreground">
+                  {ENERGY_OPTIONS.find(o => o.value === myDog.energy_level)?.icon} {ENERGY_OPTIONS.find(o => o.value === myDog.energy_level)?.label}
+                </span>
               </div>
             </div>
 
             {/* Bio */}
             {(myDog as any).bio && (
-              <p className="mt-3 text-sm text-muted-foreground italic border-t border-border pt-3">"{(myDog as any).bio}"</p>
+              <p className="mt-3 text-sm text-muted-foreground italic border-t border-border pt-3 text-center">"{(myDog as any).bio}"</p>
             )}
           </div>
 
