@@ -177,6 +177,13 @@ export default function Profile() {
   const [lostPhone, setLostPhone] = useState('');
   const [lostNote, setLostNote] = useState('');
 
+  // Auto-select first dog
+  useEffect(() => {
+    if (dogs.length > 0 && !dogs.find(d => d.id === selectedDogId)) {
+      setSelectedDogId(dogs[0].id);
+    }
+  }, [dogs]);
+
   // Load breeds
   useEffect(() => {
     supabase.from('breeds').select('id, name, code').order('name').then(({ data }) => {
