@@ -116,7 +116,8 @@ function Section({ title, icon, children, className = '' }: { title: string; ico
 export default function Profile() {
   const { profile, dogs, selectedPark, signOut, refreshDogs, refreshProfile } = useAuth();
   const navigate = useNavigate();
-  const myDog = dogs[0];
+  const [selectedDogId, setSelectedDogId] = useState<string>('');
+  const myDog = dogs.find(d => d.id === selectedDogId) || dogs[0];
   
   const [editing, setEditing] = useState(false);
   const [loading, setLoading] = useState(false);
