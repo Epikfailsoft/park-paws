@@ -410,6 +410,12 @@ export default function Profile() {
               <h1 className="font-display text-lg font-extrabold text-white">Köpeğim</h1>
             </div>
             <div className="flex items-center gap-2">
+              <DogSelector
+                dogs={dogs}
+                selectedDogId={selectedDogId || myDog?.id || ''}
+                onSelect={setSelectedDogId}
+                onAddNew={() => navigate('/onboarding')}
+              />
               <button onClick={() => toggleLostMode(!myDog.is_lost)} disabled={lostLoading}
                 className={cn("flex items-center gap-1.5 rounded-full px-3 py-2 text-xs font-semibold transition-all",
                   myDog.is_lost ? "bg-white text-purple-600" : "bg-purple-500 text-white border border-purple-400"
