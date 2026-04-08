@@ -248,6 +248,41 @@ export type Database = {
           },
         ]
       }
+      dog_photos: {
+        Row: {
+          created_at: string
+          dog_id: string
+          id: string
+          is_primary: boolean
+          photo_url: string
+          sort_order: number
+        }
+        Insert: {
+          created_at?: string
+          dog_id: string
+          id?: string
+          is_primary?: boolean
+          photo_url: string
+          sort_order?: number
+        }
+        Update: {
+          created_at?: string
+          dog_id?: string
+          id?: string
+          is_primary?: boolean
+          photo_url?: string
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dog_photos_dog_id_fkey"
+            columns: ["dog_id"]
+            isOneToOne: false
+            referencedRelation: "dogs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       dog_private: {
         Row: {
           created_at: string | null

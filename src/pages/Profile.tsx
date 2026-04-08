@@ -2,13 +2,15 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
-import { Dog as DogIcon, LogOut, Loader2, Camera, Phone, User, Edit2, AlertTriangle, ToggleLeft, ToggleRight, Shield, ChevronDown, ChevronUp, Award, Clock, MapPin, Heart, Stethoscope, Share2 } from 'lucide-react';
+import { Dog as DogIcon, LogOut, Loader2, Camera, Phone, User, Edit2, AlertTriangle, ToggleLeft, ToggleRight, Shield, ChevronDown, ChevronUp, Award, Clock, MapPin, Heart, Stethoscope, Share2, Plus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { SOCIAL_STYLE_OPTIONS, formatOwnerName } from '@/types/dogspace';
 import { validateTurkishPhone } from '@/lib/upload-validation';
 import { Search } from 'lucide-react';
 import dogiLogo from '@/assets/dogi-logo.png';
+import { DogSelector } from '@/components/profile/DogSelector';
+import { DogPhotoGallery } from '@/components/profile/DogPhotoGallery';
 
 // ── Constants ──
 const PLAY_STYLE_OPTIONS = [
@@ -114,7 +116,8 @@ function Section({ title, icon, children, className = '' }: { title: string; ico
 export default function Profile() {
   const { profile, dogs, selectedPark, signOut, refreshDogs, refreshProfile } = useAuth();
   const navigate = useNavigate();
-  const myDog = dogs[0];
+  const [selectedDogId, setSelectedDogId] = useState<string>('');
+  const myDog = dogs.find(d => d.id === selectedDogId) || dogs[0];
   
   const [editing, setEditing] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -173,6 +176,13 @@ export default function Profile() {
   const [lostLoading, setLostLoading] = useState(false);
   const [lostPhone, setLostPhone] = useState('');
   const [lostNote, setLostNote] = useState('');
+
+  // Auto-select first dog
+  useEffect(() => {
+    if (dogs.length > 0 && !dogs.find(d => d.id === selectedDogId)) {
+      setSelectedDogId(dogs[0].id);
+    }
+  }, [dogs]);
 
   // Load breeds
   useEffect(() => {
@@ -400,6 +410,12 @@ export default function Profile() {
               <h1 className="font-display text-lg font-extrabold text-white">Köpeğim</h1>
             </div>
             <div className="flex items-center gap-2">
+              <DogSelector
+                dogs={dogs}
+                selectedDogId={selectedDogId || myDog?.id || ''}
+                onSelect={setSelectedDogId}
+                onAddNew={() => navigate('/onboarding')}
+              />
               <button onClick={() => toggleLostMode(!myDog.is_lost)} disabled={lostLoading}
                 className={cn("flex items-center gap-1.5 rounded-full px-3 py-2 text-xs font-semibold transition-all",
                   myDog.is_lost ? "bg-white text-purple-600" : "bg-purple-500 text-white border border-purple-400"
@@ -417,45 +433,39 @@ export default function Profile() {
 
           {/* ── 1. KÖPEK KİMLİĞİ ── */}
           <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
-            <div className="flex items-start gap-4">
-              {/* Photo */}
-              <div className="relative flex-shrink-0">
-                <input ref={dogPhotoRef} type="file" accept="image/*" className="hidden" onChange={handleDogPhotoUpload} />
-                <img src={myDog.photo_url} alt={myDog.name}
-                  className={cn("h-24 w-24 rounded-full object-cover ring-4 shadow-lg",
-                    myDog.is_lost ? "ring-red-500" : "ring-primary/20"
-                  )} />
-                <button onClick={() => dogPhotoRef.current?.click()} disabled={dogPhotoLoading}
-                  className="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full bg-primary text-white shadow-md">
-                  {dogPhotoLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Camera className="h-3.5 w-3.5" />}
-                </button>
-              </div>
+            {/* Photo Gallery */}
+            <DogPhotoGallery
+              dogId={myDog.id}
+              mainPhotoUrl={myDog.photo_url}
+              onMainPhotoChange={async (url) => {
+                await refreshDogs();
+              }}
+            />
 
-              {/* Info */}
-              <div className="flex-1 min-w-0">
-                <h2 className="text-xl font-bold text-foreground">{myDog.name}</h2>
-                <p className="text-sm text-muted-foreground mt-0.5">
-                  {myDog.approximate_age} • {myDog.gender === 'male' ? '♂ Erkek' : myDog.gender === 'female' ? '♀ Dişi' : ''} {myDog.neutered ? '• ✂️' : ''}
-                </p>
-                <p className="text-sm text-muted-foreground">{breedName} {(myDog as any).is_shelter ? '• 🏠 Barınak' : ''}</p>
+            {/* Info */}
+            <div className="mt-4 text-center">
+              <h2 className="text-xl font-bold text-foreground">{myDog.name}</h2>
+              <p className="text-sm text-muted-foreground mt-0.5">
+                {myDog.approximate_age} • {myDog.gender === 'male' ? '♂ Erkek' : myDog.gender === 'female' ? '♀ Dişi' : ''} {myDog.neutered ? '• ✂️' : ''}
+              </p>
+              <p className="text-sm text-muted-foreground">{breedName} {(myDog as any).is_shelter ? '• 🏠 Barınak' : ''}</p>
 
-                {/* Size & Energy chips */}
-                <div className="flex flex-wrap gap-1.5 mt-2">
-                  {(myDog as any).size_label && (
-                    <span className="rounded-full bg-secondary px-2.5 py-1 text-xs font-medium text-secondary-foreground">
-                      {SIZE_OPTIONS.find(o => o.value === (myDog as any).size_label)?.icon} {SIZE_OPTIONS.find(o => o.value === (myDog as any).size_label)?.label}
-                    </span>
-                  )}
+              {/* Size & Energy chips */}
+              <div className="flex flex-wrap justify-center gap-1.5 mt-2">
+                {(myDog as any).size_label && (
                   <span className="rounded-full bg-secondary px-2.5 py-1 text-xs font-medium text-secondary-foreground">
-                    {ENERGY_OPTIONS.find(o => o.value === myDog.energy_level)?.icon} {ENERGY_OPTIONS.find(o => o.value === myDog.energy_level)?.label}
+                    {SIZE_OPTIONS.find(o => o.value === (myDog as any).size_label)?.icon} {SIZE_OPTIONS.find(o => o.value === (myDog as any).size_label)?.label}
                   </span>
-                </div>
+                )}
+                <span className="rounded-full bg-secondary px-2.5 py-1 text-xs font-medium text-secondary-foreground">
+                  {ENERGY_OPTIONS.find(o => o.value === myDog.energy_level)?.icon} {ENERGY_OPTIONS.find(o => o.value === myDog.energy_level)?.label}
+                </span>
               </div>
             </div>
 
             {/* Bio */}
             {(myDog as any).bio && (
-              <p className="mt-3 text-sm text-muted-foreground italic border-t border-border pt-3">"{(myDog as any).bio}"</p>
+              <p className="mt-3 text-sm text-muted-foreground italic border-t border-border pt-3 text-center">"{(myDog as any).bio}"</p>
             )}
           </div>
 
