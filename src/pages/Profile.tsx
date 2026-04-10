@@ -778,10 +778,33 @@ export default function Profile() {
                   </button>
                 </div>
                 <div className="flex-1">
-                  <p className="font-semibold text-sm text-foreground">{formatOwnerName(profile.display_name, profile.last_name)}</p>
+                  {editingOwnerInfo ? (
+                    <div className="space-y-2">
+                      <input type="text" value={ownerName} onChange={e => setOwnerName(e.target.value)} placeholder="Ad" className="dogspace-input w-full text-sm py-1.5" />
+                      <input type="text" value={ownerLastName} onChange={e => setOwnerLastName(e.target.value)} placeholder="Soyad" className="dogspace-input w-full text-sm py-1.5" />
+                      <div className="flex gap-2">
+                        <button onClick={handleSaveOwnerInfo} className="rounded-lg bg-primary px-3 py-1.5 text-xs text-primary-foreground font-medium">Kaydet</button>
+                        <button onClick={() => setEditingOwnerInfo(false)} className="rounded-lg bg-secondary px-3 py-1.5 text-xs text-muted-foreground font-medium">İptal</button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-between">
+                      <p className="font-semibold text-sm text-foreground">{formatOwnerName(profile.display_name, profile.last_name)}</p>
+                      <button onClick={() => { setOwnerName(profile.display_name); setOwnerLastName(profile.last_name || ''); setEditingOwnerInfo(true); }}
+                        className="text-xs text-primary font-medium">Düzenle</button>
+                    </div>
+                  )}
                 </div>
               </div>
             </Section>
+          )}
+
+          {/* Delete Dog (only if multiple) */}
+          {dogs.length > 1 && (
+            <button onClick={handleDeleteDog} disabled={loading}
+              className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-destructive/30 py-3 text-sm font-medium text-destructive hover:bg-destructive/10 transition-all disabled:opacity-50">
+              <Trash2 className="h-4 w-4" /> {myDog.name} Profilini Sil
+            </button>
           )}
 
           {/* Logout */}
