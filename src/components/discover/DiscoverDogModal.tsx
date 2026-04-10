@@ -129,7 +129,7 @@ export function DiscoverDogModal({ dog, onClose, onWave, hasWaved }: DiscoverDog
           {/* Energy */}
           <div className="flex items-center gap-3">
             <span className="text-xs font-medium text-muted-foreground">Enerji</span>
-            <EnergyIndicator level={dog.energy_level} size="md" showLabel />
+            <EnergyIndicator level={dog.energy_level as 1 | 2 | 3} size="md" showLabel />
           </div>
 
           {/* Social style */}
