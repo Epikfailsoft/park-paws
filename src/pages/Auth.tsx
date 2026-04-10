@@ -13,7 +13,7 @@ const passwordSchema = z.string().min(6, 'Şifre en az 6 karakter olmalı');
 const nameSchema = z.string().min(2, 'İsim en az 2 karakter olmalı');
 
 export default function Auth() {
-  const [isLogin, setIsLogin] = useState(true);
+  const [isLogin, setIsLogin] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
