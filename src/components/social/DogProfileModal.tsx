@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { X, Award } from 'lucide-react';
 import { EnergyIndicator } from '@/components/ui/EnergyIndicator';
+import { PhotoLightbox } from '@/components/ui/PhotoLightbox';
 import { SOCIAL_STYLE_OPTIONS } from '@/types/dogspace';
 import { supabase } from '@/integrations/supabase/client';
 import type { Dog, Profile } from '@/types/dogspace';
@@ -18,6 +19,7 @@ interface DogProfileModalProps {
 
 export function DogProfileModal({ dog, onClose }: DogProfileModalProps) {
   const [badges, setBadges] = useState<DogBadge[]>([]);
+  const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
 
   useEffect(() => {
     if (!dog) { setBadges([]); return; }
@@ -65,7 +67,12 @@ export function DogProfileModal({ dog, onClose }: DogProfileModalProps) {
           {/* Owner */}
           <div className="mt-3 flex items-center gap-2 rounded-full bg-secondary px-3 py-1.5">
             {dog.owner.photo_url && (
-              <img src={dog.owner.photo_url} alt="" className="h-5 w-5 rounded-full object-cover" />
+              <img
+                src={dog.owner.photo_url}
+                alt=""
+                className="h-5 w-5 rounded-full object-cover cursor-pointer hover:ring-2 hover:ring-primary transition-all"
+                onClick={() => setLightboxSrc(dog.owner.photo_url!)}
+              />
             )}
             <span className="text-xs font-medium text-secondary-foreground">
               {dog.owner.display_name}
@@ -160,6 +167,11 @@ export function DogProfileModal({ dog, onClose }: DogProfileModalProps) {
             </div>
           )}
         </div>
+
+        {/* Owner photo lightbox */}
+        {lightboxSrc && (
+          <PhotoLightbox src={lightboxSrc} alt={dog.owner.display_name} onClose={() => setLightboxSrc(null)} />
+        )}
       </div>
     </div>
   );
