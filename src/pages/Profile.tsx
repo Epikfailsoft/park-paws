@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
-import { Dog as DogIcon, LogOut, Loader2, Camera, Phone, User, Edit2, AlertTriangle, ToggleLeft, ToggleRight, Shield, ChevronDown, ChevronUp, Award, Clock, MapPin, Heart, Stethoscope, Share2, Plus } from 'lucide-react';
+import { Dog as DogIcon, LogOut, Loader2, Camera, Phone, User, Edit2, AlertTriangle, ToggleLeft, ToggleRight, Shield, ChevronDown, ChevronUp, Award, Clock, MapPin, Heart, Stethoscope, Share2, Plus, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { SOCIAL_STYLE_OPTIONS, formatOwnerName } from '@/types/dogspace';
@@ -63,7 +63,26 @@ const ENERGY_OPTIONS = [
   { value: 3, label: 'Yüksek', icon: '⚡' },
 ];
 
-const SAFETY_OPTIONS = [
+const ZODIAC_OPTIONS = [
+  { value: 'aries', label: 'Koç', icon: '♈' },
+  { value: 'taurus', label: 'Boğa', icon: '♉' },
+  { value: 'gemini', label: 'İkizler', icon: '♊' },
+  { value: 'cancer', label: 'Yengeç', icon: '♋' },
+  { value: 'leo', label: 'Aslan', icon: '♌' },
+  { value: 'virgo', label: 'Başak', icon: '♍' },
+  { value: 'libra', label: 'Terazi', icon: '♎' },
+  { value: 'scorpio', label: 'Akrep', icon: '♏' },
+  { value: 'sagittarius', label: 'Yay', icon: '♐' },
+  { value: 'capricorn', label: 'Oğlak', icon: '♑' },
+  { value: 'aquarius', label: 'Kova', icon: '♒' },
+  { value: 'pisces', label: 'Balık', icon: '♓' },
+];
+
+const DOG_ORIGIN_OPTIONS = [
+  { value: 'none', label: 'Sahipli', icon: '🐕' },
+  { value: 'shelter', label: 'Barınak', icon: '🏠' },
+  { value: 'street', label: 'Sokak', icon: '🐾' },
+];
   { value: 'yes', label: 'Evet', icon: '✅' },
   { value: 'no', label: 'Hayır', icon: '❌' },
   { value: 'cautious', label: 'Dikkatli', icon: '⚠️' },
@@ -157,7 +176,8 @@ export default function Profile() {
   const [toyGuarding, setToyGuarding] = useState('');
   const [catCompat, setCatCompat] = useState('');
   const [allergyNotes, setAllergyNotes] = useState('');
-
+  const [zodiacSign, setZodiacSign] = useState('');
+  const [dogOrigin, setDogOrigin] = useState<'none' | 'shelter' | 'street'>('none');
   // ── Breed ──
   const [breeds, setBreeds] = useState<{ id: string; name: string; code: string }[]>([]);
   const [selectedBreedId, setSelectedBreedId] = useState('');
