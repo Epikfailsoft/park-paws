@@ -362,6 +362,7 @@ export type Database = {
           updated_at: string | null
           walk_duration: string | null
           weight_kg: number | null
+          zodiac_sign: string | null
         }
         Insert: {
           active_hours?: string[] | null
@@ -409,6 +410,7 @@ export type Database = {
           updated_at?: string | null
           walk_duration?: string | null
           weight_kg?: number | null
+          zodiac_sign?: string | null
         }
         Update: {
           active_hours?: string[] | null
@@ -456,6 +458,7 @@ export type Database = {
           updated_at?: string | null
           walk_duration?: string | null
           weight_kg?: number | null
+          zodiac_sign?: string | null
         }
         Relationships: [
           {

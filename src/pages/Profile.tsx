@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
-import { Dog as DogIcon, LogOut, Loader2, Camera, Phone, User, Edit2, AlertTriangle, ToggleLeft, ToggleRight, Shield, ChevronDown, ChevronUp, Award, Clock, MapPin, Heart, Stethoscope, Share2, Plus } from 'lucide-react';
+import { Dog as DogIcon, LogOut, Loader2, Camera, Phone, User, Edit2, AlertTriangle, ToggleLeft, ToggleRight, Shield, ChevronDown, ChevronUp, Award, Clock, MapPin, Heart, Stethoscope, Share2, Plus, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { SOCIAL_STYLE_OPTIONS, formatOwnerName } from '@/types/dogspace';
@@ -61,6 +61,27 @@ const ENERGY_OPTIONS = [
   { value: 1, label: 'Düşük', icon: '🐢' },
   { value: 2, label: 'Orta', icon: '🐕' },
   { value: 3, label: 'Yüksek', icon: '⚡' },
+];
+
+const ZODIAC_OPTIONS = [
+  { value: 'aries', label: 'Koç', icon: '♈' },
+  { value: 'taurus', label: 'Boğa', icon: '♉' },
+  { value: 'gemini', label: 'İkizler', icon: '♊' },
+  { value: 'cancer', label: 'Yengeç', icon: '♋' },
+  { value: 'leo', label: 'Aslan', icon: '♌' },
+  { value: 'virgo', label: 'Başak', icon: '♍' },
+  { value: 'libra', label: 'Terazi', icon: '♎' },
+  { value: 'scorpio', label: 'Akrep', icon: '♏' },
+  { value: 'sagittarius', label: 'Yay', icon: '♐' },
+  { value: 'capricorn', label: 'Oğlak', icon: '♑' },
+  { value: 'aquarius', label: 'Kova', icon: '♒' },
+  { value: 'pisces', label: 'Balık', icon: '♓' },
+];
+
+const DOG_ORIGIN_OPTIONS = [
+  { value: 'none', label: 'Sahipli', icon: '🐕' },
+  { value: 'shelter', label: 'Barınak', icon: '🏠' },
+  { value: 'street', label: 'Sokak', icon: '🐾' },
 ];
 
 const SAFETY_OPTIONS = [
@@ -157,7 +178,8 @@ export default function Profile() {
   const [toyGuarding, setToyGuarding] = useState('');
   const [catCompat, setCatCompat] = useState('');
   const [allergyNotes, setAllergyNotes] = useState('');
-
+  const [zodiacSign, setZodiacSign] = useState('');
+  const [dogOrigin, setDogOrigin] = useState<'none' | 'shelter' | 'street'>('none');
   // ── Breed ──
   const [breeds, setBreeds] = useState<{ id: string; name: string; code: string }[]>([]);
   const [selectedBreedId, setSelectedBreedId] = useState('');
@@ -214,6 +236,16 @@ export default function Profile() {
     setToyGuarding((myDog as any).toy_guarding || '');
     setCatCompat((myDog as any).cat_compat || '');
     setAllergyNotes((myDog as any).allergy_notes || '');
+    setZodiacSign((myDog as any).zodiac_sign || '');
+    const shelter = (myDog as any).is_shelter;
+    // Determine origin from breed or is_shelter flag
+    if (shelter) {
+      // Check breed to differentiate shelter vs street
+      const breedCode = breeds.find(b => b.id === myDog.breed_id)?.code;
+      setDogOrigin(breedCode === 'SOKAK' ? 'street' : 'shelter');
+    } else {
+      setDogOrigin('none');
+    }
   }, [myDog]);
 
   // Load care data
@@ -296,6 +328,7 @@ export default function Profile() {
         toy_guarding: toyGuarding || null,
         cat_compat: catCompat || null,
         allergy_notes: allergyNotes.trim() || null,
+        zodiac_sign: zodiacSign || null,
       } as any).eq('id', myDog.id);
 
       // Save health
@@ -362,6 +395,22 @@ export default function Profile() {
       setEditingOwnerInfo(false);
       toast.success('Bilgiler güncellendi!');
     } catch { toast.error('Hata'); }
+  };
+
+  const handleDeleteDog = async () => {
+    if (!myDog || dogs.length <= 1) {
+      toast.error('Son köpeğinizi silemezsiniz');
+      return;
+    }
+    if (!window.confirm(`${myDog.name} profilini silmek istediğinize emin misiniz? Bu işlem geri alınamaz.`)) return;
+    setLoading(true);
+    try {
+      await supabase.from('dogs').update({ deleted_at: new Date().toISOString() } as any).eq('id', myDog.id);
+      await refreshDogs();
+      setSelectedDogId('');
+      toast.success(`${myDog.name} silindi`);
+    } catch { toast.error('Hata oluştu'); }
+    finally { setLoading(false); }
   };
 
   const handleLogout = async () => { await signOut(); navigate('/auth'); };
@@ -448,7 +497,11 @@ export default function Profile() {
               <p className="text-sm text-muted-foreground mt-0.5">
                 {myDog.approximate_age} • {myDog.gender === 'male' ? '♂ Erkek' : myDog.gender === 'female' ? '♀ Dişi' : ''} {myDog.neutered ? '• ✂️' : ''}
               </p>
-              <p className="text-sm text-muted-foreground">{breedName} {(myDog as any).is_shelter ? '• 🏠 Barınak' : ''}</p>
+              <p className="text-sm text-muted-foreground">
+                {breedName}
+                {(myDog as any).is_shelter ? (dogOrigin === 'street' ? ' • 🐾 Sokak' : ' • 🏠 Barınak') : ''}
+                {(myDog as any).zodiac_sign && ` • ${ZODIAC_OPTIONS.find(z => z.value === (myDog as any).zodiac_sign)?.icon || ''} ${ZODIAC_OPTIONS.find(z => z.value === (myDog as any).zodiac_sign)?.label || ''}`}
+              </p>
 
               {/* Size & Energy chips */}
               <div className="flex flex-wrap justify-center gap-1.5 mt-2">
@@ -725,10 +778,33 @@ export default function Profile() {
                   </button>
                 </div>
                 <div className="flex-1">
-                  <p className="font-semibold text-sm text-foreground">{formatOwnerName(profile.display_name, profile.last_name)}</p>
+                  {editingOwnerInfo ? (
+                    <div className="space-y-2">
+                      <input type="text" value={ownerName} onChange={e => setOwnerName(e.target.value)} placeholder="Ad" className="dogspace-input w-full text-sm py-1.5" />
+                      <input type="text" value={ownerLastName} onChange={e => setOwnerLastName(e.target.value)} placeholder="Soyad" className="dogspace-input w-full text-sm py-1.5" />
+                      <div className="flex gap-2">
+                        <button onClick={handleSaveOwnerInfo} className="rounded-lg bg-primary px-3 py-1.5 text-xs text-primary-foreground font-medium">Kaydet</button>
+                        <button onClick={() => setEditingOwnerInfo(false)} className="rounded-lg bg-secondary px-3 py-1.5 text-xs text-muted-foreground font-medium">İptal</button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-between">
+                      <p className="font-semibold text-sm text-foreground">{formatOwnerName(profile.display_name, profile.last_name)}</p>
+                      <button onClick={() => { setOwnerName(profile.display_name); setOwnerLastName(profile.last_name || ''); setEditingOwnerInfo(true); }}
+                        className="text-xs text-primary font-medium">Düzenle</button>
+                    </div>
+                  )}
                 </div>
               </div>
             </Section>
+          )}
+
+          {/* Delete Dog (only if multiple) */}
+          {dogs.length > 1 && (
+            <button onClick={handleDeleteDog} disabled={loading}
+              className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-destructive/30 py-3 text-sm font-medium text-destructive hover:bg-destructive/10 transition-all disabled:opacity-50">
+              <Trash2 className="h-4 w-4" /> {myDog.name} Profilini Sil
+            </button>
           )}
 
           {/* Logout */}
@@ -795,14 +871,33 @@ export default function Profile() {
             )}
           </div>
 
-          {/* Neutered / Shelter toggles */}
-          <div className="flex gap-2">
-            <Chip selected={neutered} onClick={() => setNeutered(!neutered)} className="flex-1 text-center">
-              {neutered ? '✂️ Kısır' : '✂️ Kısır değil'}
-            </Chip>
-            <Chip selected={isShelter} onClick={() => setIsShelter(!isShelter)} className="flex-1 text-center">
-              {isShelter ? '🏠 Barınak' : '🏠 Barınak değil'}
-            </Chip>
+          {/* Neutered */}
+          <Chip selected={neutered} onClick={() => setNeutered(!neutered)} className="w-full text-center">
+            {neutered ? '✂️ Kısır' : '✂️ Kısır değil'}
+          </Chip>
+
+          {/* Dog Origin */}
+          <div>
+            <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Nereden Geldi?</label>
+            <div className="flex gap-2">
+              {DOG_ORIGIN_OPTIONS.map(o => (
+                <Chip key={o.value} selected={dogOrigin === o.value} onClick={() => { setDogOrigin(o.value as any); setIsShelter(o.value !== 'none'); }} className="flex-1 text-center">
+                  {o.icon} {o.label}
+                </Chip>
+              ))}
+            </div>
+          </div>
+
+          {/* Zodiac */}
+          <div>
+            <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Burç</label>
+            <div className="grid grid-cols-4 gap-1.5">
+              {ZODIAC_OPTIONS.map(o => (
+                <Chip key={o.value} selected={zodiacSign === o.value} onClick={() => setZodiacSign(zodiacSign === o.value ? '' : o.value)} className="text-center text-[11px] px-1">
+                  {o.icon} {o.label}
+                </Chip>
+              ))}
+            </div>
           </div>
 
           {/* Size */}
