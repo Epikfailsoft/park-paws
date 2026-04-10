@@ -326,15 +326,21 @@ export default function Onboarding() {
             </div>
           </div>
 
-          {/* Shelter Dog */}
+          {/* Dog Origin */}
           <div className="mb-6">
-            <label className="mb-3 block text-sm font-medium text-foreground">Barınaktan mı sahiplenildi?</label>
-            <div className="flex gap-3">
-              {[true, false].map(val => (
-                <button key={String(val)} type="button" onClick={() => setIsShelter(val)}
-                  className={cn("flex-1 rounded-xl border-2 py-3 text-sm font-medium transition-all",
-                    isShelter === val ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card text-muted-foreground"
-                  )}>{val ? '🏠 Evet' : 'Hayır'}</button>
+            <label className="mb-3 block text-sm font-medium text-foreground">Köpeğin nereden geldi?</label>
+            <div className="flex gap-2">
+              {([
+                { value: 'none' as const, label: 'Sahipli', icon: '🐕' },
+                { value: 'shelter' as const, label: 'Barınak', icon: '🏠' },
+                { value: 'street' as const, label: 'Sokak', icon: '🐾' },
+              ]).map(opt => (
+                <button key={opt.value} type="button"
+                  onClick={() => { setDogOrigin(opt.value); setIsShelter(opt.value !== 'none'); }}
+                  className={cn("flex-1 rounded-xl border-2 py-3 text-xs font-medium transition-all",
+                    dogOrigin === opt.value
+                      ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card text-muted-foreground"
+                  )}>{opt.icon} {opt.label}</button>
               ))}
             </div>
           </div>
