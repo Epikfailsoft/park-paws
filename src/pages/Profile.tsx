@@ -236,6 +236,16 @@ export default function Profile() {
     setToyGuarding((myDog as any).toy_guarding || '');
     setCatCompat((myDog as any).cat_compat || '');
     setAllergyNotes((myDog as any).allergy_notes || '');
+    setZodiacSign((myDog as any).zodiac_sign || '');
+    const shelter = (myDog as any).is_shelter;
+    // Determine origin from breed or is_shelter flag
+    if (shelter) {
+      // Check breed to differentiate shelter vs street
+      const breedCode = breeds.find(b => b.id === myDog.breed_id)?.code;
+      setDogOrigin(breedCode === 'SOKAK' ? 'street' : 'shelter');
+    } else {
+      setDogOrigin('none');
+    }
   }, [myDog]);
 
   // Load care data
