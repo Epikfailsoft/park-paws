@@ -83,6 +83,8 @@ const DOG_ORIGIN_OPTIONS = [
   { value: 'shelter', label: 'Barınak', icon: '🏠' },
   { value: 'street', label: 'Sokak', icon: '🐾' },
 ];
+
+const SAFETY_OPTIONS = [
   { value: 'yes', label: 'Evet', icon: '✅' },
   { value: 'no', label: 'Hayır', icon: '❌' },
   { value: 'cautious', label: 'Dikkatli', icon: '⚠️' },
