@@ -397,6 +397,22 @@ export default function Profile() {
     } catch { toast.error('Hata'); }
   };
 
+  const handleDeleteDog = async () => {
+    if (!myDog || dogs.length <= 1) {
+      toast.error('Son köpeğinizi silemezsiniz');
+      return;
+    }
+    if (!window.confirm(`${myDog.name} profilini silmek istediğinize emin misiniz? Bu işlem geri alınamaz.`)) return;
+    setLoading(true);
+    try {
+      await supabase.from('dogs').update({ deleted_at: new Date().toISOString() } as any).eq('id', myDog.id);
+      await refreshDogs();
+      setSelectedDogId('');
+      toast.success(`${myDog.name} silindi`);
+    } catch { toast.error('Hata oluştu'); }
+    finally { setLoading(false); }
+  };
+
   const handleLogout = async () => { await signOut(); navigate('/auth'); };
 
   const togglePlayStyle = (val: string) => {
