@@ -497,7 +497,11 @@ export default function Profile() {
               <p className="text-sm text-muted-foreground mt-0.5">
                 {myDog.approximate_age} • {myDog.gender === 'male' ? '♂ Erkek' : myDog.gender === 'female' ? '♀ Dişi' : ''} {myDog.neutered ? '• ✂️' : ''}
               </p>
-              <p className="text-sm text-muted-foreground">{breedName} {(myDog as any).is_shelter ? '• 🏠 Barınak' : ''}</p>
+              <p className="text-sm text-muted-foreground">
+                {breedName}
+                {(myDog as any).is_shelter ? (dogOrigin === 'street' ? ' • 🐾 Sokak' : ' • 🏠 Barınak') : ''}
+                {(myDog as any).zodiac_sign && ` • ${ZODIAC_OPTIONS.find(z => z.value === (myDog as any).zodiac_sign)?.icon || ''} ${ZODIAC_OPTIONS.find(z => z.value === (myDog as any).zodiac_sign)?.label || ''}`}
+              </p>
 
               {/* Size & Energy chips */}
               <div className="flex flex-wrap justify-center gap-1.5 mt-2">
