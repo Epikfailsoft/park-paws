@@ -1,0 +1,1 @@
+ALTER TABLE public.dogs ADD COLUMN zodiac_sign text DEFAULT NULL;
