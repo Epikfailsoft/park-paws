@@ -328,6 +328,7 @@ export default function Profile() {
         toy_guarding: toyGuarding || null,
         cat_compat: catCompat || null,
         allergy_notes: allergyNotes.trim() || null,
+        zodiac_sign: zodiacSign || null,
       } as any).eq('id', myDog.id);
 
       // Save health
