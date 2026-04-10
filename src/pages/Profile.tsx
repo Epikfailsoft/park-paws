@@ -871,14 +871,33 @@ export default function Profile() {
             )}
           </div>
 
-          {/* Neutered / Shelter toggles */}
-          <div className="flex gap-2">
-            <Chip selected={neutered} onClick={() => setNeutered(!neutered)} className="flex-1 text-center">
-              {neutered ? '✂️ Kısır' : '✂️ Kısır değil'}
-            </Chip>
-            <Chip selected={isShelter} onClick={() => setIsShelter(!isShelter)} className="flex-1 text-center">
-              {isShelter ? '🏠 Barınak' : '🏠 Barınak değil'}
-            </Chip>
+          {/* Neutered */}
+          <Chip selected={neutered} onClick={() => setNeutered(!neutered)} className="w-full text-center">
+            {neutered ? '✂️ Kısır' : '✂️ Kısır değil'}
+          </Chip>
+
+          {/* Dog Origin */}
+          <div>
+            <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Nereden Geldi?</label>
+            <div className="flex gap-2">
+              {DOG_ORIGIN_OPTIONS.map(o => (
+                <Chip key={o.value} selected={dogOrigin === o.value} onClick={() => { setDogOrigin(o.value as any); setIsShelter(o.value !== 'none'); }} className="flex-1 text-center">
+                  {o.icon} {o.label}
+                </Chip>
+              ))}
+            </div>
+          </div>
+
+          {/* Zodiac */}
+          <div>
+            <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Burç</label>
+            <div className="grid grid-cols-4 gap-1.5">
+              {ZODIAC_OPTIONS.map(o => (
+                <Chip key={o.value} selected={zodiacSign === o.value} onClick={() => setZodiacSign(zodiacSign === o.value ? '' : o.value)} className="text-center text-[11px] px-1">
+                  {o.icon} {o.label}
+                </Chip>
+              ))}
+            </div>
           </div>
 
           {/* Size */}
