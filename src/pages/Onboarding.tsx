@@ -59,6 +59,7 @@ export default function Onboarding() {
   const [selectedParkId, setSelectedParkId] = useState<string | null>(null);
 
   const [isShelter, setIsShelter] = useState(false);
+  const [dogOrigin, setDogOrigin] = useState<'none' | 'shelter' | 'street'>('none');
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
