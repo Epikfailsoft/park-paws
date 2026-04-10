@@ -7,13 +7,14 @@ interface SwipeCardProps {
   dog: DiscoverDog;
   onSwipeLeft: () => void;
   onSwipeRight: () => void;
+  onTap?: () => void;
   isTop: boolean;
   hasWaved: boolean;
 }
 
 const SWIPE_THRESHOLD = 100;
 
-export function SwipeCard({ dog, onSwipeLeft, onSwipeRight, isTop, hasWaved }: SwipeCardProps) {
+export function SwipeCard({ dog, onSwipeLeft, onSwipeRight, onTap, isTop, hasWaved }: SwipeCardProps) {
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const [isLeaving, setIsLeaving] = useState<'left' | 'right' | null>(null);
@@ -38,12 +39,16 @@ export function SwipeCard({ dog, onSwipeLeft, onSwipeRight, isTop, hasWaved }: S
   const handleEnd = () => {
     if (!isDragging) return;
     setIsDragging(false);
+    const totalMove = Math.abs(offset.x) + Math.abs(offset.y);
     if (offset.x > SWIPE_THRESHOLD) {
       setIsLeaving('right');
       setTimeout(onSwipeRight, 300);
     } else if (offset.x < -SWIPE_THRESHOLD) {
       setIsLeaving('left');
       setTimeout(onSwipeLeft, 300);
+    } else if (totalMove < 5 && onTap) {
+      onTap();
+      setOffset({ x: 0, y: 0 });
     } else {
       setOffset({ x: 0, y: 0 });
     }

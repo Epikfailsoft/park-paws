@@ -3,6 +3,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useLocation } from '@/hooks/useLocation';
 import { supabase } from '@/integrations/supabase/client';
 import { SwipeCard } from '@/components/discover/SwipeCard';
+import { DiscoverDogModal } from '@/components/discover/DiscoverDogModal';
 import { MapView } from '@/components/discover/MapView';
 import { Compass, Loader2, SlidersHorizontal, Heart, X, RotateCcw, Map, Layers } from 'lucide-react';
 import dogiLogo from '@/assets/dogi-logo.png';
@@ -73,6 +74,7 @@ export default function Discover() {
   const [sizeFilter, setSizeFilter] = useState<string | null>(null);
 
   const [totalMembers, setTotalMembers] = useState(0);
+  const [modalDog, setModalDog] = useState<DiscoverDog | null>(null);
 
   const myDog = dogs[0];
   const activeFilterCount = [genderFilter, socialStyleFilter, energyFilter, neuteredFilter, shelterFilter || null, playStyleFilter, sizeFilter].filter(Boolean).length;
@@ -368,7 +370,7 @@ export default function Discover() {
                 {nextDog && (
                   <SwipeCard key={nextDog.dog_id} dog={nextDog} onSwipeLeft={() => {}} onSwipeRight={() => {}} isTop={false} hasWaved={wavedDogs.has(nextDog.dog_id)} />
                 )}
-                <SwipeCard key={currentDog.dog_id} dog={currentDog} onSwipeLeft={handleSwipeLeft} onSwipeRight={handleSwipeRight} isTop={true} hasWaved={wavedDogs.has(currentDog.dog_id)} />
+                <SwipeCard key={currentDog.dog_id} dog={currentDog} onSwipeLeft={handleSwipeLeft} onSwipeRight={handleSwipeRight} onTap={() => setModalDog(currentDog)} isTop={true} hasWaved={wavedDogs.has(currentDog.dog_id)} />
               </div>
 
               <div className="flex items-center justify-center gap-5 mt-5">
@@ -410,6 +412,14 @@ export default function Discover() {
           )}
         </div>
       )}
+
+      {/* Dog profile modal */}
+      <DiscoverDogModal
+        dog={modalDog}
+        onClose={() => setModalDog(null)}
+        onWave={modalDog ? () => { handleWave(modalDog.dog_id); setModalDog(null); } : undefined}
+        hasWaved={modalDog ? wavedDogs.has(modalDog.dog_id) : false}
+      />
     </div>
   );
 }
