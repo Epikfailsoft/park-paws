@@ -143,13 +143,24 @@ export default function Discover() {
     } catch { /* ignore */ }
   }, []);
 
+  // Only fetch on first load or distance change
+  const [initialLoad, setInitialLoad] = useState(true);
   useEffect(() => {
     if (profile) {
+      // If we have stored dogs and this is initial load, skip fetch
+      if (initialLoad && allDogs.length > 0) {
+        setLoading(false);
+        setInitialLoad(false);
+        fetchWaveStatus();
+        fetchStats();
+        return;
+      }
+      setInitialLoad(false);
       fetchDiscoverDogs();
       fetchWaveStatus();
       fetchStats();
     } else { setLoading(false); }
-  }, [profile, distance, lat, lng]);
+  }, [profile, distance]);
 
   useEffect(() => {
     if (lat && lng && myDog) {
