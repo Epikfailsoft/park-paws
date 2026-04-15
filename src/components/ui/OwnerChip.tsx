@@ -21,7 +21,7 @@ export function OwnerChip({ owner }: OwnerChipProps) {
           {owner.display_name[0]}
         </div>
       )}
-      <span className="owner-chip-name">{displayName}</span>
+      <span className="owner-chip-name">👨‍👩‍👦 {displayName}</span>
     </div>
   );
 }

@@ -3,7 +3,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { useLocation } from '@/hooks/useLocation';
 import { supabase } from '@/integrations/supabase/client';
 import { SwipeCard } from '@/components/discover/SwipeCard';
-import { DiscoverDogModal } from '@/components/discover/DiscoverDogModal';
+import { DogProfileSheet } from '@/components/shared/DogProfileSheet';
+import type { DogProfileData } from '@/components/shared/DogProfileSheet';
 import { MapView } from '@/components/discover/MapView';
 import { Compass, Loader2, SlidersHorizontal, Heart, X, RotateCcw, Map, Layers } from 'lucide-react';
 import dogiLogo from '@/assets/dogi-logo.png';
@@ -44,8 +45,17 @@ export default function Discover() {
   const { dogs, profile, selectedPark } = useAuth();
   const { lat, lng } = useLocation();
 
-  const [allDogs, setAllDogs] = useState<DiscoverDog[]>([]);
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [allDogs, setAllDogs] = useState<DiscoverDog[]>(() => {
+    try {
+      const stored = sessionStorage.getItem('dogspace_discover_dogs');
+      return stored ? JSON.parse(stored) : [];
+    } catch { return []; }
+  });
+  const [currentIndex, setCurrentIndex] = useState(() => {
+    try {
+      return parseInt(sessionStorage.getItem('dogspace_discover_index') || '0', 10);
+    } catch { return 0; }
+  });
   const [wavedDogs, setWavedDogs] = useState<Set<string>>(new Set());
   const [passedDogs, setPassedDogs] = useState<Set<string>>(() => {
     try {
@@ -74,7 +84,7 @@ export default function Discover() {
   const [sizeFilter, setSizeFilter] = useState<string | null>(null);
 
   const [totalMembers, setTotalMembers] = useState(0);
-  const [modalDog, setModalDog] = useState<DiscoverDog | null>(null);
+  const [sheetDog, setSheetDog] = useState<DogProfileData | null>(null);
 
   const myDog = dogs[0];
   const activeFilterCount = [genderFilter, socialStyleFilter, energyFilter, neuteredFilter, shelterFilter || null, playStyleFilter, sizeFilter].filter(Boolean).length;
@@ -108,8 +118,11 @@ export default function Discover() {
         p_max_distance_km: distance, p_limit: PAGE_SIZE, p_offset: 0,
       });
       if (error) throw error;
-      setAllDogs((data || []) as DiscoverDog[]);
-      setCurrentIndex(0);
+      const dogs = (data || []) as DiscoverDog[];
+      setAllDogs(dogs);
+      sessionStorage.setItem('dogspace_discover_dogs', JSON.stringify(dogs));
+      // Only reset index if this is a fresh fetch (no stored data)
+      if (!sessionStorage.getItem('dogspace_discover_index')) setCurrentIndex(0);
     } catch (error) {
       console.error('Error fetching dogs:', error);
     } finally { setLoading(false); }
@@ -159,6 +172,11 @@ export default function Discover() {
       toast.error('Bir hata oluştu');
     }
   };
+
+  // Persist currentIndex
+  useEffect(() => {
+    sessionStorage.setItem('dogspace_discover_index', String(currentIndex));
+  }, [currentIndex]);
 
   const handleSwipeRight = () => {
     if (currentDog) { handleWave(currentDog.dog_id); setCurrentIndex(prev => prev + 1); }
@@ -370,7 +388,16 @@ export default function Discover() {
                 {nextDog && (
                   <SwipeCard key={nextDog.dog_id} dog={nextDog} onSwipeLeft={() => {}} onSwipeRight={() => {}} isTop={false} hasWaved={wavedDogs.has(nextDog.dog_id)} />
                 )}
-                <SwipeCard key={currentDog.dog_id} dog={currentDog} onSwipeLeft={handleSwipeLeft} onSwipeRight={handleSwipeRight} onTap={() => setModalDog(currentDog)} isTop={true} hasWaved={wavedDogs.has(currentDog.dog_id)} />
+                <SwipeCard key={currentDog.dog_id} dog={currentDog} onSwipeLeft={handleSwipeLeft} onSwipeRight={handleSwipeRight} onTap={() => setSheetDog({
+                  dog_id: currentDog.dog_id, dog_name: currentDog.dog_name, photo_url: currentDog.photo_url,
+                  breed_name: currentDog.breed_name, approximate_age: currentDog.approximate_age,
+                  energy_level: currentDog.energy_level, gender: currentDog.gender, weight_kg: currentDog.weight_kg,
+                  social_style: currentDog.social_style, triggers: currentDog.triggers, bio: currentDog.bio,
+                  is_neutered: currentDog.is_neutered, distance_km: currentDog.distance_km,
+                  current_park_name: currentDog.current_park_name, playdate_on: currentDog.playdate_on,
+                  owner_name_stub: currentDog.owner_name_stub, owner_photo_stub: currentDog.owner_photo_stub,
+                  is_lost: currentDog.is_lost,
+                })} isTop={true} hasWaved={wavedDogs.has(currentDog.dog_id)} />
               </div>
 
               <div className="flex items-center justify-center gap-5 mt-5">
@@ -413,12 +440,12 @@ export default function Discover() {
         </div>
       )}
 
-      {/* Dog profile modal */}
-      <DiscoverDogModal
-        dog={modalDog}
-        onClose={() => setModalDog(null)}
-        onWave={modalDog ? () => { handleWave(modalDog.dog_id); setModalDog(null); } : undefined}
-        hasWaved={modalDog ? wavedDogs.has(modalDog.dog_id) : false}
+      {/* Dog profile sheet */}
+      <DogProfileSheet
+        dog={sheetDog}
+        onClose={() => setSheetDog(null)}
+        onWave={sheetDog ? () => { handleWave(sheetDog.dog_id); setSheetDog(null); } : undefined}
+        hasWaved={sheetDog ? wavedDogs.has(sheetDog.dog_id) : false}
       />
     </div>
   );

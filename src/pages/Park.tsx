@@ -4,7 +4,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { DogCard } from '@/components/cards/DogCard';
 import { ParkBulletinBoard } from '@/components/social/ParkBulletinBoard';
-import { DogProfileModal } from '@/components/social/DogProfileModal';
+import { DogProfileSheet } from '@/components/shared/DogProfileSheet';
+import type { DogProfileData } from '@/components/shared/DogProfileSheet';
 import { GroupWaveSection } from '@/components/park/GroupWaveSection';
 import { MapPin, Loader2, Timer, AlertTriangle, ChevronDown, ChevronRight, Clock, Users, ArrowLeft, Plus } from 'lucide-react';
 import { toast } from 'sonner';
@@ -45,7 +46,7 @@ export default function Park() {
   const [joiningPark, setJoiningPark] = useState<string | null>(null);
   const [userApprovals, setUserApprovals] = useState<Set<string>>(new Set());
   const [totalParkDogCount, setTotalParkDogCount] = useState(0);
-  const [selectedDogProfile, setSelectedDogProfile] = useState<any>(null);
+  const [selectedDogProfile, setSelectedDogProfile] = useState<DogProfileData | null>(null);
 
   const myDog = dogs[0];
   const isCheckedIn = myDog && isParkCheckinActive(myDog);
@@ -633,15 +634,15 @@ export default function Park() {
                   )}
                   <button
                     className="w-full text-left"
-                    onClick={() => {
+                  onClick={() => {
                       if (!isOwnDog) {
                         setSelectedDogProfile({
-                          id: dog.dog_id, name: dog.dog_name, photo_url: dog.photo_url, approximate_age: dog.approximate_age,
-                          energy_level: dog.energy_level, neutered: dog.is_neutered, social_style: dog.social_style,
-                          triggers: dog.triggers, bio: dog.bio, gender: dog.gender, weight_kg: null,
-                          breed: dog.breed_name ? { id: '', name: dog.breed_name, code: '', created_at: '' } : undefined,
-                          likes: [], dislikes: [], is_shelter: false,
-                          owner: { display_name: dog.owner_name_stub || '', photo_url: dog.owner_photo_stub || null },
+                          dog_id: dog.dog_id, dog_name: dog.dog_name, photo_url: dog.photo_url,
+                          approximate_age: dog.approximate_age, energy_level: dog.energy_level,
+                          is_neutered: dog.is_neutered, social_style: dog.social_style,
+                          triggers: dog.triggers, bio: dog.bio, gender: dog.gender,
+                          breed_name: dog.breed_name, owner_name_stub: dog.owner_name_stub,
+                          owner_photo_stub: dog.owner_photo_stub, is_lost: dog.is_lost,
                         });
                       }
                     }}
@@ -671,7 +672,7 @@ export default function Park() {
                     </div>
                   )}
                   {dog.is_lost && dog.emergency_phone && isCheckedIn && (
-                    <a href={`tel:${dog.emergency_phone}`} className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-destructive py-3 font-semibold text-destructive-foreground">📞 SAHİBİNİ ARA</a>
+                    <a href={`tel:${dog.emergency_phone}`} className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-destructive py-3 font-semibold text-destructive-foreground">📞 AİLESİNİ ARA</a>
                   )}
                   {dog.is_lost && !isCheckedIn && (
                     <div className="mt-3 rounded-xl bg-secondary/50 p-3 text-center">
@@ -699,7 +700,7 @@ export default function Park() {
         </div>
       )}
 
-      <DogProfileModal dog={selectedDogProfile} onClose={() => setSelectedDogProfile(null)} />
+      <DogProfileSheet dog={selectedDogProfile} onClose={() => setSelectedDogProfile(null)} />
     </div>
   );
 }
