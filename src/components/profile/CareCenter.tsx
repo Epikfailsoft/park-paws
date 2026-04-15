@@ -49,7 +49,7 @@ function calculateCareScore(care: DogCare | null, parkActivityDays: number): num
 }
 
 function getCareLabel(score: number): { text: string; emoji: string } {
-  if (score >= 80) return { text: 'Sorumlu Sahip', emoji: '🏆' };
+  if (score >= 80) return { text: 'Sorumlu Aile', emoji: '🏆' };
   if (score >= 60) return { text: 'İyi Bakım', emoji: '👍' };
   if (score >= 40) return { text: 'Geliştirilmeli', emoji: '📋' };
   return { text: 'Başlangıç', emoji: '🌱' };

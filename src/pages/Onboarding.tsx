@@ -426,7 +426,7 @@ export default function Onboarding() {
           </div>
           <div>
             <h1 className="font-display text-xl font-bold text-foreground">Son Adım!</h1>
-            <p className="text-sm text-muted-foreground">Sahip profilini oluştur</p>
+            <p className="text-sm text-muted-foreground">Aile profilini oluştur</p>
           </div>
         </div>
       </div>
@@ -451,7 +451,7 @@ export default function Onboarding() {
               </div>
             )}
           </button>
-          <p className="mt-3 text-center text-sm text-muted-foreground">Diğer sahipler seni tanısın</p>
+          <p className="mt-3 text-center text-sm text-muted-foreground">Diğer aileler seni tanısın</p>
         </div>
 
         {/* Owner Name - Editable */}

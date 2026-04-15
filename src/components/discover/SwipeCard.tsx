@@ -160,7 +160,7 @@ export function SwipeCard({ dog, onSwipeLeft, onSwipeRight, onTap, isTop, hasWav
                     {dog.owner_name_stub[0]}
                   </div>
                 )}
-                <span className="text-xs text-white/60">{dog.owner_name_stub}</span>
+                <span className="text-xs text-white/60">👨‍👩‍👦 {dog.owner_name_stub}</span>
               </div>
             )}
           </div>

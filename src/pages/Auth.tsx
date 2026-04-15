@@ -72,7 +72,7 @@ export default function Auth() {
       {/* Header */}
       <div className="flex flex-col items-center pt-10 pb-6">
         <img src={dogiLogo} alt="DOGI" className="h-[280px] w-[280px] rounded-2xl object-contain" />
-        <p className="mt-2 text-sm text-muted-foreground">Köpekler tanışır, sahipler buluşur</p>
+        <p className="mt-2 text-sm text-muted-foreground">Köpekler tanışır, aileler buluşur</p>
       </div>
 
       <div className="flex-1 px-6">
