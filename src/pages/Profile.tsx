@@ -761,7 +761,7 @@ export default function Profile() {
 
           {/* Owner */}
           {profile && (
-            <Section title="Sahip" icon={<User className="h-3.5 w-3.5 text-muted-foreground" />}>
+            <Section title="Aile" icon={<User className="h-3.5 w-3.5 text-muted-foreground" />}>
               <div className="flex items-center gap-3">
                 <div className="relative flex-shrink-0">
                   <input ref={ownerPhotoRef} type="file" accept="image/*" className="hidden" onChange={handleOwnerPhotoUpload} />
