@@ -407,6 +407,9 @@ export default function Discover() {
           {currentDog ? (
             <>
               <div className="relative w-full max-w-[380px] aspect-[3/4]">
+                {swipeDogs[currentIndex + 2] && (
+                  <SwipeCard key={swipeDogs[currentIndex + 2].dog_id} dog={swipeDogs[currentIndex + 2]} onSwipeLeft={() => {}} onSwipeRight={() => {}} isTop={false} hasWaved={wavedDogs.has(swipeDogs[currentIndex + 2].dog_id)} />
+                )}
                 {nextDog && (
                   <SwipeCard key={nextDog.dog_id} dog={nextDog} onSwipeLeft={() => {}} onSwipeRight={() => {}} isTop={false} hasWaved={wavedDogs.has(nextDog.dog_id)} />
                 )}
