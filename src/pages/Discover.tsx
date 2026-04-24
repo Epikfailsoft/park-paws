@@ -109,6 +109,17 @@ export default function Discover() {
   const currentDog = swipeDogs[currentIndex];
   const nextDog = swipeDogs[currentIndex + 1];
 
+  // Preload upcoming photos for smooth swipes (next 4 cards)
+  useEffect(() => {
+    for (let i = 1; i <= 4; i++) {
+      const d = swipeDogs[currentIndex + i];
+      if (d?.photo_url) {
+        const img = new Image();
+        img.src = d.photo_url;
+      }
+    }
+  }, [currentIndex, swipeDogs]);
+
   const fetchDiscoverDogs = useCallback(async () => {
     if (!profile) return;
     setLoading(true);
