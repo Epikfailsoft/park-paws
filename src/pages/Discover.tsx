@@ -109,6 +109,17 @@ export default function Discover() {
   const currentDog = swipeDogs[currentIndex];
   const nextDog = swipeDogs[currentIndex + 1];
 
+  // Preload upcoming photos for smooth swipes (next 4 cards)
+  useEffect(() => {
+    for (let i = 1; i <= 4; i++) {
+      const d = swipeDogs[currentIndex + i];
+      if (d?.photo_url) {
+        const img = new Image();
+        img.src = d.photo_url;
+      }
+    }
+  }, [currentIndex, swipeDogs]);
+
   const fetchDiscoverDogs = useCallback(async () => {
     if (!profile) return;
     setLoading(true);
@@ -396,6 +407,9 @@ export default function Discover() {
           {currentDog ? (
             <>
               <div className="relative w-full max-w-[380px] aspect-[3/4]">
+                {swipeDogs[currentIndex + 2] && (
+                  <SwipeCard key={swipeDogs[currentIndex + 2].dog_id} dog={swipeDogs[currentIndex + 2]} onSwipeLeft={() => {}} onSwipeRight={() => {}} isTop={false} hasWaved={wavedDogs.has(swipeDogs[currentIndex + 2].dog_id)} />
+                )}
                 {nextDog && (
                   <SwipeCard key={nextDog.dog_id} dog={nextDog} onSwipeLeft={() => {}} onSwipeRight={() => {}} isTop={false} hasWaved={wavedDogs.has(nextDog.dog_id)} />
                 )}
