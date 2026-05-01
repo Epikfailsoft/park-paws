@@ -2,13 +2,12 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
-import { Dog as DogIcon, LogOut, Loader2, Camera, Phone, User, Edit2, AlertTriangle, ToggleLeft, ToggleRight, Shield, ChevronDown, ChevronUp, Award, Clock, MapPin, Heart, Stethoscope, Share2, Plus, Trash2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { SOCIAL_STYLE_OPTIONS, formatOwnerName } from '@/types/dogspace';
 import { validateTurkishPhone } from '@/lib/upload-validation';
-import { Search } from 'lucide-react';
-import dogiLogo from '@/assets/dogi-logo.png';
+import doginnLogo from '@/assets/doginn-logo.png';
 import { DogSelector } from '@/components/profile/DogSelector';
 import { DogPhotoGallery } from '@/components/profile/DogPhotoGallery';
 
@@ -122,11 +121,10 @@ function Chip({ selected, onClick, children, className = '' }: { selected: boole
 }
 
 // ── Section Card ──
-function Section({ title, icon, children, className = '' }: { title: string; icon: React.ReactNode; children: React.ReactNode; className?: string }) {
+function Section({ title, children, className = '' }: { title: string; children: React.ReactNode; className?: string }) {
   return (
-    <div className={cn("rounded-2xl border border-border bg-card p-4 shadow-sm space-y-3", className)}>
-      <h3 className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
-        <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-secondary">{icon}</span>
+    <div className={cn("rounded-2xl border border-border bg-card p-4 shadow-sm space-y-2.5", className)}>
+      <h3 className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
         {title}
       </h3>
       {children}
@@ -441,24 +439,24 @@ export default function Profile() {
       <div className="relative min-h-screen pb-24 safe-top safe-bottom" style={{ background: `linear-gradient(180deg, hsl(var(--page-profile-light)) 0%, hsl(var(--background)) 25%)` }}>
         {/* Watermark */}
         <div className="pointer-events-none fixed inset-0 z-0 flex items-center justify-center opacity-[0.04]">
-          <img src={dogiLogo} alt="" className="h-[70vh] w-[70vh] object-contain" />
+          <img src={doginnLogo} alt="" className="h-[70vh] w-[70vh] object-contain" />
         </div>
 
         {/* Lost Mode Banner */}
         {myDog.is_lost && (
           <div className="bg-destructive text-destructive-foreground p-3 text-center font-semibold text-sm">
-            🆘 KAYIP MODU AKTİF — Parkta aktif kullanıcılar telefon numaranı görebilir
+            KAYIP MODU AKTİF — Parkta aktif kullanıcılar telefon numaranı görebilir
           </div>
         )}
 
         {/* Header */}
         <header className="sticky top-0 z-40 border-b px-4 py-3" style={{ background: 'hsl(var(--page-profile))' }}>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <img src={dogiLogo} alt="DOGI" className="h-[44px] w-[44px] rounded-xl" />
-              <h1 className="font-display text-lg font-extrabold text-white">Köpeğim</h1>
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-3 min-w-0">
+              <img src={doginnLogo} alt="doginn" className="h-9 w-9 object-contain flex-shrink-0" />
+              <h1 className="font-display text-lg font-extrabold text-white truncate">Köpeğim</h1>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5">
               <DogSelector
                 dogs={dogs}
                 selectedDogId={selectedDogId || myDog?.id || ''}
@@ -466,13 +464,13 @@ export default function Profile() {
                 onAddNew={() => navigate('/onboarding')}
               />
               <button onClick={() => toggleLostMode(!myDog.is_lost)} disabled={lostLoading}
-                className={cn("flex items-center gap-1.5 rounded-full px-3 py-2 text-xs font-semibold transition-all",
-                  myDog.is_lost ? "bg-white text-purple-600" : "bg-purple-500 text-white border border-purple-400"
+                className={cn("rounded-full px-3 py-2 text-xs font-semibold transition-all",
+                  myDog.is_lost ? "bg-white text-foreground" : "bg-white/20 text-white"
                 )}>
-                {lostLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : myDog.is_lost ? <><ToggleRight className="h-4 w-4" /> Kayıp ON</> : <><ToggleLeft className="h-4 w-4" /> Kayıp</>}
+                {lostLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : myDog.is_lost ? 'Kayıp Açık' : 'Kayıp'}
               </button>
-              <button onClick={() => setEditing(true)} className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/20 text-white">
-                <Edit2 className="h-4 w-4" />
+              <button onClick={() => setEditing(true)} className="rounded-full bg-white/20 px-3 py-2 text-xs font-semibold text-white">
+                Düzenle
               </button>
             </div>
           </div>
@@ -523,7 +521,7 @@ export default function Profile() {
           </div>
 
           {/* ── 2. OYUN & UYUM PANELİ ── */}
-          <Section title="Oyun & Uyum" icon={<span className="text-sm">🎾</span>}>
+          <Section title="Oyun & Uyum">
             {/* Play Styles */}
             {(myDog as any).play_styles?.length > 0 && (
               <div>
@@ -578,7 +576,7 @@ export default function Profile() {
           </Section>
 
           {/* ── 3. RUTİN & KOORDİNASYON ── */}
-          <Section title="Rutin & Koordinasyon" icon={<Clock className="h-3.5 w-3.5 text-muted-foreground" />}>
+          <Section title="Rutin & Koordinasyon">
             {(myDog as any).active_hours?.length > 0 && (
               <div>
                 <span className="text-xs font-medium text-muted-foreground mb-1.5 block">Aktif Saatler</span>
@@ -603,8 +601,8 @@ export default function Profile() {
             {selectedPark && (
               <div className="flex items-center justify-between">
                 <span className="text-xs font-medium text-muted-foreground">En Çok Gidilen Park</span>
-                <span className="rounded-full bg-emerald-500/10 px-3 py-1.5 text-xs font-semibold text-emerald-600">
-                  <MapPin className="inline h-3 w-3 mr-0.5" />{selectedPark.name}
+                <span className="rounded-full bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary">
+                  {selectedPark.name}
                 </span>
               </div>
             )}
@@ -615,7 +613,7 @@ export default function Profile() {
           </Section>
 
           {/* ── 4. SAĞLIK TAKİBİ ── */}
-          <Section title="Sağlık" icon={<Stethoscope className="h-3.5 w-3.5 text-muted-foreground" />}>
+          <Section title="Sağlık">
             <div className="flex items-center justify-between">
               <span className="text-xs font-medium text-muted-foreground">Aşı Durumu</span>
               <span className={cn("rounded-full px-3 py-1.5 text-xs font-semibold",
@@ -646,11 +644,10 @@ export default function Profile() {
           <div className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden">
             <button onClick={() => setSafetyOpen(!safetyOpen)}
               className="flex w-full items-center justify-between p-4">
-              <h3 className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-secondary"><Shield className="h-3.5 w-3.5 text-muted-foreground" /></span>
+              <h3 className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
                 Güvenlik Detayları
               </h3>
-              {safetyOpen ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
+              <span className="text-xs font-medium text-muted-foreground">{safetyOpen ? 'Kapat' : 'Aç'}</span>
             </button>
             {safetyOpen && (
               <div className="px-4 pb-4 space-y-2 border-t border-border pt-3">
@@ -672,7 +669,7 @@ export default function Profile() {
           </div>
 
           {/* ── 6. ROZETLER ── */}
-          <Section title="Rozetler" icon={<Award className="h-3.5 w-3.5 text-muted-foreground" />}>
+          <Section title="Rozetler">
             <div className="grid grid-cols-3 gap-3">
               {BADGE_DEFINITIONS.map(badge => {
                 const earned = earnedBadges.includes(badge.code);
@@ -690,14 +687,11 @@ export default function Profile() {
 
           {/* ── 7. KAYIP MODU ── */}
           <div className={cn("rounded-2xl border-2 p-4 shadow-sm space-y-3",
-            myDog.is_lost ? "border-red-500 bg-red-50 dark:bg-red-950/20" : "border-border bg-card"
+            myDog.is_lost ? "border-destructive bg-destructive/5" : "border-border bg-card"
           )}>
-            <div className="flex items-center gap-2">
-              <AlertTriangle className={cn("h-5 w-5", myDog.is_lost ? "text-red-500" : "text-muted-foreground")} />
-              <h3 className={cn("text-sm font-bold uppercase tracking-wider", myDog.is_lost ? "text-red-600" : "text-muted-foreground")}>
-                {myDog.is_lost ? '🚨 KÖPEK KAYIP' : 'Kayıp Modu'}
-              </h3>
-            </div>
+            <h3 className={cn("text-[11px] font-bold uppercase tracking-wider", myDog.is_lost ? "text-destructive" : "text-muted-foreground")}>
+              {myDog.is_lost ? 'Köpek Kayıp' : 'Kayıp Modu'}
+            </h3>
 
             {myDog.is_lost ? (
               <>
@@ -714,17 +708,16 @@ export default function Profile() {
                   )}
                 </div>
                 <button onClick={() => toggleLostMode(false)} disabled={lostLoading}
-                  className="w-full rounded-xl bg-emerald-500 py-3 text-sm font-bold text-white shadow-lg active:scale-95 transition-all disabled:opacity-50">
-                  {lostLoading ? <Loader2 className="h-4 w-4 animate-spin mx-auto" /> : '✅ KAYIP MODUNU KAPAT'}
+                  className="w-full rounded-xl bg-primary py-3 text-sm font-bold text-primary-foreground shadow-sm active:scale-95 transition-all disabled:opacity-50">
+                  {lostLoading ? <Loader2 className="h-4 w-4 animate-spin mx-auto" /> : 'Kayıp Modunu Kapat'}
                 </button>
               </>
             ) : (
               <>
-                {/* Phone inline */}
-                <div className="flex items-center gap-2">
-                  <Phone className="h-4 w-4 text-muted-foreground" />
+                <div>
+                  <span className="text-xs font-medium text-muted-foreground mb-1 block">Acil Telefon</span>
                   {editingPhone ? (
-                    <div className="flex flex-1 gap-2">
+                    <div className="flex gap-2">
                       <input type="tel" value={emergencyPhone} onChange={e => setEmergencyPhone(e.target.value)}
                         placeholder="+905XXXXXXXXX" className="dogspace-input flex-1 text-sm py-1.5" />
                       <button onClick={handleSavePhone} disabled={savingPhone}
@@ -733,15 +726,15 @@ export default function Profile() {
                       </button>
                     </div>
                   ) : (
-                    <div className="flex flex-1 items-center justify-between">
+                    <div className="flex items-center justify-between">
                       <span className="text-sm text-foreground">{emergencyPhone || 'Telefon eklenmedi'}</span>
                       <button onClick={() => setEditingPhone(true)} className="text-xs text-primary font-medium">Düzenle</button>
                     </div>
                   )}
                 </div>
                 <button onClick={() => toggleLostMode(true)} disabled={lostLoading}
-                  className="w-full rounded-xl bg-red-500 py-3 text-sm font-bold text-white shadow-lg active:scale-95 transition-all disabled:opacity-50">
-                  {lostLoading ? <Loader2 className="h-4 w-4 animate-spin mx-auto" /> : '🚨 Kayıp Modunu Aktif Et'}
+                  className="w-full rounded-xl bg-destructive py-3 text-sm font-bold text-destructive-foreground shadow-sm active:scale-95 transition-all disabled:opacity-50">
+                  {lostLoading ? <Loader2 className="h-4 w-4 animate-spin mx-auto" /> : 'Kayıp Modunu Aktif Et'}
                 </button>
               </>
             )}
@@ -750,18 +743,17 @@ export default function Profile() {
           {/* ── 8. AKSİYON BUTONLARI ── */}
           <div className="space-y-2">
             <button onClick={() => setEditing(true)}
-              className="flex w-full items-center justify-center gap-2 rounded-xl py-3.5 font-semibold text-white shadow-lg active:scale-[0.98] transition-all"
-              style={{ background: 'var(--gradient-accent)', boxShadow: 'var(--shadow-glow-accent)' }}>
-              <Edit2 className="h-4 w-4" /> Profili Düzenle
+              className="w-full rounded-xl bg-primary py-3.5 font-semibold text-primary-foreground shadow-sm active:scale-[0.98] transition-all">
+              Profili Düzenle
             </button>
-            <button className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-border py-3 text-sm font-medium text-muted-foreground hover:bg-secondary transition-all">
-              <Share2 className="h-4 w-4" /> Mini Kart Paylaş
+            <button className="w-full rounded-xl border-2 border-border py-3 text-sm font-medium text-muted-foreground hover:bg-secondary transition-all">
+              Mini Kart Paylaş
             </button>
           </div>
 
           {/* Owner */}
           {profile && (
-            <Section title="Aile" icon={<User className="h-3.5 w-3.5 text-muted-foreground" />}>
+            <Section title="Aile">
               <div className="flex items-center gap-3">
                 <div className="relative flex-shrink-0">
                   <input ref={ownerPhotoRef} type="file" accept="image/*" className="hidden" onChange={handleOwnerPhotoUpload} />
@@ -773,8 +765,8 @@ export default function Profile() {
                     </div>
                   )}
                   <button onClick={() => ownerPhotoRef.current?.click()} disabled={ownerPhotoLoading}
-                    className="absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-white shadow">
-                    {ownerPhotoLoading ? <Loader2 className="h-2.5 w-2.5 animate-spin" /> : <Camera className="h-2.5 w-2.5" />}
+                    className="absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground shadow">
+                    {ownerPhotoLoading ? <Loader2 className="h-2.5 w-2.5 animate-spin" /> : '+'}
                   </button>
                 </div>
                 <div className="flex-1">
@@ -803,14 +795,14 @@ export default function Profile() {
           {dogs.length > 1 && (
             <button onClick={handleDeleteDog} disabled={loading}
               className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-destructive/30 py-3 text-sm font-medium text-destructive hover:bg-destructive/10 transition-all disabled:opacity-50">
-              <Trash2 className="h-4 w-4" /> {myDog.name} Profilini Sil
+              {myDog.name} Profilini Sil
             </button>
           )}
 
           {/* Logout */}
           <button onClick={handleLogout}
             className="flex w-full items-center justify-center gap-2 rounded-xl bg-destructive/10 py-3 text-sm font-medium text-destructive mb-4">
-            <LogOut className="h-4 w-4" /> Çıkış Yap
+            Çıkış Yap
           </button>
         </div>
       </div>
@@ -827,7 +819,7 @@ export default function Profile() {
 
       <div className="relative z-10 px-4 pt-4 space-y-5">
         {/* ── 1. KİMLİK ── */}
-        <Section title="Köpek Kimliği" icon={<DogIcon className="h-3.5 w-3.5 text-muted-foreground" />}>
+        <Section title="Köpek Kimliği">
           <div className="grid grid-cols-2 gap-3">
             <div className="col-span-2">
               <label className="text-xs font-medium text-muted-foreground mb-1 block">Ad</label>
@@ -852,7 +844,7 @@ export default function Profile() {
             <label className="text-xs font-medium text-muted-foreground mb-1 block">Irk</label>
             <button type="button" onClick={() => setShowBreedDropdown(!showBreedDropdown)} className="dogspace-input w-full text-left flex items-center justify-between">
               <span>{breeds.find(b => b.id === selectedBreedId)?.name || 'Irk seçin'}</span>
-              <Search className="h-4 w-4 text-muted-foreground" />
+              
             </button>
             {showBreedDropdown && (
               <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded-xl shadow-lg max-h-56 overflow-hidden z-50">
@@ -934,7 +926,7 @@ export default function Profile() {
         </Section>
 
         {/* ── 2. OYUN & UYUM ── */}
-        <Section title="Oyun & Uyum" icon={<span className="text-sm">🎾</span>}>
+        <Section title="Oyun & Uyum">
           {/* Play styles (max 2) */}
           <div>
             <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Oyun Tarzı <span className="font-normal">(en fazla 2)</span></label>
@@ -985,7 +977,7 @@ export default function Profile() {
         </Section>
 
         {/* ── 3. RUTİN ── */}
-        <Section title="Rutin & Koordinasyon" icon={<Clock className="h-3.5 w-3.5 text-muted-foreground" />}>
+        <Section title="Rutin & Koordinasyon">
           <div>
             <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Aktif Saatler</label>
             <div className="flex gap-2">
@@ -1009,7 +1001,7 @@ export default function Profile() {
         </Section>
 
         {/* ── 4. SAĞLIK ── */}
-        <Section title="Sağlık" icon={<Stethoscope className="h-3.5 w-3.5 text-muted-foreground" />}>
+        <Section title="Sağlık">
           <div>
             <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Aşı Durumu</label>
             <div className="flex gap-2">
@@ -1034,7 +1026,7 @@ export default function Profile() {
         </Section>
 
         {/* ── 5. GÜVENLİK ── */}
-        <Section title="Güvenlik Detayları" icon={<Shield className="h-3.5 w-3.5 text-muted-foreground" />}>
+        <Section title="Güvenlik Detayları">
           {[
             { label: 'Yavru Toleransı', value: puppyTolerance, set: setPuppyTolerance },
             { label: 'Büyük Köpek Toleransı', value: bigDogTolerance, set: setBigDogTolerance },
