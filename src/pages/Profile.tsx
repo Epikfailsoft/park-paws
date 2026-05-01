@@ -521,7 +521,7 @@ export default function Profile() {
           </div>
 
           {/* ── 2. OYUN & UYUM PANELİ ── */}
-          <Section title="Oyun & Uyum" icon={<span className="text-sm">🎾</span>}>
+          <Section title="Oyun & Uyum">
             {/* Play Styles */}
             {(myDog as any).play_styles?.length > 0 && (
               <div>
@@ -576,7 +576,7 @@ export default function Profile() {
           </Section>
 
           {/* ── 3. RUTİN & KOORDİNASYON ── */}
-          <Section title="Rutin & Koordinasyon" icon={<Clock className="h-3.5 w-3.5 text-muted-foreground" />}>
+          <Section title="Rutin & Koordinasyon">
             {(myDog as any).active_hours?.length > 0 && (
               <div>
                 <span className="text-xs font-medium text-muted-foreground mb-1.5 block">Aktif Saatler</span>
@@ -613,7 +613,7 @@ export default function Profile() {
           </Section>
 
           {/* ── 4. SAĞLIK TAKİBİ ── */}
-          <Section title="Sağlık" icon={<Stethoscope className="h-3.5 w-3.5 text-muted-foreground" />}>
+          <Section title="Sağlık">
             <div className="flex items-center justify-between">
               <span className="text-xs font-medium text-muted-foreground">Aşı Durumu</span>
               <span className={cn("rounded-full px-3 py-1.5 text-xs font-semibold",
@@ -766,7 +766,7 @@ export default function Profile() {
                   )}
                   <button onClick={() => ownerPhotoRef.current?.click()} disabled={ownerPhotoLoading}
                     className="absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-white shadow">
-                    {ownerPhotoLoading ? <Loader2 className="h-2.5 w-2.5 animate-spin" /> : <Camera className="h-2.5 w-2.5" />}
+                    {ownerPhotoLoading ? <Loader2 className="h-2.5 w-2.5 animate-spin" /> : +}
                   </button>
                 </div>
                 <div className="flex-1">
@@ -795,14 +795,14 @@ export default function Profile() {
           {dogs.length > 1 && (
             <button onClick={handleDeleteDog} disabled={loading}
               className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-destructive/30 py-3 text-sm font-medium text-destructive hover:bg-destructive/10 transition-all disabled:opacity-50">
-              <Trash2 className="h-4 w-4" /> {myDog.name} Profilini Sil
+              {myDog.name} Profilini Sil
             </button>
           )}
 
           {/* Logout */}
           <button onClick={handleLogout}
             className="flex w-full items-center justify-center gap-2 rounded-xl bg-destructive/10 py-3 text-sm font-medium text-destructive mb-4">
-            <LogOut className="h-4 w-4" /> Çıkış Yap
+            Çıkış Yap
           </button>
         </div>
       </div>
@@ -819,7 +819,7 @@ export default function Profile() {
 
       <div className="relative z-10 px-4 pt-4 space-y-5">
         {/* ── 1. KİMLİK ── */}
-        <Section title="Köpek Kimliği" icon={<DogIcon className="h-3.5 w-3.5 text-muted-foreground" />}>
+        <Section title="Köpek Kimliği">
           <div className="grid grid-cols-2 gap-3">
             <div className="col-span-2">
               <label className="text-xs font-medium text-muted-foreground mb-1 block">Ad</label>
@@ -844,7 +844,7 @@ export default function Profile() {
             <label className="text-xs font-medium text-muted-foreground mb-1 block">Irk</label>
             <button type="button" onClick={() => setShowBreedDropdown(!showBreedDropdown)} className="dogspace-input w-full text-left flex items-center justify-between">
               <span>{breeds.find(b => b.id === selectedBreedId)?.name || 'Irk seçin'}</span>
-              <Search className="h-4 w-4 text-muted-foreground" />
+              
             </button>
             {showBreedDropdown && (
               <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded-xl shadow-lg max-h-56 overflow-hidden z-50">
@@ -926,7 +926,7 @@ export default function Profile() {
         </Section>
 
         {/* ── 2. OYUN & UYUM ── */}
-        <Section title="Oyun & Uyum" icon={<span className="text-sm">🎾</span>}>
+        <Section title="Oyun & Uyum">
           {/* Play styles (max 2) */}
           <div>
             <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Oyun Tarzı <span className="font-normal">(en fazla 2)</span></label>
@@ -977,7 +977,7 @@ export default function Profile() {
         </Section>
 
         {/* ── 3. RUTİN ── */}
-        <Section title="Rutin & Koordinasyon" icon={<Clock className="h-3.5 w-3.5 text-muted-foreground" />}>
+        <Section title="Rutin & Koordinasyon">
           <div>
             <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Aktif Saatler</label>
             <div className="flex gap-2">
@@ -1001,7 +1001,7 @@ export default function Profile() {
         </Section>
 
         {/* ── 4. SAĞLIK ── */}
-        <Section title="Sağlık" icon={<Stethoscope className="h-3.5 w-3.5 text-muted-foreground" />}>
+        <Section title="Sağlık">
           <div>
             <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Aşı Durumu</label>
             <div className="flex gap-2">
@@ -1026,7 +1026,7 @@ export default function Profile() {
         </Section>
 
         {/* ── 5. GÜVENLİK ── */}
-        <Section title="Güvenlik Detayları" icon={<Shield className="h-3.5 w-3.5 text-muted-foreground" />}>
+        <Section title="Güvenlik Detayları">
           {[
             { label: 'Yavru Toleransı', value: puppyTolerance, set: setPuppyTolerance },
             { label: 'Büyük Köpek Toleransı', value: bigDogTolerance, set: setBigDogTolerance },
