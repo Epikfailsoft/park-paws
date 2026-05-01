@@ -2,13 +2,12 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
-import { Dog as DogIcon, LogOut, Loader2, Camera, Phone, User, Edit2, AlertTriangle, ToggleLeft, ToggleRight, Shield, ChevronDown, ChevronUp, Award, Clock, MapPin, Heart, Stethoscope, Share2, Plus, Trash2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { SOCIAL_STYLE_OPTIONS, formatOwnerName } from '@/types/dogspace';
 import { validateTurkishPhone } from '@/lib/upload-validation';
-import { Search } from 'lucide-react';
-import dogiLogo from '@/assets/dogi-logo.png';
+import doginnLogo from '@/assets/doginn-logo.png';
 import { DogSelector } from '@/components/profile/DogSelector';
 import { DogPhotoGallery } from '@/components/profile/DogPhotoGallery';
 
@@ -122,11 +121,10 @@ function Chip({ selected, onClick, children, className = '' }: { selected: boole
 }
 
 // ── Section Card ──
-function Section({ title, icon, children, className = '' }: { title: string; icon: React.ReactNode; children: React.ReactNode; className?: string }) {
+function Section({ title, children, className = '' }: { title: string; children: React.ReactNode; className?: string }) {
   return (
-    <div className={cn("rounded-2xl border border-border bg-card p-4 shadow-sm space-y-3", className)}>
-      <h3 className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
-        <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-secondary">{icon}</span>
+    <div className={cn("rounded-2xl border border-border bg-card p-4 shadow-sm space-y-2.5", className)}>
+      <h3 className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
         {title}
       </h3>
       {children}
