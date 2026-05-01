@@ -765,8 +765,8 @@ export default function Profile() {
                     </div>
                   )}
                   <button onClick={() => ownerPhotoRef.current?.click()} disabled={ownerPhotoLoading}
-                    className="absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-white shadow">
-                    {ownerPhotoLoading ? <Loader2 className="h-2.5 w-2.5 animate-spin" /> : +}
+                    className="absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground shadow">
+                    {ownerPhotoLoading ? <Loader2 className="h-2.5 w-2.5 animate-spin" /> : '+'}
                   </button>
                 </div>
                 <div className="flex-1">
