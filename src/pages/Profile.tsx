@@ -439,24 +439,24 @@ export default function Profile() {
       <div className="relative min-h-screen pb-24 safe-top safe-bottom" style={{ background: `linear-gradient(180deg, hsl(var(--page-profile-light)) 0%, hsl(var(--background)) 25%)` }}>
         {/* Watermark */}
         <div className="pointer-events-none fixed inset-0 z-0 flex items-center justify-center opacity-[0.04]">
-          <img src={dogiLogo} alt="" className="h-[70vh] w-[70vh] object-contain" />
+          <img src={doginnLogo} alt="" className="h-[70vh] w-[70vh] object-contain" />
         </div>
 
         {/* Lost Mode Banner */}
         {myDog.is_lost && (
           <div className="bg-destructive text-destructive-foreground p-3 text-center font-semibold text-sm">
-            🆘 KAYIP MODU AKTİF — Parkta aktif kullanıcılar telefon numaranı görebilir
+            KAYIP MODU AKTİF — Parkta aktif kullanıcılar telefon numaranı görebilir
           </div>
         )}
 
         {/* Header */}
         <header className="sticky top-0 z-40 border-b px-4 py-3" style={{ background: 'hsl(var(--page-profile))' }}>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <img src={dogiLogo} alt="DOGI" className="h-[44px] w-[44px] rounded-xl" />
-              <h1 className="font-display text-lg font-extrabold text-white">Köpeğim</h1>
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-3 min-w-0">
+              <img src={doginnLogo} alt="doginn" className="h-9 w-9 object-contain flex-shrink-0" />
+              <h1 className="font-display text-lg font-extrabold text-white truncate">Köpeğim</h1>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5">
               <DogSelector
                 dogs={dogs}
                 selectedDogId={selectedDogId || myDog?.id || ''}
@@ -464,13 +464,13 @@ export default function Profile() {
                 onAddNew={() => navigate('/onboarding')}
               />
               <button onClick={() => toggleLostMode(!myDog.is_lost)} disabled={lostLoading}
-                className={cn("flex items-center gap-1.5 rounded-full px-3 py-2 text-xs font-semibold transition-all",
-                  myDog.is_lost ? "bg-white text-purple-600" : "bg-purple-500 text-white border border-purple-400"
+                className={cn("rounded-full px-3 py-2 text-xs font-semibold transition-all",
+                  myDog.is_lost ? "bg-white text-foreground" : "bg-white/20 text-white"
                 )}>
-                {lostLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : myDog.is_lost ? <><ToggleRight className="h-4 w-4" /> Kayıp ON</> : <><ToggleLeft className="h-4 w-4" /> Kayıp</>}
+                {lostLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : myDog.is_lost ? 'Kayıp Açık' : 'Kayıp'}
               </button>
-              <button onClick={() => setEditing(true)} className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/20 text-white">
-                <Edit2 className="h-4 w-4" />
+              <button onClick={() => setEditing(true)} className="rounded-full bg-white/20 px-3 py-2 text-xs font-semibold text-white">
+                Düzenle
               </button>
             </div>
           </div>
@@ -601,8 +601,8 @@ export default function Profile() {
             {selectedPark && (
               <div className="flex items-center justify-between">
                 <span className="text-xs font-medium text-muted-foreground">En Çok Gidilen Park</span>
-                <span className="rounded-full bg-emerald-500/10 px-3 py-1.5 text-xs font-semibold text-emerald-600">
-                  <MapPin className="inline h-3 w-3 mr-0.5" />{selectedPark.name}
+                <span className="rounded-full bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary">
+                  {selectedPark.name}
                 </span>
               </div>
             )}
@@ -644,11 +644,10 @@ export default function Profile() {
           <div className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden">
             <button onClick={() => setSafetyOpen(!safetyOpen)}
               className="flex w-full items-center justify-between p-4">
-              <h3 className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-secondary"><Shield className="h-3.5 w-3.5 text-muted-foreground" /></span>
+              <h3 className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
                 Güvenlik Detayları
               </h3>
-              {safetyOpen ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
+              <span className="text-xs font-medium text-muted-foreground">{safetyOpen ? 'Kapat' : 'Aç'}</span>
             </button>
             {safetyOpen && (
               <div className="px-4 pb-4 space-y-2 border-t border-border pt-3">
@@ -670,7 +669,7 @@ export default function Profile() {
           </div>
 
           {/* ── 6. ROZETLER ── */}
-          <Section title="Rozetler" icon={<Award className="h-3.5 w-3.5 text-muted-foreground" />}>
+          <Section title="Rozetler">
             <div className="grid grid-cols-3 gap-3">
               {BADGE_DEFINITIONS.map(badge => {
                 const earned = earnedBadges.includes(badge.code);
@@ -688,14 +687,11 @@ export default function Profile() {
 
           {/* ── 7. KAYIP MODU ── */}
           <div className={cn("rounded-2xl border-2 p-4 shadow-sm space-y-3",
-            myDog.is_lost ? "border-red-500 bg-red-50 dark:bg-red-950/20" : "border-border bg-card"
+            myDog.is_lost ? "border-destructive bg-destructive/5" : "border-border bg-card"
           )}>
-            <div className="flex items-center gap-2">
-              <AlertTriangle className={cn("h-5 w-5", myDog.is_lost ? "text-red-500" : "text-muted-foreground")} />
-              <h3 className={cn("text-sm font-bold uppercase tracking-wider", myDog.is_lost ? "text-red-600" : "text-muted-foreground")}>
-                {myDog.is_lost ? '🚨 KÖPEK KAYIP' : 'Kayıp Modu'}
-              </h3>
-            </div>
+            <h3 className={cn("text-[11px] font-bold uppercase tracking-wider", myDog.is_lost ? "text-destructive" : "text-muted-foreground")}>
+              {myDog.is_lost ? 'Köpek Kayıp' : 'Kayıp Modu'}
+            </h3>
 
             {myDog.is_lost ? (
               <>
@@ -712,17 +708,16 @@ export default function Profile() {
                   )}
                 </div>
                 <button onClick={() => toggleLostMode(false)} disabled={lostLoading}
-                  className="w-full rounded-xl bg-emerald-500 py-3 text-sm font-bold text-white shadow-lg active:scale-95 transition-all disabled:opacity-50">
-                  {lostLoading ? <Loader2 className="h-4 w-4 animate-spin mx-auto" /> : '✅ KAYIP MODUNU KAPAT'}
+                  className="w-full rounded-xl bg-primary py-3 text-sm font-bold text-primary-foreground shadow-sm active:scale-95 transition-all disabled:opacity-50">
+                  {lostLoading ? <Loader2 className="h-4 w-4 animate-spin mx-auto" /> : 'Kayıp Modunu Kapat'}
                 </button>
               </>
             ) : (
               <>
-                {/* Phone inline */}
-                <div className="flex items-center gap-2">
-                  <Phone className="h-4 w-4 text-muted-foreground" />
+                <div>
+                  <span className="text-xs font-medium text-muted-foreground mb-1 block">Acil Telefon</span>
                   {editingPhone ? (
-                    <div className="flex flex-1 gap-2">
+                    <div className="flex gap-2">
                       <input type="tel" value={emergencyPhone} onChange={e => setEmergencyPhone(e.target.value)}
                         placeholder="+905XXXXXXXXX" className="dogspace-input flex-1 text-sm py-1.5" />
                       <button onClick={handleSavePhone} disabled={savingPhone}
@@ -731,15 +726,15 @@ export default function Profile() {
                       </button>
                     </div>
                   ) : (
-                    <div className="flex flex-1 items-center justify-between">
+                    <div className="flex items-center justify-between">
                       <span className="text-sm text-foreground">{emergencyPhone || 'Telefon eklenmedi'}</span>
                       <button onClick={() => setEditingPhone(true)} className="text-xs text-primary font-medium">Düzenle</button>
                     </div>
                   )}
                 </div>
                 <button onClick={() => toggleLostMode(true)} disabled={lostLoading}
-                  className="w-full rounded-xl bg-red-500 py-3 text-sm font-bold text-white shadow-lg active:scale-95 transition-all disabled:opacity-50">
-                  {lostLoading ? <Loader2 className="h-4 w-4 animate-spin mx-auto" /> : '🚨 Kayıp Modunu Aktif Et'}
+                  className="w-full rounded-xl bg-destructive py-3 text-sm font-bold text-destructive-foreground shadow-sm active:scale-95 transition-all disabled:opacity-50">
+                  {lostLoading ? <Loader2 className="h-4 w-4 animate-spin mx-auto" /> : 'Kayıp Modunu Aktif Et'}
                 </button>
               </>
             )}
@@ -748,18 +743,17 @@ export default function Profile() {
           {/* ── 8. AKSİYON BUTONLARI ── */}
           <div className="space-y-2">
             <button onClick={() => setEditing(true)}
-              className="flex w-full items-center justify-center gap-2 rounded-xl py-3.5 font-semibold text-white shadow-lg active:scale-[0.98] transition-all"
-              style={{ background: 'var(--gradient-accent)', boxShadow: 'var(--shadow-glow-accent)' }}>
-              <Edit2 className="h-4 w-4" /> Profili Düzenle
+              className="w-full rounded-xl bg-primary py-3.5 font-semibold text-primary-foreground shadow-sm active:scale-[0.98] transition-all">
+              Profili Düzenle
             </button>
-            <button className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-border py-3 text-sm font-medium text-muted-foreground hover:bg-secondary transition-all">
-              <Share2 className="h-4 w-4" /> Mini Kart Paylaş
+            <button className="w-full rounded-xl border-2 border-border py-3 text-sm font-medium text-muted-foreground hover:bg-secondary transition-all">
+              Mini Kart Paylaş
             </button>
           </div>
 
           {/* Owner */}
           {profile && (
-            <Section title="Aile" icon={<User className="h-3.5 w-3.5 text-muted-foreground" />}>
+            <Section title="Aile">
               <div className="flex items-center gap-3">
                 <div className="relative flex-shrink-0">
                   <input ref={ownerPhotoRef} type="file" accept="image/*" className="hidden" onChange={handleOwnerPhotoUpload} />
