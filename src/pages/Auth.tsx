@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { lovable } from '@/integrations/lovable';
 import { Mail, Lock, User, ArrowRight, Loader2 } from 'lucide-react';
-import dogiLogo from '@/assets/dogi-logo.png';
+import doginnLogo from '@/assets/doginn-logo.png';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { z } from 'zod';
@@ -71,8 +71,8 @@ export default function Auth() {
     <div className="flex min-h-screen flex-col bg-background safe-top">
       {/* Header */}
       <div className="flex flex-col items-center pt-10 pb-6">
-        <img src={dogiLogo} alt="DOGI" className="h-[280px] w-[280px] rounded-2xl object-contain" />
-        <p className="mt-2 text-sm text-muted-foreground">Köpekler tanışır, aileler buluşur</p>
+        <img src={doginnLogo} alt="doginn" className="h-[240px] w-[240px] object-contain" />
+        <p className="mt-2 text-sm text-muted-foreground">Köpekler tanışır, sahipler buluşur.</p>
       </div>
 
       <div className="flex-1 px-6">
