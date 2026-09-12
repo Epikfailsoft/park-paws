@@ -427,6 +427,10 @@ export default function Profile() {
     setActiveHours(prev => prev.includes(val) ? prev.filter(v => v !== val) : [...prev, val]);
   };
 
+  if (!myDog && (authLoading || dogs.length > 0)) {
+    return <div className="flex min-h-screen items-center justify-center bg-background"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
+  }
+
   if (!myDog) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-background px-6 text-center">
