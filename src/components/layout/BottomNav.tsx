@@ -13,10 +13,11 @@ const navItems = [
 export function BottomNav() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { hasDog } = useAuth();
+  const { user, hasDog, isObserver } = useAuth();
 
   if (['/auth', '/onboarding', '/admin'].includes(location.pathname)) return null;
-  if (!hasDog) return null;
+  if (!user) return null;
+  if (!hasDog && !isObserver) return null;
 
   return (
     <nav className="bottom-nav">
