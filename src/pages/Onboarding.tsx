@@ -19,7 +19,7 @@ const dogSchema = z.object({
 });
 
 export default function Onboarding() {
-  const { profile, dogs, refreshDogs, selectPark, refreshProfile, setObserverMode } = useAuth();
+  const { profile, dogs, refreshDogs, selectPark, refreshProfile, setObserverMode, signOut } = useAuth();
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
