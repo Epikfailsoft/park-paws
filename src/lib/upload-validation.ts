@@ -27,6 +27,16 @@ export function validatePhotoFile(file: File): { valid: boolean; error?: string 
 }
 
 /**
+ * Object path inside the dog-photos bucket. Its storage policy only accepts uploads whose
+ * first folder is the uploader's auth user id (auth.uid()). profiles.id is a different UUID,
+ * so a path starting with it (or with a fixed folder like "dogs/") is always rejected.
+ */
+export function photoStoragePath(authUserId: string, folder: string, file: File): string {
+  const ext = file.name.split('.').pop();
+  return `${authUserId}/${folder}/${Date.now()}.${ext}`;
+}
+
+/**
  * Compress image to max width while maintaining aspect ratio
  */
 export function compressImage(file: File, maxWidth = UPLOAD_LIMITS.MAX_WIDTH): Promise<File> {

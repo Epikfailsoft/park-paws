@@ -6,7 +6,7 @@ import { Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { SOCIAL_STYLE_OPTIONS, formatOwnerName } from '@/types/dogspace';
-import { validateTurkishPhone } from '@/lib/upload-validation';
+import { validateTurkishPhone, photoStoragePath } from '@/lib/upload-validation';
 import doginnLogo from '@/assets/doginn-logo.png';
 import { DogSelector } from '@/components/profile/DogSelector';
 import { DogPhotoGallery } from '@/components/profile/DogPhotoGallery';
@@ -133,7 +133,7 @@ function Section({ title, children, className = '' }: { title: string; children:
 }
 
 export default function Profile() {
-  const { profile, dogs, selectedPark, signOut, refreshDogs, refreshProfile, loading: authLoading } = useAuth();
+  const { user, profile, dogs, selectedPark, signOut, refreshDogs, refreshProfile, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [selectedDogId, setSelectedDogId] = useState<string>('');
   const myDog = dogs.find(d => d.id === selectedDogId) || dogs[0];
@@ -274,11 +274,10 @@ export default function Profile() {
   // ── Handlers ──
   const handleDogPhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !myDog) return;
+    if (!file || !myDog || !user) return;
     setDogPhotoLoading(true);
     try {
-      const ext = file.name.split('.').pop();
-      const path = `dogs/${myDog.id}/${Date.now()}.${ext}`;
+      const path = photoStoragePath(user.id, `dogs/${myDog.id}`, file);
       const { error } = await supabase.storage.from('dog-photos').upload(path, file);
       if (error) throw error;
       const { data: { publicUrl } } = supabase.storage.from('dog-photos').getPublicUrl(path);
@@ -291,11 +290,10 @@ export default function Profile() {
 
   const handleOwnerPhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !profile) return;
+    if (!file || !profile || !user) return;
     setOwnerPhotoLoading(true);
     try {
-      const ext = file.name.split('.').pop();
-      const path = `owner/${profile.id}/${Date.now()}.${ext}`;
+      const path = photoStoragePath(user.id, 'owner', file);
       const { error } = await supabase.storage.from('dog-photos').upload(path, file);
       if (error) throw error;
       const { data: { publicUrl } } = supabase.storage.from('dog-photos').getPublicUrl(path);

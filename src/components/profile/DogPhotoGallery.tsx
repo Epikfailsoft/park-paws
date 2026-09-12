@@ -1,7 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
 import { Camera, Loader2, X, Plus } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/lib/utils';
+import { photoStoragePath } from '@/lib/upload-validation';
 import { toast } from 'sonner';
 
 interface DogPhoto {
@@ -20,6 +22,7 @@ interface DogPhotoGalleryProps {
 const MAX_PHOTOS = 3;
 
 export function DogPhotoGallery({ dogId, mainPhotoUrl, onMainPhotoChange }: DogPhotoGalleryProps) {
+  const { user } = useAuth();
   const [photos, setPhotos] = useState<DogPhoto[]>([]);
   const [uploading, setUploading] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
@@ -48,15 +51,14 @@ export function DogPhotoGallery({ dogId, mainPhotoUrl, onMainPhotoChange }: DogP
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
+    if (!file || !user) return;
     if (!canAddMore) {
       toast.error('En fazla 3 fotoğraf ekleyebilirsiniz');
       return;
     }
     setUploading(true);
     try {
-      const ext = file.name.split('.').pop();
-      const path = `dogs/${dogId}/${Date.now()}.${ext}`;
+      const path = photoStoragePath(user.id, `dogs/${dogId}`, file);
       const { error } = await supabase.storage.from('dog-photos').upload(path, file);
       if (error) throw error;
       const { data: { publicUrl } } = supabase.storage.from('dog-photos').getPublicUrl(path);

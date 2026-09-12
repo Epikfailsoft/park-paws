@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { MessageCircle, Loader2, Send, Image, X, Users, Heart, Activity } from 'lucide-react';
 import dogiLogo from '@/assets/dogi-logo.png';
 import { cn } from '@/lib/utils';
-import { validatePhotoFile, compressImage } from '@/lib/upload-validation';
+import { validatePhotoFile, compressImage, photoStoragePath } from '@/lib/upload-validation';
 import { toast } from 'sonner';
 import type { Harmony, Dog, Profile, Message } from '@/types/dogspace';
 import { formatOwnerName, QUICK_ACTIONS } from '@/types/dogspace';
@@ -27,7 +27,7 @@ const TEMPLATES = [
 ];
 
 export default function Messages() {
-  const { profile, dogs, selectedPark } = useAuth();
+  const { user, profile, dogs, selectedPark } = useAuth();
   const [harmonies, setHarmonies] = useState<HarmonyWithDogs[]>([]);
   const [selectedHarmony, setSelectedHarmony] = useState<HarmonyWithDogs | null>(null);
   const [activeTab, setActiveTab] = useState<SocialTab>('friends');
@@ -148,15 +148,14 @@ export default function Messages() {
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!isPlusPlay) { toast.error('Fotoğraf göndermek için Plus Play aboneliği gerekli'); return; }
     const rawFile = e.target.files?.[0];
-    if (!rawFile || !selectedHarmony || !profile) return;
+    if (!rawFile || !selectedHarmony || !profile || !user) return;
     const validation = validatePhotoFile(rawFile);
     if (!validation.valid) { toast.error(validation.error!); return; }
     let file: File;
     try { file = await compressImage(rawFile); } catch { toast.error('Fotoğraf işlenemedi'); return; }
     setUploadingPhoto(true);
     try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `messages/${selectedHarmony.id}/${Date.now()}.${fileExt}`;
+      const fileName = photoStoragePath(user.id, `messages/${selectedHarmony.id}`, file);
       const { error: uploadError } = await supabase.storage.from('dog-photos').upload(fileName, file);
       if (uploadError) throw uploadError;
       const { data: { publicUrl } } = supabase.storage.from('dog-photos').getPublicUrl(fileName);

@@ -4,7 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Camera, Dog, ArrowRight, Loader2, Plus, Search, Edit2, Eye, LogOut, SkipForward } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { validatePhotoFile, compressImage } from '@/lib/upload-validation';
+import { validatePhotoFile, compressImage, photoStoragePath } from '@/lib/upload-validation';
 import { toast } from 'sonner';
 import { z } from 'zod';
 import type { Breed } from '@/types/dogspace';
@@ -19,7 +19,7 @@ const dogSchema = z.object({
 });
 
 export default function Onboarding() {
-  const { profile, dogs, refreshDogs, selectPark, refreshProfile, setObserverMode, signOut } = useAuth();
+  const { user, profile, dogs, refreshDogs, selectPark, refreshProfile, setObserverMode, signOut } = useAuth();
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -134,12 +134,11 @@ export default function Onboarding() {
     if (!selectedBreed) { toast.error('Lütfen bir ırk seç'); return; }
     if (selectedBreed.code === 'OTHER' && !customBreedText) { toast.error('Lütfen kırma/melez detayını gir'); return; }
     if (neutered === null) { toast.error('Lütfen kısırlaştırma durumunu seç'); return; }
-    if (!profile) { toast.error('Profil bulunamadı. Lütfen tekrar giriş yapın.'); return; }
+    if (!profile || !user) { toast.error('Profil bulunamadı. Lütfen tekrar giriş yapın.'); return; }
 
     setLoading(true);
     try {
-      const fileExt = photo.name.split('.').pop();
-      const fileName = `${profile.id}/${Date.now()}.${fileExt}`;
+      const fileName = photoStoragePath(user.id, 'dogs', photo);
       const { error: uploadError } = await supabase.storage.from('dog-photos').upload(fileName, photo);
       if (uploadError) throw uploadError;
       const { data: { publicUrl } } = supabase.storage.from('dog-photos').getPublicUrl(fileName);
@@ -200,11 +199,10 @@ export default function Onboarding() {
   };
 
   const handleOwnerPhotoUpload = async () => {
-    if (!ownerPhoto || !profile) return;
+    if (!ownerPhoto || !profile || !user) return;
     setOwnerPhotoLoading(true);
     try {
-      const fileExt = ownerPhoto.name.split('.').pop();
-      const fileName = `owners/${profile.id}/${Date.now()}.${fileExt}`;
+      const fileName = photoStoragePath(user.id, 'owner', ownerPhoto);
       const { error: uploadError } = await supabase.storage.from('dog-photos').upload(fileName, ownerPhoto);
       if (uploadError) throw uploadError;
       const { data: { publicUrl } } = supabase.storage.from('dog-photos').getPublicUrl(fileName);
