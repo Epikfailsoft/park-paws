@@ -428,7 +428,19 @@ export default function Profile() {
   };
 
   if (!myDog) {
-    return <div className="flex min-h-screen items-center justify-center bg-background"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-background px-6 text-center">
+        <span className="text-5xl">🐶</span>
+        <h2 className="font-display text-xl font-bold text-foreground">Henüz köpeğin yok</h2>
+        <p className="text-sm text-muted-foreground">Keşfet, Park ve Sosyal özelliklerini tam kullanmak için köpeğini ekle.</p>
+        <button
+          onClick={() => navigate('/onboarding')}
+          className="rounded-xl bg-primary px-6 py-3 font-semibold text-primary-foreground"
+        >
+          Köpeğini Ekle
+        </button>
+      </div>
+    );
   }
 
   const breedName = breeds.find(b => b.id === (selectedBreedId || myDog.breed_id))?.name || (myDog as any)?.breed?.name || '';
