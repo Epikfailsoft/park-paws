@@ -219,7 +219,15 @@ export default function Onboarding() {
   if (step === 1) {
     return (
       <div className="flex min-h-screen flex-col bg-background safe-top">
-        <div className="px-6 pt-8 pb-4">
+        <div className="flex items-center justify-end gap-2 px-6 pt-6">
+          <button type="button" onClick={handleSkip} className="flex items-center gap-1.5 rounded-full bg-secondary px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-secondary/70">
+            <SkipForward className="h-3.5 w-3.5" /> Atla
+          </button>
+          <button type="button" onClick={handleLogout} className="flex items-center gap-1.5 rounded-full bg-destructive/10 px-3 py-1.5 text-xs font-medium text-destructive transition-colors hover:bg-destructive/20">
+            <LogOut className="h-3.5 w-3.5" /> Çıkış
+          </button>
+        </div>
+        <div className="px-6 pt-4 pb-4">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary"><Dog className="h-5 w-5 text-primary-foreground" /></div>
             <div>
