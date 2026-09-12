@@ -1,3 +1,6 @@
+/* Must stay first: browsers drop an @import that follows any other rule, and @tailwind expands into rules. */
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -7,8 +10,6 @@
    Palette: Park Yeşili #4CAF6B, Gökyüzü #7EC8F3, Krem #FFF6E8, Kömür #333, Sıcak Turuncu #FF8A3D
    Type: Nunito (display/headings), Inter (body)
 */
-
-@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap');
 
 @layer base {
   :root {
