@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
-import { Camera, Dog, ArrowRight, Loader2, Plus, Search, Edit2, Eye } from 'lucide-react';
+import { Camera, Dog, ArrowRight, Loader2, Plus, Search, Edit2, Eye, LogOut, SkipForward } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { validatePhotoFile, compressImage } from '@/lib/upload-validation';
 import { toast } from 'sonner';
@@ -19,7 +19,7 @@ const dogSchema = z.object({
 });
 
 export default function Onboarding() {
-  const { profile, dogs, refreshDogs, selectPark, refreshProfile, setObserverMode } = useAuth();
+  const { profile, dogs, refreshDogs, selectPark, refreshProfile, setObserverMode, signOut } = useAuth();
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -111,6 +111,16 @@ export default function Onboarding() {
     await setObserverMode(true);
     toast.success('Gözlemci modunda devam ediyorsun 👀');
     navigate('/discover');
+  };
+
+  const handleSkip = async () => {
+    await setObserverMode(true);
+    navigate('/discover');
+  };
+
+  const handleLogout = async () => {
+    await signOut();
+    navigate('/auth');
   };
 
   const handleDogSubmit = async () => {
@@ -209,7 +219,15 @@ export default function Onboarding() {
   if (step === 1) {
     return (
       <div className="flex min-h-screen flex-col bg-background safe-top">
-        <div className="px-6 pt-8 pb-4">
+        <div className="flex items-center justify-end gap-2 px-6 pt-6">
+          <button type="button" onClick={handleSkip} className="flex items-center gap-1.5 rounded-full bg-secondary px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-secondary/70">
+            <SkipForward className="h-3.5 w-3.5" /> Atla
+          </button>
+          <button type="button" onClick={handleLogout} className="flex items-center gap-1.5 rounded-full bg-destructive/10 px-3 py-1.5 text-xs font-medium text-destructive transition-colors hover:bg-destructive/20">
+            <LogOut className="h-3.5 w-3.5" /> Çıkış
+          </button>
+        </div>
+        <div className="px-6 pt-4 pb-4">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary"><Dog className="h-5 w-5 text-primary-foreground" /></div>
             <div>
@@ -373,7 +391,15 @@ export default function Onboarding() {
   if (step === 2) {
   return (
     <div className="flex min-h-screen flex-col bg-background safe-top">
-      <div className="px-6 pt-8 pb-4">
+      <div className="flex items-center justify-end gap-2 px-6 pt-6">
+        <button type="button" onClick={handleSkip} className="flex items-center gap-1.5 rounded-full bg-secondary px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-secondary/70">
+          <SkipForward className="h-3.5 w-3.5" /> Atla
+        </button>
+        <button type="button" onClick={handleLogout} className="flex items-center gap-1.5 rounded-full bg-destructive/10 px-3 py-1.5 text-xs font-medium text-destructive transition-colors hover:bg-destructive/20">
+          <LogOut className="h-3.5 w-3.5" /> Çıkış
+        </button>
+      </div>
+      <div className="px-6 pt-4 pb-4">
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary"><span className="text-lg">🏞️</span></div>
           <div>
@@ -419,7 +445,15 @@ export default function Onboarding() {
   // Step 3: Owner Profile Setup
   return (
     <div className="flex min-h-screen flex-col bg-background safe-top">
-      <div className="px-6 pt-8 pb-4">
+      <div className="flex items-center justify-end gap-2 px-6 pt-6">
+        <button type="button" onClick={handleSkip} className="flex items-center gap-1.5 rounded-full bg-secondary px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-secondary/70">
+          <SkipForward className="h-3.5 w-3.5" /> Atla
+        </button>
+        <button type="button" onClick={handleLogout} className="flex items-center gap-1.5 rounded-full bg-destructive/10 px-3 py-1.5 text-xs font-medium text-destructive transition-colors hover:bg-destructive/20">
+          <LogOut className="h-3.5 w-3.5" /> Çıkış
+        </button>
+      </div>
+      <div className="px-6 pt-4 pb-4">
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary">
             <Camera className="h-5 w-5 text-primary-foreground" />
