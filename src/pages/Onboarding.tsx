@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
-import { Camera, Dog, ArrowRight, Loader2, Plus, Search, Edit2, Eye } from 'lucide-react';
+import { Camera, Dog, ArrowRight, Loader2, Plus, Search, Edit2, Eye, LogOut, SkipForward } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { validatePhotoFile, compressImage } from '@/lib/upload-validation';
 import { toast } from 'sonner';
