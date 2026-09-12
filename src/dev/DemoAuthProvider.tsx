@@ -3,7 +3,7 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { AuthContext } from '@/hooks/useAuth';
 import type { Park } from '@/types/dogspace';
-import { demoDogs, demoProfile, demoUser } from './demoData';
+import { getDemoData } from './demoData';
 import { DEMO_WRITE_BLOCKED_EVENT } from './demoMode';
 
 // Stands in for AuthProvider in demo mode: the demo owner and dogs are held locally, so no
@@ -32,7 +32,8 @@ export function DemoAuthProvider({ children }: { children: ReactNode }) {
     return () => window.removeEventListener(DEMO_WRITE_BLOCKED_EVENT, explain);
   }, []);
 
-  const user = signedOut ? null : demoUser;
+  const demo = getDemoData();
+  const user = signedOut ? null : demo.user;
   const loginBlocked = async () => ({ error: new Error('Demo modunda giriş yapılamaz.') });
 
   return (
@@ -40,8 +41,8 @@ export function DemoAuthProvider({ children }: { children: ReactNode }) {
       value={{
         user,
         session: null,
-        profile: user && demoProfile,
-        dogs: user ? demoDogs : [],
+        profile: user && demo.profile,
+        dogs: user ? demo.dogs : [],
         selectedPark,
         loading: false,
         hasDog: !!user,
