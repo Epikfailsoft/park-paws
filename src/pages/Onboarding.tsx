@@ -113,6 +113,16 @@ export default function Onboarding() {
     navigate('/discover');
   };
 
+  const handleSkip = async () => {
+    await setObserverMode(true);
+    navigate('/discover');
+  };
+
+  const handleLogout = async () => {
+    await signOut();
+    navigate('/auth');
+  };
+
   const handleDogSubmit = async () => {
     const result = dogSchema.safeParse({ name, approximate_age: age, energy_level: energyLevel, neutered: neutered ?? false, emergency_phone: emergencyPhone });
     if (!result.success) {
