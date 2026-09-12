@@ -133,7 +133,7 @@ function Section({ title, children, className = '' }: { title: string; children:
 }
 
 export default function Profile() {
-  const { profile, dogs, selectedPark, signOut, refreshDogs, refreshProfile } = useAuth();
+  const { profile, dogs, selectedPark, signOut, refreshDogs, refreshProfile, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [selectedDogId, setSelectedDogId] = useState<string>('');
   const myDog = dogs.find(d => d.id === selectedDogId) || dogs[0];
