@@ -4,6 +4,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
+import { DEMO_MODE } from "@/dev/demoMode";
+import { DemoAuthProvider } from "@/dev/DemoAuthProvider";
 import { BottomNav } from "@/components/layout/BottomNav";
 import Auth from "./pages/Auth";
 import Onboarding from "./pages/Onboarding";
@@ -16,6 +18,7 @@ import NotFound from "./pages/NotFound";
 import { Loader2 } from "lucide-react";
 
 const queryClient = new QueryClient();
+const ActiveAuthProvider = DEMO_MODE ? DemoAuthProvider : AuthProvider;
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading, hasDog, isObserver } = useAuth();
@@ -88,9 +91,9 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <AuthProvider>
+        <ActiveAuthProvider>
           <AppRoutes />
-        </AuthProvider>
+        </ActiveAuthProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
