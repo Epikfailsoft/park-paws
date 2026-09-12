@@ -10,6 +10,7 @@ import { GroupWaveSection } from '@/components/park/GroupWaveSection';
 import { MapPin, Loader2, Timer, AlertTriangle, ChevronDown, ChevronRight, Clock, Users, ArrowLeft, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { genitive } from '@/lib/turkish';
 import type { Park as ParkType } from '@/types/dogspace';
 import type { ParkDog } from '@/types/dogspace';
 import { isParkCheckinActive, getParkCheckinRemainingMinutes, formatTimeRemaining, RATE_LIMITS, isPlaydateActive, getPlaydateRemainingHours } from '@/types/dogspace';
@@ -425,7 +426,7 @@ export default function Park() {
                       </span>
                     </div>
                     <div className="flex items-center gap-3">
-                      <div className="flex-1 h-2 rounded-full bg-secondary overflow-hidden">
+                      <div className="flex-1 h-2 rounded-full bg-muted overflow-hidden">
                         <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${progress}%` }} />
                       </div>
                       <div className="flex items-center gap-1 text-xs font-medium text-muted-foreground">
@@ -507,7 +508,7 @@ export default function Park() {
                 </div>
               )}
               {selectedCity && (
-                <p className="text-xs text-white/50">{selectedCity}</p>
+                <p className="text-xs text-white/80">{selectedCity}</p>
               )}
             </div>
           </div>
@@ -518,7 +519,7 @@ export default function Park() {
                 disabled={!hasPhoto && !myDog.photo_url}
                 className={cn(
                   "flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-all",
-                  playdateActive ? "bg-[hsl(var(--park-active))] text-white" : "bg-[hsl(var(--page-social))] text-white",
+                  playdateActive ? "bg-[hsl(var(--park-active))] text-white" : "bg-[hsl(var(--page-social))] text-[hsl(var(--sky-foreground))]",
                   !hasPhoto && !myDog.photo_url && "opacity-50"
                 )}>
                 {playdateActive ? (
@@ -552,7 +553,7 @@ export default function Park() {
                 <img key={d.dog_id} src={d.photo_url} alt="" className="h-7 w-7 rounded-full object-cover ring-2 ring-card" />
               ))}
               {parkDogs.length > 4 && (
-                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-secondary ring-2 ring-card text-[10px] font-bold text-muted-foreground">
+                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-muted ring-2 ring-card text-[10px] font-bold text-muted-foreground">
                   +{parkDogs.length - 4}
                 </div>
               )}
@@ -600,7 +601,7 @@ export default function Park() {
           <div className="flex flex-col items-center justify-center py-16 text-center">
             <h2 className="mb-2 font-display text-lg font-semibold text-foreground">Park şu an sakin</h2>
             <p className="max-w-[280px] text-sm text-muted-foreground mb-4">
-              {myDog && !playdateActive ? 'Parkta playdate? 🎾' : `${myDog?.name}'in varlığını göstermek ister misin?`}
+              {myDog && !playdateActive ? 'Parkta playdate? 🎾' : `${myDog ? genitive(myDog.name) : 'Köpeğinin'} varlığını göstermek ister misin?`}
             </p>
             {myDog && !playdateActive && (
               <button onClick={togglePlaydate} disabled={!hasPhoto && !myDog.photo_url}
@@ -675,7 +676,7 @@ export default function Park() {
                     <a href={`tel:${dog.emergency_phone}`} className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-destructive py-3 font-semibold text-destructive-foreground">📞 AİLESİNİ ARA</a>
                   )}
                   {dog.is_lost && !isCheckedIn && (
-                    <div className="mt-3 rounded-xl bg-secondary/50 p-3 text-center">
+                    <div className="mt-3 rounded-xl bg-muted/50 p-3 text-center">
                       <p className="text-sm text-muted-foreground">Telefon numarasını görmek için parka giriş yap</p>
                     </div>
                   )}

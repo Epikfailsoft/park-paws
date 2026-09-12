@@ -7,7 +7,7 @@ interface MapTeaserProps {
 
 export function MapTeaser({ activeDogCount, activeParkCount }: MapTeaserProps) {
   return (
-    <div className="rounded-2xl bg-secondary/50 border border-border p-4 relative overflow-hidden">
+    <div className="rounded-2xl bg-muted/50 border border-border p-4 relative overflow-hidden">
       {/* Lock overlay */}
       <div className="absolute top-3 right-3">
         <div className="flex items-center gap-1 rounded-full bg-muted px-2.5 py-1">

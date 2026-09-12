@@ -90,7 +90,7 @@ export function MapView({ hasAccess }: MapViewProps) {
   if (!hasAccess) {
     return (
       <div className="flex flex-col items-center justify-center py-20 px-6 text-center">
-        <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-secondary">
+        <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-muted">
           <Lock className="h-10 w-10 text-muted-foreground" />
         </div>
         <h2 className="mb-2 font-display text-lg font-bold text-foreground">Harita Görünümü</h2>

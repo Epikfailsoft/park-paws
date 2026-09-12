@@ -39,22 +39,19 @@ export function StatusPulse({ dog, selectedPark, onRefresh }: StatusPulseProps) 
         .from('dog_private')
         .select('emergency_phone')
         .eq('dog_id', dog.id)
-        .single();
-      if (data?.emergency_phone) {
-        setEmergencyPhone(data.emergency_phone);
-      }
-    } catch (err) {
-      // Try dog_lost_profile as fallback
-      try {
-        const { data } = await supabase
+        .maybeSingle();
+      let phone: string | null | undefined = data?.emergency_phone;
+      // Fall back to dog_lost_profile. supabase-js reports a missing row as data: null
+      // rather than throwing, so this can't live in a catch block.
+      if (!phone) {
+        const { data: lostProfile } = await supabase
           .from('dog_lost_profile')
           .select('emergency_phone')
           .eq('dog_id', dog.id)
-          .single();
-        if (data?.emergency_phone) {
-          setEmergencyPhone(data.emergency_phone);
-        }
-      } catch { /* no existing phone */ }
+          .maybeSingle();
+        phone = lostProfile?.emergency_phone;
+      }
+      if (phone) setEmergencyPhone(phone);
     } finally {
       setFetchingPhone(false);
     }
@@ -83,7 +80,7 @@ export function StatusPulse({ dog, selectedPark, onRefresh }: StatusPulseProps) 
       if (error) throw error;
       const result = data as { status: string; message: string };
       if (result.status === 'ERROR') { toast.error(result.message); return; }
-      toast.success(parkActive ? 'Parktan çıkış yapıldı' : `${selectedPark.name}'da aktifsin!`);
+      toast.success(parkActive ? 'Parktan çıkış yapıldı' : `Parka giriş yapıldı: ${selectedPark.name} 🎾`);
       onRefresh();
     } catch (error) {
       console.error('Error toggling park check-in:', error);
@@ -235,7 +232,7 @@ export function StatusPulse({ dog, selectedPark, onRefresh }: StatusPulseProps) 
                 {phoneError && <p className="mt-1 text-sm text-destructive">{phoneError}</p>}
               </div>
               {selectedPark && (
-                <div className="rounded-lg bg-secondary/50 p-3">
+                <div className="rounded-lg bg-muted/50 p-3">
                   <p className="text-xs text-muted-foreground">Son görüldüğü park: <span className="font-medium text-foreground">{selectedPark.name}</span></p>
                 </div>
               )}

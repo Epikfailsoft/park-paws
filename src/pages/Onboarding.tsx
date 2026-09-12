@@ -220,7 +220,7 @@ export default function Onboarding() {
     return (
       <div className="flex min-h-screen flex-col bg-background safe-top">
         <div className="flex items-center justify-end gap-2 px-6 pt-6">
-          <button type="button" onClick={handleSkip} className="flex items-center gap-1.5 rounded-full bg-secondary px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-secondary/70">
+          <button type="button" onClick={handleSkip} className="flex items-center gap-1.5 rounded-full bg-muted px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted/70">
             <SkipForward className="h-3.5 w-3.5" /> Atla
           </button>
           <button type="button" onClick={handleLogout} className="flex items-center gap-1.5 rounded-full bg-destructive/10 px-3 py-1.5 text-xs font-medium text-destructive transition-colors hover:bg-destructive/20">
@@ -241,9 +241,9 @@ export default function Onboarding() {
           {/* Observer Mode Option */}
           <button
             onClick={handleObserverMode}
-            className="mb-6 flex w-full items-center gap-3 rounded-2xl border-2 border-dashed border-border bg-secondary/30 p-4 text-left transition-all hover:border-primary/50"
+            className="mb-6 flex w-full items-center gap-3 rounded-2xl border-2 border-dashed border-border bg-muted/30 p-4 text-left transition-all hover:border-primary/50"
           >
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-secondary">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted">
               <Eye className="h-5 w-5 text-muted-foreground" />
             </div>
             <div className="flex-1">
@@ -265,7 +265,7 @@ export default function Onboarding() {
                 <div className="absolute inset-0 flex items-center justify-center bg-foreground/20 opacity-0 transition-opacity hover:opacity-100"><Camera className="h-8 w-8 text-white" /></div></>
               ) : (
                 <div className="flex flex-col items-center gap-2 text-muted-foreground">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-secondary"><Plus className="h-6 w-6" /></div>
+                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted"><Plus className="h-6 w-6" /></div>
                   <span className="text-sm font-medium">Fotoğraf Ekle</span>
                 </div>
               )}
@@ -296,7 +296,7 @@ export default function Onboarding() {
                   {filteredBreeds.map(breed => (
                     <button key={breed.id} type="button"
                       onClick={() => { setSelectedBreed(breed); setShowBreedDropdown(false); setBreedSearch(''); }}
-                      className="w-full text-left px-4 py-3 hover:bg-secondary/50 text-sm">{breed.name}</button>
+                      className="w-full text-left px-4 py-3 hover:bg-muted/50 text-sm">{breed.name}</button>
                   ))}
                 </div>
               </div>
@@ -372,7 +372,7 @@ export default function Onboarding() {
             {errors.emergency_phone && <p className="mt-1 text-xs text-destructive">{errors.emergency_phone}</p>}
           </div>
 
-          <div className="mb-6 rounded-xl bg-secondary/50 p-4">
+          <div className="mb-6 rounded-xl bg-muted/50 p-4">
             <p className="text-sm text-muted-foreground">💡 <strong>Oyun tarzı, sevdikleri ve sevmedikleri</strong> daha sonra profil sayfasından ekleyebilirsin.</p>
           </div>
         </div>
@@ -392,7 +392,7 @@ export default function Onboarding() {
   return (
     <div className="flex min-h-screen flex-col bg-background safe-top">
       <div className="flex items-center justify-end gap-2 px-6 pt-6">
-        <button type="button" onClick={handleSkip} className="flex items-center gap-1.5 rounded-full bg-secondary px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-secondary/70">
+        <button type="button" onClick={handleSkip} className="flex items-center gap-1.5 rounded-full bg-muted px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted/70">
           <SkipForward className="h-3.5 w-3.5" /> Atla
         </button>
         <button type="button" onClick={handleLogout} className="flex items-center gap-1.5 rounded-full bg-destructive/10 px-3 py-1.5 text-xs font-medium text-destructive transition-colors hover:bg-destructive/20">
@@ -446,7 +446,7 @@ export default function Onboarding() {
   return (
     <div className="flex min-h-screen flex-col bg-background safe-top">
       <div className="flex items-center justify-end gap-2 px-6 pt-6">
-        <button type="button" onClick={handleSkip} className="flex items-center gap-1.5 rounded-full bg-secondary px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-secondary/70">
+        <button type="button" onClick={handleSkip} className="flex items-center gap-1.5 rounded-full bg-muted px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted/70">
           <SkipForward className="h-3.5 w-3.5" /> Atla
         </button>
         <button type="button" onClick={handleLogout} className="flex items-center gap-1.5 rounded-full bg-destructive/10 px-3 py-1.5 text-xs font-medium text-destructive transition-colors hover:bg-destructive/20">
@@ -480,7 +480,7 @@ export default function Onboarding() {
               </>
             ) : (
               <div className="flex flex-col items-center gap-2 text-muted-foreground">
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-secondary"><Plus className="h-6 w-6" /></div>
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted"><Plus className="h-6 w-6" /></div>
                 <span className="text-sm font-medium">Fotoğraf Ekle</span>
               </div>
             )}

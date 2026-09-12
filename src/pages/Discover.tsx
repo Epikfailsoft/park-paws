@@ -10,6 +10,7 @@ import { Compass, Loader2, SlidersHorizontal, Heart, X, RotateCcw, Map, Layers }
 import dogiLogo from '@/assets/dogi-logo.png';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { accusative } from '@/lib/turkish';
 import { SOCIAL_STYLE_OPTIONS, getTimeContext } from '@/types/dogspace';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import type { DiscoverDog } from '@/types/dogspace';
@@ -447,14 +448,16 @@ export default function Discover() {
             </>
           ) : (
             <div className="flex flex-col items-center justify-center py-16 text-center">
-              <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-secondary">
+              <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-muted">
                 <Compass className="h-8 w-8 text-muted-foreground" />
               </div>
               <h2 className="mb-2 font-display text-lg font-semibold text-foreground">
                 {swipeDogs.length === 0 ? 'Bugün sakin' : 'Hepsini gördün! 🎉'}
               </h2>
               <p className="max-w-[280px] text-sm text-muted-foreground">
-                {swipeDogs.length === 0 ? `${myDog?.name}'i parka götürmeye ne dersin?` : 'Yeni köpekler katılınca tekrar gel!'}
+                {swipeDogs.length > 0
+                  ? 'Yeni köpekler katılınca tekrar gel!'
+                  : myDog ? `${accusative(myDog.name)} parka götürmeye ne dersin?` : 'Parka uğramaya ne dersin?'}
               </p>
               {currentIndex > 0 && (
                 <button onClick={() => setCurrentIndex(0)} className="mt-4 rounded-xl px-5 py-2.5 text-sm font-semibold text-white"

@@ -16,9 +16,10 @@ export function DogSelector({ dogs, selectedDogId, onSelect, onAddNew }: DogSele
 
   if (dogs.length <= 1 && dogs.length > 0) {
     return (
-      <button onClick={onAddNew}
-        className="flex items-center gap-1.5 rounded-full bg-white/20 px-3 py-1.5 text-xs font-semibold text-white backdrop-blur-sm">
-        <Plus className="h-3.5 w-3.5" /> Köpek Ekle
+      // Phone-width headers only have room for the icon (see the Köpeğim header in Profile).
+      <button onClick={onAddNew} aria-label="Köpek ekle"
+        className="flex h-8 w-8 items-center justify-center gap-1.5 whitespace-nowrap rounded-full bg-white/20 text-xs font-semibold text-white backdrop-blur-sm min-[480px]:w-auto min-[480px]:px-3">
+        <Plus className="h-3.5 w-3.5" /> <span className="hidden min-[480px]:inline">Köpek Ekle</span>
       </button>
     );
   }
@@ -26,9 +27,9 @@ export function DogSelector({ dogs, selectedDogId, onSelect, onAddNew }: DogSele
   return (
     <div className="relative">
       <button onClick={() => setOpen(!open)}
-        className="flex items-center gap-2 rounded-full bg-white/20 px-3 py-1.5 text-sm font-semibold text-white backdrop-blur-sm">
+        className="flex items-center gap-2 whitespace-nowrap rounded-full bg-white/20 px-3 py-1.5 text-sm font-semibold text-white backdrop-blur-sm">
         {selected && (
-          <img src={selected.photo_url} alt="" className="h-6 w-6 rounded-full object-cover ring-1 ring-white/40" />
+          <img src={selected.photo_url} alt="" className="hidden h-6 w-6 rounded-full object-cover ring-1 ring-white/40 min-[480px]:block" />
         )}
         <span className="max-w-[100px] truncate">{selected?.name || 'Seç'}</span>
         <ChevronDown className={cn("h-3.5 w-3.5 transition-transform", open && "rotate-180")} />
@@ -43,7 +44,7 @@ export function DogSelector({ dogs, selectedDogId, onSelect, onAddNew }: DogSele
                 onClick={() => { onSelect(dog.id); setOpen(false); }}
                 className={cn(
                   "flex w-full items-center gap-3 px-3 py-2.5 text-left transition-colors",
-                  dog.id === selectedDogId ? "bg-primary/10" : "hover:bg-secondary/50"
+                  dog.id === selectedDogId ? "bg-primary/10" : "hover:bg-muted/50"
                 )}>
                 <img src={dog.photo_url} alt="" className="h-8 w-8 rounded-full object-cover" />
                 <div className="flex-1 min-w-0">
@@ -53,7 +54,7 @@ export function DogSelector({ dogs, selectedDogId, onSelect, onAddNew }: DogSele
               </button>
             ))}
             <button onClick={() => { onAddNew(); setOpen(false); }}
-              className="flex w-full items-center gap-3 px-3 py-2.5 border-t border-border text-primary hover:bg-secondary/50 transition-colors">
+              className="flex w-full items-center gap-3 px-3 py-2.5 border-t border-border text-primary hover:bg-muted/50 transition-colors">
               <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10">
                 <Plus className="h-4 w-4" />
               </div>

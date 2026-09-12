@@ -112,7 +112,7 @@ function Chip({ selected, onClick, children, className = '' }: { selected: boole
         "rounded-2xl border-2 px-4 py-2.5 text-sm font-medium transition-all active:scale-95",
         selected
           ? "border-primary bg-primary/15 text-primary shadow-sm"
-          : "border-border bg-card text-muted-foreground hover:bg-secondary/50",
+          : "border-border bg-card text-muted-foreground hover:bg-muted/50",
         className
       )}>
       {children}
@@ -249,13 +249,13 @@ export default function Profile() {
   // Load care data
   useEffect(() => {
     if (!myDog) return;
-    supabase.from('dog_care').select('vaccination_status, last_vet_visit').eq('dog_id', myDog.id).single().then(({ data }) => {
+    supabase.from('dog_care').select('vaccination_status, last_vet_visit').eq('dog_id', myDog.id).maybeSingle().then(({ data }) => {
       if (data) {
         setVaxStatus(data.vaccination_status || 'unknown');
         setLastVetVisit(data.last_vet_visit || '');
       }
     });
-    supabase.from('dog_private').select('microchip_id, emergency_phone').eq('dog_id', myDog.id).single().then(({ data }) => {
+    supabase.from('dog_private').select('microchip_id, emergency_phone').eq('dog_id', myDog.id).maybeSingle().then(({ data }) => {
       if (data) {
         setHasMicrochip(!!data.microchip_id);
         if (data.emergency_phone) setEmergencyPhone(data.emergency_phone);
@@ -468,11 +468,12 @@ export default function Profile() {
         {/* Header */}
         <header className="sticky top-0 z-40 border-b px-4 py-3" style={{ background: 'hsl(var(--page-profile))' }}>
           <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-3 min-w-0">
-              <img src={doginnLogo} alt="doginn" className="h-9 w-9 object-contain flex-shrink-0" />
-              <h1 className="font-display text-lg font-extrabold text-white truncate">Köpeğim</h1>
+            <div className="flex items-center gap-2 min-w-0">
+              <img src={doginnLogo} alt="doginn" className="h-8 w-8 object-contain flex-shrink-0" />
+              {/* With several dogs the selector already shows the dog's name; phones lack room for both */}
+              <h1 className={cn("font-display text-lg font-extrabold text-white truncate", dogs.length > 1 && "hidden min-[480px]:block")}>Köpeğim</h1>
             </div>
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1">
               <DogSelector
                 dogs={dogs}
                 selectedDogId={selectedDogId || myDog?.id || ''}
@@ -480,12 +481,12 @@ export default function Profile() {
                 onAddNew={() => navigate('/onboarding')}
               />
               <button onClick={() => toggleLostMode(!myDog.is_lost)} disabled={lostLoading}
-                className={cn("rounded-full px-3 py-2 text-xs font-semibold transition-all",
+                className={cn("whitespace-nowrap rounded-full px-3 py-2 text-xs font-semibold transition-all",
                   myDog.is_lost ? "bg-white text-foreground" : "bg-white/20 text-white"
                 )}>
                 {lostLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : myDog.is_lost ? 'Kayıp Açık' : 'Kayıp'}
               </button>
-              <button onClick={() => setEditing(true)} className="rounded-full bg-white/20 px-3 py-2 text-xs font-semibold text-white">
+              <button onClick={() => setEditing(true)} className="whitespace-nowrap rounded-full bg-white/20 px-3 py-2 text-xs font-semibold text-white">
                 Düzenle
               </button>
             </div>
@@ -651,7 +652,7 @@ export default function Profile() {
             {(myDog as any).allergy_notes && (
               <div>
                 <span className="text-xs font-medium text-muted-foreground mb-1 block">Alerji / Özel Durum</span>
-                <p className="text-xs text-foreground bg-secondary rounded-lg p-2">{(myDog as any).allergy_notes}</p>
+                <p className="text-xs text-foreground bg-muted rounded-lg p-2">{(myDog as any).allergy_notes}</p>
               </div>
             )}
           </Section>
@@ -762,7 +763,7 @@ export default function Profile() {
               className="w-full rounded-xl bg-primary py-3.5 font-semibold text-primary-foreground shadow-sm active:scale-[0.98] transition-all">
               Profili Düzenle
             </button>
-            <button className="w-full rounded-xl border-2 border-border py-3 text-sm font-medium text-muted-foreground hover:bg-secondary transition-all">
+            <button className="w-full rounded-xl border-2 border-border py-3 text-sm font-medium text-muted-foreground hover:bg-muted transition-all">
               Mini Kart Paylaş
             </button>
           </div>
@@ -792,7 +793,7 @@ export default function Profile() {
                       <input type="text" value={ownerLastName} onChange={e => setOwnerLastName(e.target.value)} placeholder="Soyad" className="dogspace-input w-full text-sm py-1.5" />
                       <div className="flex gap-2">
                         <button onClick={handleSaveOwnerInfo} className="rounded-lg bg-primary px-3 py-1.5 text-xs text-primary-foreground font-medium">Kaydet</button>
-                        <button onClick={() => setEditingOwnerInfo(false)} className="rounded-lg bg-secondary px-3 py-1.5 text-xs text-muted-foreground font-medium">İptal</button>
+                        <button onClick={() => setEditingOwnerInfo(false)} className="rounded-lg bg-muted px-3 py-1.5 text-xs text-muted-foreground font-medium">İptal</button>
                       </div>
                     </div>
                   ) : (
@@ -871,7 +872,7 @@ export default function Profile() {
                   {breeds.filter(b => b.name.toLowerCase().includes(breedSearch.toLowerCase())).map(breed => (
                     <button key={breed.id} type="button"
                       onClick={() => { setSelectedBreedId(breed.id); setShowBreedDropdown(false); setBreedSearch(''); }}
-                      className={cn("w-full text-left px-4 py-2.5 text-sm hover:bg-secondary/50", breed.id === selectedBreedId && "bg-primary/10 text-primary font-medium")}
+                      className={cn("w-full text-left px-4 py-2.5 text-sm hover:bg-muted/50", breed.id === selectedBreedId && "bg-primary/10 text-primary font-medium")}
                     >{breed.name}</button>
                   ))}
                 </div>

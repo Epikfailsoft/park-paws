@@ -45,7 +45,7 @@ export function DogProfileModal({ dog, onClose }: DogProfileModalProps) {
         onClick={e => e.stopPropagation()}
       >
         {/* Close */}
-        <button onClick={onClose} className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full bg-secondary text-muted-foreground">
+        <button onClick={onClose} className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full bg-muted text-muted-foreground">
           <X className="h-4 w-4" />
         </button>
 
@@ -101,7 +101,7 @@ export function DogProfileModal({ dog, onClose }: DogProfileModalProps) {
         {/* Details */}
         <div className="mt-6 space-y-4">
           {dog.bio && (
-            <div className="rounded-xl bg-secondary/50 p-3">
+            <div className="rounded-xl bg-muted/50 p-3">
               <p className="text-sm text-foreground italic">"{dog.bio}"</p>
             </div>
           )}

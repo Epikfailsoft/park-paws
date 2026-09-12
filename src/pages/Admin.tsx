@@ -318,7 +318,7 @@ export default function Admin() {
             </div>
           </div>
           <button onClick={() => { fetchStats(); toast.success('Yenilendi'); }}
-            className="flex h-9 w-9 items-center justify-center rounded-full bg-secondary">
+            className="flex h-9 w-9 items-center justify-center rounded-full bg-muted">
             <RefreshCw className="h-4 w-4 text-muted-foreground" />
           </button>
         </div>

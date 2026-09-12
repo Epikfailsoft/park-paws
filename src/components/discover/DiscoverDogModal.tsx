@@ -152,7 +152,7 @@ export function DiscoverDogModal({ dog, onClose, onWave, hasWaved }: DiscoverDog
 
           {/* Bio */}
           {dog.bio && (
-            <div className="rounded-xl bg-secondary/50 p-3">
+            <div className="rounded-xl bg-muted/50 p-3">
               <p className="text-sm text-foreground italic">"{dog.bio}"</p>
             </div>
           )}

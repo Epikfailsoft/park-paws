@@ -209,7 +209,7 @@ export default function Messages() {
         </header>
 
         {/* Template buttons - always visible */}
-        <div className="p-3 bg-secondary/30 border-b">
+        <div className="p-3 bg-muted/30 border-b">
           <p className="text-[10px] text-muted-foreground mb-2 font-medium uppercase tracking-wide">Park Koordinasyonu</p>
           <div className="flex gap-2 overflow-x-auto no-scrollbar">
             {TEMPLATES.map((t) => (
@@ -292,7 +292,7 @@ export default function Messages() {
           <img src={dogiLogo} alt="DOGI" className="h-[50px] w-[50px] rounded-xl" />
           <div>
             <h1 className="font-display text-lg font-bold text-foreground">Sosyal</h1>
-            <p className="text-xs text-muted-foreground">Arkadaşlar, mesajlar ve aktivite</p>
+            <p className="text-xs text-foreground">Arkadaşlar, mesajlar ve aktivite</p>
           </div>
         </div>
       </header>

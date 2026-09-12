@@ -13,7 +13,7 @@ export function WaveLimitModal({ open, onClose }: WaveLimitModalProps) {
       <div className="mx-4 w-full max-w-sm rounded-2xl bg-card p-6" style={{ boxShadow: 'var(--shadow-elevated)' }}>
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-display text-lg font-bold text-foreground">Woof Limiti Doldu</h3>
-          <button onClick={onClose} className="rounded-full bg-secondary p-1.5">
+          <button onClick={onClose} className="rounded-full bg-muted p-1.5">
             <X className="h-4 w-4 text-muted-foreground" />
           </button>
         </div>
@@ -28,7 +28,7 @@ export function WaveLimitModal({ open, onClose }: WaveLimitModalProps) {
           </p>
 
           {/* Plus Play Teaser */}
-          <div className="rounded-xl bg-secondary/50 p-4 mt-4">
+          <div className="rounded-xl bg-muted/50 p-4 mt-4">
             <p className="text-xs text-muted-foreground">
               🚀 Yakında: sınırsız woof + harita görünümü
             </p>

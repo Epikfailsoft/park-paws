@@ -86,7 +86,7 @@ export function PlaydateHistory({ dogId }: PlaydateHistoryProps) {
           {history.map((entry) => (
             <div
               key={entry.id}
-              className="flex items-center gap-3 rounded-xl bg-secondary/50 p-3"
+              className="flex items-center gap-3 rounded-xl bg-muted/50 p-3"
             >
               {entry.partner_dog_photo ? (
                 <img
