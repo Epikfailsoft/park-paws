@@ -18,28 +18,28 @@ import type { DiscoverDog } from '@/types/dogspace';
 const PAGE_SIZE = 50;
 
 const ENERGY_FILTER_OPTIONS = [
-  { value: '1', label: '🐢 Sakin', level: 1 },
-  { value: '2', label: '🐕 Normal', level: 2 },
-  { value: '3', label: '⚡ Enerjik', level: 3 },
+  { value: '1', label: 'Sakin', level: 1 },
+  { value: '2', label: 'Normal', level: 2 },
+  { value: '3', label: 'Enerjik', level: 3 },
 ];
 
 const GENDER_FILTER_OPTIONS = [
-  { value: 'female', label: '♀ Dişi' },
-  { value: 'male', label: '♂ Erkek' },
+  { value: 'female', label: 'Dişi' },
+  { value: 'male', label: 'Erkek' },
 ];
 
 const PLAY_STYLE_FILTER_OPTIONS = [
-  { value: 'chase', label: '🏃 Kovalamaca' },
-  { value: 'wrestle', label: '💪 Güreş' },
-  { value: 'toy', label: '🧸 Oyuncak' },
-  { value: 'gentle', label: '🤗 Nazik' },
-  { value: 'calm_social', label: '☕ Sakin' },
+  { value: 'chase', label: 'Kovalamaca' },
+  { value: 'wrestle', label: 'Güreş' },
+  { value: 'toy', label: 'Oyuncak' },
+  { value: 'gentle', label: 'Nazik' },
+  { value: 'calm_social', label: 'Sakin' },
 ];
 
 const SIZE_FILTER_OPTIONS = [
-  { value: 'small', label: '🐕 Küçük' },
-  { value: 'medium', label: '🐕‍🦺 Orta' },
-  { value: 'large', label: '🐾 Büyük' },
+  { value: 'small', label: 'Küçük' },
+  { value: 'medium', label: 'Orta' },
+  { value: 'large', label: 'Büyük' },
 ];
 
 export default function Discover() {
