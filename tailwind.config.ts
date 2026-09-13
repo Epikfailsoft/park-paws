@@ -19,7 +19,7 @@ export default {
   	extend: {
   		fontFamily: {
   			sans: [
-  				'Inter',
+  				'Figtree',
   				'ui-sans-serif',
   				'system-ui',
   				'-apple-system',
@@ -28,12 +28,12 @@ export default {
   				'sans-serif'
   			],
   			display: [
-  				'Nunito',
+  				'Outfit',
   				'system-ui',
   				'sans-serif'
   			],
   			serif: [
-  				'Nunito',
+  				'Outfit',
   				'ui-serif',
   				'Georgia',
   				'serif'
