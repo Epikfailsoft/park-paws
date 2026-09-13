@@ -6,7 +6,7 @@ import { SwipeCard } from '@/components/discover/SwipeCard';
 import { DogProfileSheet } from '@/components/shared/DogProfileSheet';
 import type { DogProfileData } from '@/components/shared/DogProfileSheet';
 import { MapView } from '@/components/discover/MapView';
-import { Compass, Loader2, SlidersHorizontal, Heart, X, RotateCcw, Map, Layers } from 'lucide-react';
+import { Compass, Loader2, SlidersHorizontal, Heart, X, RotateCcw, Map, Layers, MapPin, Zap, Ruler, PawPrint, Home } from 'lucide-react';
 import dogiLogo from '@/assets/dogi-logo.png';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -18,28 +18,28 @@ import type { DiscoverDog } from '@/types/dogspace';
 const PAGE_SIZE = 50;
 
 const ENERGY_FILTER_OPTIONS = [
-  { value: '1', label: '🐢 Sakin', level: 1 },
-  { value: '2', label: '🐕 Normal', level: 2 },
-  { value: '3', label: '⚡ Enerjik', level: 3 },
+  { value: '1', label: 'Sakin', level: 1 },
+  { value: '2', label: 'Normal', level: 2 },
+  { value: '3', label: 'Enerjik', level: 3 },
 ];
 
 const GENDER_FILTER_OPTIONS = [
-  { value: 'female', label: '♀ Dişi' },
-  { value: 'male', label: '♂ Erkek' },
+  { value: 'female', label: 'Dişi' },
+  { value: 'male', label: 'Erkek' },
 ];
 
 const PLAY_STYLE_FILTER_OPTIONS = [
-  { value: 'chase', label: '🏃 Kovalamaca' },
-  { value: 'wrestle', label: '💪 Güreş' },
-  { value: 'toy', label: '🧸 Oyuncak' },
-  { value: 'gentle', label: '🤗 Nazik' },
-  { value: 'calm_social', label: '☕ Sakin' },
+  { value: 'chase', label: 'Kovalamaca' },
+  { value: 'wrestle', label: 'Güreş' },
+  { value: 'toy', label: 'Oyuncak' },
+  { value: 'gentle', label: 'Nazik' },
+  { value: 'calm_social', label: 'Sakin' },
 ];
 
 const SIZE_FILTER_OPTIONS = [
-  { value: 'small', label: '🐕 Küçük' },
-  { value: 'medium', label: '🐕‍🦺 Orta' },
-  { value: 'large', label: '🐾 Büyük' },
+  { value: 'small', label: 'Küçük' },
+  { value: 'medium', label: 'Orta' },
+  { value: 'large', label: 'Büyük' },
 ];
 
 export default function Discover() {
@@ -235,13 +235,13 @@ export default function Discover() {
   return (
     <div className="relative min-h-screen safe-top safe-bottom flex flex-col bg-background">
       {/* HEADER */}
-      <header className="sticky top-0 z-40 border-b px-4 py-3" style={{ background: 'hsl(var(--page-discover))' }}>
+      <header className="sticky top-0 z-40 border-b border-border/60 bg-background/90 backdrop-blur-xl px-5 pt-6 pb-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <img src={dogiLogo} alt="DOGI" className="h-[44px] w-[44px] rounded-xl" />
+            <img src={dogiLogo} alt="doginn" className="h-[44px] w-[44px] rounded-2xl shadow-soft" />
             <div>
-              <h1 className="font-display text-lg font-bold text-white leading-tight">Keşfet</h1>
-              <p className="text-[11px] text-white/70">
+              <h1 className="font-display text-2xl font-bold text-foreground leading-tight tracking-tight">Keşfet</h1>
+              <p className="text-[11px] text-muted-foreground">
                 {neighborhoodName ? `${neighborhoodName} · ` : ''}{getTimeContext()} · {totalMembers} üye
               </p>
             </div>
@@ -249,18 +249,18 @@ export default function Discover() {
 
           <div className="flex items-center gap-2">
             {/* View toggle */}
-            <div className="flex rounded-full bg-white/15 p-0.5">
+            <div className="flex rounded-full bg-muted p-0.5">
               <button onClick={() => setViewMode('swipe')}
                 className={cn("flex items-center justify-center h-8 w-8 rounded-full transition-all",
-                  viewMode === 'swipe' ? "bg-white/30" : ""
+                  viewMode === 'swipe' ? "bg-card shadow-soft" : ""
                 )}>
-                <Layers className="h-4 w-4 text-white" />
+                <Layers className="h-4 w-4 text-foreground" />
               </button>
               <button onClick={() => setViewMode('map')}
                 className={cn("flex items-center justify-center h-8 w-8 rounded-full transition-all",
-                  viewMode === 'map' ? "bg-white/30" : ""
+                  viewMode === 'map' ? "bg-card shadow-soft" : ""
                 )}>
-                <Map className="h-4 w-4 text-white" />
+                <Map className="h-4 w-4 text-foreground" />
               </button>
             </div>
 
@@ -269,31 +269,34 @@ export default function Discover() {
               <PopoverTrigger asChild>
                 <button className={cn(
                   "relative flex items-center justify-center h-9 w-9 rounded-full border transition-all",
-                  showFilters || activeFilterCount > 0 ? "border-white/50 bg-white/20" : "border-white/30 bg-white/10"
+                  showFilters || activeFilterCount > 0 ? "border-secondary bg-secondary text-secondary-foreground" : "border-border bg-card text-foreground"
                 )}>
-                  <SlidersHorizontal className="h-4 w-4 text-white" />
+                  <SlidersHorizontal className="h-4 w-4" />
                   {activeFilterCount > 0 && (
-                    <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-white text-[9px] font-bold"
-                      style={{ color: 'hsl(var(--page-discover))' }}>{activeFilterCount}</span>
+                    <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[9px] font-bold text-primary-foreground">{activeFilterCount}</span>
                   )}
                 </button>
               </PopoverTrigger>
-              <PopoverContent align="end" className="w-80 p-4 space-y-3 max-h-[70vh] overflow-y-auto" sideOffset={8}>
+              <PopoverContent align="end" className="w-80 p-5 space-y-4 max-h-[70vh] overflow-y-auto rounded-2xl shadow-elevated" sideOffset={8}>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-semibold text-foreground">Filtreler</span>
+                  <span className="font-display text-base font-bold text-foreground">Filtreler</span>
                   {activeFilterCount > 0 && (
-                    <button onClick={clearAllFilters} className="text-xs font-medium" style={{ color: 'hsl(var(--page-discover))' }}>⟲ Sıfırla</button>
+                    <button onClick={clearAllFilters} className="flex items-center gap-1 text-xs font-semibold text-primary">
+                      <RotateCcw className="h-3 w-3" /> Sıfırla
+                    </button>
                   )}
                 </div>
                 {/* Distance */}
                 <div>
-                  <p className="text-[11px] font-medium text-muted-foreground mb-1.5">📍 Mesafe</p>
+                  <p className="mb-1.5 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                    <MapPin className="h-3 w-3" /> Mesafe
+                  </p>
                   <div className="flex gap-1.5">
                     {[1, 2, 5, 10].map(km => (
                       <button key={km} onClick={() => setDistance(km)}
-                        className={cn("flex-1 rounded-lg py-2 text-xs font-medium transition-all",
-                          distance === km ? "text-white" : "bg-secondary text-secondary-foreground"
-                        )} style={distance === km ? { background: 'hsl(var(--page-discover))' } : undefined}>
+                        className={cn("flex-1 rounded-full py-2 text-xs font-semibold transition-all",
+                          distance === km ? "bg-secondary text-secondary-foreground shadow-soft" : "bg-muted text-foreground"
+                        )}>
                         {km} km
                       </button>
                     ))}
@@ -301,13 +304,15 @@ export default function Discover() {
                 </div>
                 {/* Gender */}
                 <div>
-                  <p className="text-[11px] font-medium text-muted-foreground mb-1.5">⚧ Cinsiyet</p>
+                  <p className="mb-1.5 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                    <PawPrint className="h-3 w-3" /> Cinsiyet
+                  </p>
                   <div className="flex gap-1.5">
                     {GENDER_FILTER_OPTIONS.map(g => (
                       <button key={g.value} onClick={() => setGenderFilter(genderFilter === g.value ? null : g.value)}
-                        className={cn("flex-1 rounded-lg py-2 text-xs font-medium transition-all",
-                          genderFilter === g.value ? "text-white" : "bg-secondary text-secondary-foreground"
-                        )} style={genderFilter === g.value ? { background: 'hsl(var(--page-discover))' } : undefined}>
+                        className={cn("flex-1 rounded-full py-2 text-xs font-semibold transition-all",
+                          genderFilter === g.value ? "bg-secondary text-secondary-foreground shadow-soft" : "bg-muted text-foreground"
+                        )}>
                         {g.label}
                       </button>
                     ))}
@@ -315,13 +320,15 @@ export default function Discover() {
                 </div>
                 {/* Energy */}
                 <div>
-                  <p className="text-[11px] font-medium text-muted-foreground mb-1.5">⚡ Enerji</p>
+                  <p className="mb-1.5 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                    <Zap className="h-3 w-3" /> Enerji
+                  </p>
                   <div className="flex gap-1.5">
                     {ENERGY_FILTER_OPTIONS.map(e => (
                       <button key={e.value} onClick={() => setEnergyFilter(energyFilter === e.level ? null : e.level)}
-                        className={cn("flex-1 rounded-lg py-2 text-xs font-medium transition-all",
-                          energyFilter === e.level ? "text-white" : "bg-secondary text-secondary-foreground"
-                        )} style={energyFilter === e.level ? { background: 'hsl(var(--page-discover))' } : undefined}>
+                        className={cn("flex-1 rounded-full py-2 text-xs font-semibold transition-all",
+                          energyFilter === e.level ? "bg-secondary text-secondary-foreground shadow-soft" : "bg-muted text-foreground"
+                        )}>
                         {e.label}
                       </button>
                     ))}
@@ -329,13 +336,15 @@ export default function Discover() {
                 </div>
                 {/* Play Style */}
                 <div>
-                  <p className="text-[11px] font-medium text-muted-foreground mb-1.5">🎾 Oyun Tarzı</p>
+                  <p className="mb-1.5 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                    <Heart className="h-3 w-3" /> Oyun Tarzı
+                  </p>
                   <div className="flex flex-wrap gap-1.5">
                     {PLAY_STYLE_FILTER_OPTIONS.map(s => (
                       <button key={s.value} onClick={() => setPlayStyleFilter(playStyleFilter === s.value ? null : s.value)}
-                        className={cn("rounded-lg px-3 py-2 text-xs font-medium transition-all",
-                          playStyleFilter === s.value ? "text-white" : "bg-secondary text-secondary-foreground"
-                        )} style={playStyleFilter === s.value ? { background: 'hsl(var(--page-discover))' } : undefined}>
+                        className={cn("rounded-full px-3.5 py-2 text-xs font-semibold transition-all",
+                          playStyleFilter === s.value ? "bg-secondary text-secondary-foreground shadow-soft" : "bg-muted text-foreground"
+                        )}>
                         {s.label}
                       </button>
                     ))}
@@ -343,13 +352,15 @@ export default function Discover() {
                 </div>
                 {/* Size */}
                 <div>
-                  <p className="text-[11px] font-medium text-muted-foreground mb-1.5">📏 Boyut</p>
+                  <p className="mb-1.5 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                    <Ruler className="h-3 w-3" /> Boyut
+                  </p>
                   <div className="flex gap-1.5">
                     {SIZE_FILTER_OPTIONS.map(s => (
                       <button key={s.value} onClick={() => setSizeFilter(sizeFilter === s.value ? null : s.value)}
-                        className={cn("flex-1 rounded-lg py-2 text-xs font-medium transition-all",
-                          sizeFilter === s.value ? "text-white" : "bg-secondary text-secondary-foreground"
-                        )} style={sizeFilter === s.value ? { background: 'hsl(var(--page-discover))' } : undefined}>
+                        className={cn("flex-1 rounded-full py-2 text-xs font-semibold transition-all",
+                          sizeFilter === s.value ? "bg-secondary text-secondary-foreground shadow-soft" : "bg-muted text-foreground"
+                        )}>
                         {s.label}
                       </button>
                     ))}
@@ -357,27 +368,29 @@ export default function Discover() {
                 </div>
                 {/* Social Style */}
                 <div>
-                  <p className="text-[11px] font-medium text-muted-foreground mb-1.5">🐾 Sosyallik</p>
+                  <p className="mb-1.5 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                    <PawPrint className="h-3 w-3" /> Sosyallik
+                  </p>
                   <div className="flex gap-1.5">
                     {SOCIAL_STYLE_OPTIONS.map(s => (
                       <button key={s.value} onClick={() => setSocialStyleFilter(socialStyleFilter === s.value ? null : s.value)}
-                        className={cn("flex-1 rounded-lg py-2 text-xs font-medium transition-all",
-                          socialStyleFilter === s.value ? "text-white" : "bg-secondary text-secondary-foreground"
-                        )} style={socialStyleFilter === s.value ? { background: 'hsl(var(--page-discover))' } : undefined}>
-                        {s.icon} {s.label}
+                        className={cn("flex-1 rounded-full py-2 text-xs font-semibold transition-all",
+                          socialStyleFilter === s.value ? "bg-secondary text-secondary-foreground shadow-soft" : "bg-muted text-foreground"
+                        )}>
+                        {s.label}
                       </button>
                     ))}
                   </div>
                 </div>
                 {/* Neutered */}
                 <div>
-                  <p className="text-[11px] font-medium text-muted-foreground mb-1.5">✂️ Kısırlaştırma</p>
+                  <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Kısırlaştırma</p>
                   <div className="flex gap-1.5">
-                    {[{ value: 'yes', label: '✓ Kısır' }, { value: 'no', label: '✗ Değil' }].map(n => (
+                    {[{ value: 'yes', label: 'Kısır' }, { value: 'no', label: 'Değil' }].map(n => (
                       <button key={n.value} onClick={() => setNeuteredFilter(neuteredFilter === n.value ? null : n.value)}
-                        className={cn("flex-1 rounded-lg py-2 text-xs font-medium transition-all",
-                          neuteredFilter === n.value ? "text-white" : "bg-secondary text-secondary-foreground"
-                        )} style={neuteredFilter === n.value ? { background: 'hsl(var(--page-discover))' } : undefined}>
+                        className={cn("flex-1 rounded-full py-2 text-xs font-semibold transition-all",
+                          neuteredFilter === n.value ? "bg-secondary text-secondary-foreground shadow-soft" : "bg-muted text-foreground"
+                        )}>
                         {n.label}
                       </button>
                     ))}
@@ -385,12 +398,14 @@ export default function Discover() {
                 </div>
                 {/* Shelter */}
                 <div>
-                  <p className="text-[11px] font-medium text-muted-foreground mb-1.5">🏠 Barınak</p>
+                  <p className="mb-1.5 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                    <Home className="h-3 w-3" /> Barınak
+                  </p>
                   <button onClick={() => setShelterFilter(!shelterFilter)}
-                    className={cn("rounded-lg px-4 py-2 text-xs font-medium transition-all",
-                      shelterFilter ? "text-white" : "bg-secondary text-secondary-foreground"
-                    )} style={shelterFilter ? { background: 'hsl(var(--page-discover))' } : undefined}>
-                    🏠 Barınaktan
+                    className={cn("rounded-full px-4 py-2 text-xs font-semibold transition-all",
+                      shelterFilter ? "bg-secondary text-secondary-foreground shadow-soft" : "bg-muted text-foreground"
+                    )}>
+                    Barınaktan
                   </button>
                 </div>
               </PopoverContent>

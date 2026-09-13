@@ -286,21 +286,22 @@ export default function Park() {
           <img src={dogiLogo} alt="" className="h-[70vh] w-[70vh] object-contain" />
         </div>
 
-        <header className="sticky top-0 z-40 border-b px-4 py-4" style={{ background: 'hsl(var(--page-park))' }}>
+        <header className="sticky top-0 z-40 border-b border-border/60 bg-background/90 backdrop-blur-xl px-5 pt-6 pb-4">
           <div className="flex items-center gap-3">
-            <img src={dogiLogo} alt="DOGI" className="h-[50px] w-[50px] rounded-xl" />
+            <img src={dogiLogo} alt="doginn" className="h-[44px] w-[44px] rounded-2xl shadow-soft" />
             <div>
-              <h1 className="font-display text-lg font-bold text-white">Park</h1>
-              <p className="text-xs text-white/60">Şehrini seç, parkını bul</p>
+              <h1 className="font-display text-2xl font-bold text-foreground tracking-tight">Park</h1>
+              <p className="text-[11px] text-muted-foreground">Şehrini seç, parkını bul</p>
             </div>
           </div>
         </header>
 
         <div className="px-4 py-6 space-y-4 relative z-10">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">📍 Şehir Seç</h2>
+          <h2 className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+            <MapPin className="h-3 w-3" /> Şehir Seç
+          </h2>
 
           {cityGroups.map((group) => {
-            const cityEmoji = group.city === 'İstanbul' ? '🌉' : group.city === 'Muğla' ? '🏖️' : group.city === 'Ankara' ? '🏛️' : '🌊';
             return (
               <button
                 key={group.city}
@@ -308,12 +309,14 @@ export default function Park() {
                   setSelectedCity(group.city);
                   setViewState('park-select');
                 }}
-                className="w-full rounded-2xl border bg-card p-5 text-left transition-all hover:shadow-md active:scale-[0.98]"
+                className="w-full rounded-2xl border border-border bg-card p-5 text-left transition-all hover:shadow-md active:scale-[0.98]"
                 style={{ boxShadow: 'var(--shadow-card)' }}
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
-                    <span className="text-3xl">{cityEmoji}</span>
+                    <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-muted">
+                      <MapPin className="h-5 w-5 text-secondary" />
+                    </span>
                     <div>
                       <h3 className="font-display text-lg font-bold text-foreground">{group.city}</h3>
                       <p className="text-sm text-muted-foreground">

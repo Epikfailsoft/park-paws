@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react';
+import { MapPin, PawPrint, Zap } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { SOCIAL_STYLE_OPTIONS } from '@/types/dogspace';
 import type { DiscoverDog } from '@/types/dogspace';
@@ -116,8 +117,9 @@ export function SwipeCard({ dog, onSwipeLeft, onSwipeRight, onTap, isTop, hasWav
 
       {/* Already woofed badge */}
       {hasWaved && (
-        <div className="absolute top-4 left-4 z-20 rounded-full bg-green-500/90 px-3 py-1">
-          <span className="text-xs font-bold text-white">🐕 Havladın</span>
+        <div className="absolute top-4 left-4 z-20 flex items-center gap-1.5 rounded-full bg-primary/90 px-3 py-1.5 backdrop-blur-sm">
+          <PawPrint className="h-3 w-3 text-primary-foreground" />
+          <span className="text-xs font-bold text-primary-foreground">Havladın</span>
         </div>
       )}
 
@@ -136,19 +138,27 @@ export function SwipeCard({ dog, onSwipeLeft, onSwipeRight, onTap, isTop, hasWav
               )}
               {socialStyle && (
                 <span className="rounded-full bg-white/20 backdrop-blur-sm px-2 py-0.5 text-xs font-medium">
-                  {socialStyle.icon} {socialStyle.label}
+                  {socialStyle.label}
                 </span>
               )}
             </div>
-            <div className="flex items-center gap-2 mt-1.5 text-xs text-white/70">
+            <div className="flex items-center gap-3 mt-1.5 text-xs text-white/70">
               {dog.distance_km != null && (
-                <span>📍 {dog.distance_km < 1 ? `${Math.round(dog.distance_km * 1000)} m` : `${dog.distance_km.toFixed(1)} km`}</span>
+                <span className="flex items-center gap-1">
+                  <MapPin className="h-3 w-3" />
+                  {dog.distance_km < 1 ? `${Math.round(dog.distance_km * 1000)} m` : `${dog.distance_km.toFixed(1)} km`}
+                </span>
               )}
               {dog.current_park_name && (
-                <span className="font-semibold text-green-400">🟢 {dog.current_park_name}</span>
+                <span className="flex items-center gap-1 font-semibold text-primary">
+                  <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+                  {dog.current_park_name}
+                </span>
               )}
               {dog.playdate_on && !dog.current_park_name && (
-                <span className="font-semibold text-blue-400">🎾 Playdate</span>
+                <span className="flex items-center gap-1 font-semibold text-accent">
+                  <Zap className="h-3 w-3" /> Playdate
+                </span>
               )}
             </div>
             {dog.owner_name_stub && (
@@ -160,7 +170,7 @@ export function SwipeCard({ dog, onSwipeLeft, onSwipeRight, onTap, isTop, hasWav
                     {dog.owner_name_stub[0]}
                   </div>
                 )}
-                <span className="text-xs text-white/60">👨‍👩‍👦 {dog.owner_name_stub}</span>
+                <span className="text-xs text-white/60">{dog.owner_name_stub}</span>
               </div>
             )}
           </div>
