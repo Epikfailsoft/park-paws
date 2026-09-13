@@ -1,5 +1,5 @@
 /* Must stay first: browsers drop an @import that follows any other rule, and @tailwind expands into rules. */
-@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Figtree:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -13,28 +13,29 @@
 
 @layer base {
   :root {
-    /* doginn core palette */
-    /* Krem #FFF6E8 */
-    --background: 38 100% 95%;
-    --foreground: 0 0% 20%;
+    /* doginn core palette — Botanical (Orman & Krem) */
+    /* Krem #FDFCF8 */
+    --background: 60 33% 98%;
+    /* Derin Orman #214E3A */
+    --foreground: 152 41% 22%;
 
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 20%;
+    --card-foreground: 152 41% 22%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 20%;
+    --popover-foreground: 152 41% 22%;
 
     /* Primary - Park Yeşili #4CAF6B */
     --primary: 134 39% 49%;
-    --primary-foreground: 38 100% 97%;
+    --primary-foreground: 60 33% 98%;
 
-    /* Secondary - Kömür Gri #333 */
-    --secondary: 0 0% 20%;
-    --secondary-foreground: 38 100% 97%;
+    /* Secondary - Derin Orman */
+    --secondary: 152 41% 22%;
+    --secondary-foreground: 60 33% 98%;
 
-    /* Muted */
-    --muted: 38 30% 88%;
-    --muted-foreground: 0 0% 35%;
+    /* Muted - Adaçayı */
+    --muted: 60 9% 93%;
+    --muted-foreground: 90 6% 45%;
 
     /* Accent - Sıcak Turuncu #FF8A3D */
     --accent: 21 100% 62%;
