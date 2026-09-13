@@ -235,13 +235,13 @@ export default function Discover() {
   return (
     <div className="relative min-h-screen safe-top safe-bottom flex flex-col bg-background">
       {/* HEADER */}
-      <header className="sticky top-0 z-40 border-b px-4 py-3" style={{ background: 'hsl(var(--page-discover))' }}>
+      <header className="sticky top-0 z-40 border-b border-border/60 bg-background/90 backdrop-blur-xl px-5 pt-6 pb-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <img src={dogiLogo} alt="DOGI" className="h-[44px] w-[44px] rounded-xl" />
+            <img src={dogiLogo} alt="doginn" className="h-[44px] w-[44px] rounded-2xl shadow-soft" />
             <div>
-              <h1 className="font-display text-lg font-bold text-white leading-tight">Keşfet</h1>
-              <p className="text-[11px] text-white/70">
+              <h1 className="font-display text-2xl font-bold text-foreground leading-tight tracking-tight">Keşfet</h1>
+              <p className="text-[11px] text-muted-foreground">
                 {neighborhoodName ? `${neighborhoodName} · ` : ''}{getTimeContext()} · {totalMembers} üye
               </p>
             </div>
