@@ -6,7 +6,7 @@ import { SwipeCard } from '@/components/discover/SwipeCard';
 import { DogProfileSheet } from '@/components/shared/DogProfileSheet';
 import type { DogProfileData } from '@/components/shared/DogProfileSheet';
 import { MapView } from '@/components/discover/MapView';
-import { Compass, Loader2, SlidersHorizontal, Heart, X, RotateCcw, Map, Layers } from 'lucide-react';
+import { Compass, Loader2, SlidersHorizontal, Heart, X, RotateCcw, Map, Layers, MapPin, Zap, Ruler, PawPrint, Home } from 'lucide-react';
 import dogiLogo from '@/assets/dogi-logo.png';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -304,13 +304,15 @@ export default function Discover() {
                 </div>
                 {/* Gender */}
                 <div>
-                  <p className="text-[11px] font-medium text-muted-foreground mb-1.5">⚧ Cinsiyet</p>
+                  <p className="mb-1.5 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                    <PawPrint className="h-3 w-3" /> Cinsiyet
+                  </p>
                   <div className="flex gap-1.5">
                     {GENDER_FILTER_OPTIONS.map(g => (
                       <button key={g.value} onClick={() => setGenderFilter(genderFilter === g.value ? null : g.value)}
-                        className={cn("flex-1 rounded-lg py-2 text-xs font-medium transition-all",
-                          genderFilter === g.value ? "text-white" : "bg-secondary text-secondary-foreground"
-                        )} style={genderFilter === g.value ? { background: 'hsl(var(--page-discover))' } : undefined}>
+                        className={cn("flex-1 rounded-full py-2 text-xs font-semibold transition-all",
+                          genderFilter === g.value ? "bg-secondary text-secondary-foreground shadow-soft" : "bg-muted text-foreground"
+                        )}>
                         {g.label}
                       </button>
                     ))}
@@ -318,13 +320,15 @@ export default function Discover() {
                 </div>
                 {/* Energy */}
                 <div>
-                  <p className="text-[11px] font-medium text-muted-foreground mb-1.5">⚡ Enerji</p>
+                  <p className="mb-1.5 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                    <Zap className="h-3 w-3" /> Enerji
+                  </p>
                   <div className="flex gap-1.5">
                     {ENERGY_FILTER_OPTIONS.map(e => (
                       <button key={e.value} onClick={() => setEnergyFilter(energyFilter === e.level ? null : e.level)}
-                        className={cn("flex-1 rounded-lg py-2 text-xs font-medium transition-all",
-                          energyFilter === e.level ? "text-white" : "bg-secondary text-secondary-foreground"
-                        )} style={energyFilter === e.level ? { background: 'hsl(var(--page-discover))' } : undefined}>
+                        className={cn("flex-1 rounded-full py-2 text-xs font-semibold transition-all",
+                          energyFilter === e.level ? "bg-secondary text-secondary-foreground shadow-soft" : "bg-muted text-foreground"
+                        )}>
                         {e.label}
                       </button>
                     ))}
@@ -332,13 +336,15 @@ export default function Discover() {
                 </div>
                 {/* Play Style */}
                 <div>
-                  <p className="text-[11px] font-medium text-muted-foreground mb-1.5">🎾 Oyun Tarzı</p>
+                  <p className="mb-1.5 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                    <Heart className="h-3 w-3" /> Oyun Tarzı
+                  </p>
                   <div className="flex flex-wrap gap-1.5">
                     {PLAY_STYLE_FILTER_OPTIONS.map(s => (
                       <button key={s.value} onClick={() => setPlayStyleFilter(playStyleFilter === s.value ? null : s.value)}
-                        className={cn("rounded-lg px-3 py-2 text-xs font-medium transition-all",
-                          playStyleFilter === s.value ? "text-white" : "bg-secondary text-secondary-foreground"
-                        )} style={playStyleFilter === s.value ? { background: 'hsl(var(--page-discover))' } : undefined}>
+                        className={cn("rounded-full px-3.5 py-2 text-xs font-semibold transition-all",
+                          playStyleFilter === s.value ? "bg-secondary text-secondary-foreground shadow-soft" : "bg-muted text-foreground"
+                        )}>
                         {s.label}
                       </button>
                     ))}
@@ -346,13 +352,15 @@ export default function Discover() {
                 </div>
                 {/* Size */}
                 <div>
-                  <p className="text-[11px] font-medium text-muted-foreground mb-1.5">📏 Boyut</p>
+                  <p className="mb-1.5 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                    <Ruler className="h-3 w-3" /> Boyut
+                  </p>
                   <div className="flex gap-1.5">
                     {SIZE_FILTER_OPTIONS.map(s => (
                       <button key={s.value} onClick={() => setSizeFilter(sizeFilter === s.value ? null : s.value)}
-                        className={cn("flex-1 rounded-lg py-2 text-xs font-medium transition-all",
-                          sizeFilter === s.value ? "text-white" : "bg-secondary text-secondary-foreground"
-                        )} style={sizeFilter === s.value ? { background: 'hsl(var(--page-discover))' } : undefined}>
+                        className={cn("flex-1 rounded-full py-2 text-xs font-semibold transition-all",
+                          sizeFilter === s.value ? "bg-secondary text-secondary-foreground shadow-soft" : "bg-muted text-foreground"
+                        )}>
                         {s.label}
                       </button>
                     ))}
@@ -360,27 +368,29 @@ export default function Discover() {
                 </div>
                 {/* Social Style */}
                 <div>
-                  <p className="text-[11px] font-medium text-muted-foreground mb-1.5">🐾 Sosyallik</p>
+                  <p className="mb-1.5 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                    <PawPrint className="h-3 w-3" /> Sosyallik
+                  </p>
                   <div className="flex gap-1.5">
                     {SOCIAL_STYLE_OPTIONS.map(s => (
                       <button key={s.value} onClick={() => setSocialStyleFilter(socialStyleFilter === s.value ? null : s.value)}
-                        className={cn("flex-1 rounded-lg py-2 text-xs font-medium transition-all",
-                          socialStyleFilter === s.value ? "text-white" : "bg-secondary text-secondary-foreground"
-                        )} style={socialStyleFilter === s.value ? { background: 'hsl(var(--page-discover))' } : undefined}>
-                        {s.icon} {s.label}
+                        className={cn("flex-1 rounded-full py-2 text-xs font-semibold transition-all",
+                          socialStyleFilter === s.value ? "bg-secondary text-secondary-foreground shadow-soft" : "bg-muted text-foreground"
+                        )}>
+                        {s.label}
                       </button>
                     ))}
                   </div>
                 </div>
                 {/* Neutered */}
                 <div>
-                  <p className="text-[11px] font-medium text-muted-foreground mb-1.5">✂️ Kısırlaştırma</p>
+                  <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Kısırlaştırma</p>
                   <div className="flex gap-1.5">
-                    {[{ value: 'yes', label: '✓ Kısır' }, { value: 'no', label: '✗ Değil' }].map(n => (
+                    {[{ value: 'yes', label: 'Kısır' }, { value: 'no', label: 'Değil' }].map(n => (
                       <button key={n.value} onClick={() => setNeuteredFilter(neuteredFilter === n.value ? null : n.value)}
-                        className={cn("flex-1 rounded-lg py-2 text-xs font-medium transition-all",
-                          neuteredFilter === n.value ? "text-white" : "bg-secondary text-secondary-foreground"
-                        )} style={neuteredFilter === n.value ? { background: 'hsl(var(--page-discover))' } : undefined}>
+                        className={cn("flex-1 rounded-full py-2 text-xs font-semibold transition-all",
+                          neuteredFilter === n.value ? "bg-secondary text-secondary-foreground shadow-soft" : "bg-muted text-foreground"
+                        )}>
                         {n.label}
                       </button>
                     ))}
@@ -388,12 +398,14 @@ export default function Discover() {
                 </div>
                 {/* Shelter */}
                 <div>
-                  <p className="text-[11px] font-medium text-muted-foreground mb-1.5">🏠 Barınak</p>
+                  <p className="mb-1.5 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                    <Home className="h-3 w-3" /> Barınak
+                  </p>
                   <button onClick={() => setShelterFilter(!shelterFilter)}
-                    className={cn("rounded-lg px-4 py-2 text-xs font-medium transition-all",
-                      shelterFilter ? "text-white" : "bg-secondary text-secondary-foreground"
-                    )} style={shelterFilter ? { background: 'hsl(var(--page-discover))' } : undefined}>
-                    🏠 Barınaktan
+                    className={cn("rounded-full px-4 py-2 text-xs font-semibold transition-all",
+                      shelterFilter ? "bg-secondary text-secondary-foreground shadow-soft" : "bg-muted text-foreground"
+                    )}>
+                    Barınaktan
                   </button>
                 </div>
               </PopoverContent>
