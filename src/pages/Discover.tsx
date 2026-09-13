@@ -249,18 +249,18 @@ export default function Discover() {
 
           <div className="flex items-center gap-2">
             {/* View toggle */}
-            <div className="flex rounded-full bg-white/15 p-0.5">
+            <div className="flex rounded-full bg-muted p-0.5">
               <button onClick={() => setViewMode('swipe')}
                 className={cn("flex items-center justify-center h-8 w-8 rounded-full transition-all",
-                  viewMode === 'swipe' ? "bg-white/30" : ""
+                  viewMode === 'swipe' ? "bg-card shadow-soft" : ""
                 )}>
-                <Layers className="h-4 w-4 text-white" />
+                <Layers className="h-4 w-4 text-foreground" />
               </button>
               <button onClick={() => setViewMode('map')}
                 className={cn("flex items-center justify-center h-8 w-8 rounded-full transition-all",
-                  viewMode === 'map' ? "bg-white/30" : ""
+                  viewMode === 'map' ? "bg-card shadow-soft" : ""
                 )}>
-                <Map className="h-4 w-4 text-white" />
+                <Map className="h-4 w-4 text-foreground" />
               </button>
             </div>
 
@@ -269,31 +269,34 @@ export default function Discover() {
               <PopoverTrigger asChild>
                 <button className={cn(
                   "relative flex items-center justify-center h-9 w-9 rounded-full border transition-all",
-                  showFilters || activeFilterCount > 0 ? "border-white/50 bg-white/20" : "border-white/30 bg-white/10"
+                  showFilters || activeFilterCount > 0 ? "border-secondary bg-secondary text-secondary-foreground" : "border-border bg-card text-foreground"
                 )}>
-                  <SlidersHorizontal className="h-4 w-4 text-white" />
+                  <SlidersHorizontal className="h-4 w-4" />
                   {activeFilterCount > 0 && (
-                    <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-white text-[9px] font-bold"
-                      style={{ color: 'hsl(var(--page-discover))' }}>{activeFilterCount}</span>
+                    <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[9px] font-bold text-primary-foreground">{activeFilterCount}</span>
                   )}
                 </button>
               </PopoverTrigger>
-              <PopoverContent align="end" className="w-80 p-4 space-y-3 max-h-[70vh] overflow-y-auto" sideOffset={8}>
+              <PopoverContent align="end" className="w-80 p-5 space-y-4 max-h-[70vh] overflow-y-auto rounded-2xl shadow-elevated" sideOffset={8}>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-semibold text-foreground">Filtreler</span>
+                  <span className="font-display text-base font-bold text-foreground">Filtreler</span>
                   {activeFilterCount > 0 && (
-                    <button onClick={clearAllFilters} className="text-xs font-medium" style={{ color: 'hsl(var(--page-discover))' }}>⟲ Sıfırla</button>
+                    <button onClick={clearAllFilters} className="flex items-center gap-1 text-xs font-semibold text-primary">
+                      <RotateCcw className="h-3 w-3" /> Sıfırla
+                    </button>
                   )}
                 </div>
                 {/* Distance */}
                 <div>
-                  <p className="text-[11px] font-medium text-muted-foreground mb-1.5">📍 Mesafe</p>
+                  <p className="mb-1.5 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                    <MapPin className="h-3 w-3" /> Mesafe
+                  </p>
                   <div className="flex gap-1.5">
                     {[1, 2, 5, 10].map(km => (
                       <button key={km} onClick={() => setDistance(km)}
-                        className={cn("flex-1 rounded-lg py-2 text-xs font-medium transition-all",
-                          distance === km ? "text-white" : "bg-secondary text-secondary-foreground"
-                        )} style={distance === km ? { background: 'hsl(var(--page-discover))' } : undefined}>
+                        className={cn("flex-1 rounded-full py-2 text-xs font-semibold transition-all",
+                          distance === km ? "bg-secondary text-secondary-foreground shadow-soft" : "bg-muted text-foreground"
+                        )}>
                         {km} km
                       </button>
                     ))}
